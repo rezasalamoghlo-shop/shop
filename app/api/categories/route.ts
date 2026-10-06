@@ -1,0 +1,3 @@
+import{NextResponse}from"next/server";import{createClient}from"@supabase/supabase-js";
+export const revalidate=30;
+export async function GET(){const s=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);const{x,error}=await s.from("categories").select("id,name,slug,description,sort_order,is_active").eq("is_active",true).order("sort_order").order("name");if(error)return NextResponse.json({error:"خطا در دریافت دسته‌بندی‌ها."},{status:503});return NextResponse.json({categories:x||[]},{headers:{"Cache-Control":"public, s-maxage=30, stale-while-revalidate=300"}})}
