@@ -1,0 +1,19 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f7f9;
+  color: #171717;
+}
+a { color: inherit; text-decoration: none; }
+.container { max-width: 1200px; margin: 0 auto; padding: 32px 20px; }
+.header {
+  background: #111827; color: white; padding: 18px 0;
+}
+.header-inner { max-width: 1200px; margin: auto; padding: 0 20px; display:flex; justify-content:space-between; align-items:center; }
+.hero { padding: 48px 0 24px; }
+.hero h1 { margin: 0 0 12px; font-size: 38px; }
+.products { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+.card { background:white; border-radius:14px; padding:20px; border:1px solid #e5e7eb; }
+.price { font-weight:700; margin-top:15px; }
+.muted { color:#6b7280; }
