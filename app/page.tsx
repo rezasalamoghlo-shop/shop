@@ -1,49 +1,15 @@
-import { supabase } from "@/lib/supabase";
-
-export default async function Home() {
-  let products: Array<{ id: string; name: string; description: string | null; price: number }> = [];
-
-  if (supabase) {
-    const { data } = await supabase
-      .from("products")
-      .select("id,name,description,price")
-      .order("created_at", { ascending: false });
-
-    products = (data ?? []) as typeof products;
-  }
-
-  return (
-    <>
-      <header className="header">
-        <div className="header-inner">
-          <strong>فروشگاه من</strong>
-          <span>محصولات</span>
-        </div>
-      </header>
-
-      <main className="container">
-        <section className="hero">
-          <h1>فروشگاه آنلاین</h1>
-          <p className="muted">فرانت‌اند Next.js روی Vercel، بک‌اند Supabase</p>
-        </section>
-
-        <section>
-          <h2>محصولات</h2>
-          {products.length === 0 ? (
-            <p className="muted">هنوز محصولی برای نمایش ثبت نشده است.</p>
-          ) : (
-            <div className="products">
-              {products.map((product) => (
-                <article className="card" key={product.id}>
-                  <h3>{product.name}</h3>
-                  {product.description && <p className="muted">{product.description}</p>}
-                  <div className="price">{Number(product.price).toLocaleString("fa-IR")} تومان</div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
-    </>
-  );
-}
+"use client";
+import {useEffect,useMemo,useState} from "react"; import {supabase} from "@/lib/supabase";
+type P={id:string;name:string;description:string|null;price:number;image_url:string|null}; type S={store_name:string;store_name_en:string;hero_title:string;hero_text:string;card_number:string|null;support_phone:string|null}; type C=P&{quantity:number};
+const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(n)+" تومان";
+export default function Home(){const[p,setP]=useState<P[]>([]),[s,setS]=useState<S>({store_name:"عطر کهکشان",store_name_en:"GALAXY",hero_title:"عطرهای ترند فصل",hero_text:"رایحه‌ای که پیش از شما وارد اتاق می‌شود.",card_number:null,support_phone:null}),[cart,setCart]=useState<C[]>([]),[bag,setBag]=useState(false),[checkout,setCheckout]=useState(false);
+useEffect(()=>{(async()=>{const a=await supabase?.from("products").select("id,name,description,price,image_url").order("created_at",{ascending:false});const b=await supabase?.from("store_settings").select("*").limit(1).maybeSingle();setP((a?.data??[]) as P[]);if(b?.data)setS(b.data as S)})()},[]);
+const total=useMemo(()=>cart.reduce((a,x)=>a+x.price*x.quantity,0),[cart]); const add=(x:P)=>setCart(c=>{const q=c.find(i=>i.id===x.id);return q?c.map(i=>i.id===x.id?{...i,quantity:i.quantity+1}:i):[...c,{...x,quantity:1}]});
+return <main><header><a href="#home" className="brand">{s.store_name}<small>{s.store_name_en}</small></a><nav><a href="#products">عطرها</a><a href="#about">کهکشان</a><a href="#support">پشتیبانی</a></nav><div className="actions"><a href="/admin/login">♙ ورود</a><button onClick={()=>setBag(true)}>🛍 سبد ({cart.length})</button></div></header>
+<section id="home" className="hero"><div className="hero-copy"><span>GALAXY PERFUMERY</span><h1>{s.hero_title}</h1><p>{s.hero_text}</p><a className="gold" href="#products">کشف رایحه‌ها ↓</a></div></section>
+<section id="about" className="intro"><span>THE GALAXY</span><h2>رایحه، امضای شماست.</h2><p>انتخابی لوکس از عطرها و ادکلن‌ها برای لحظه‌هایی که باید ماندگار شوند.</p></section>
+<section id="products" className="catalog"><div className="section-head"><div><span>CURATED COLLECTION</span><h2>محصولات منتخب</h2></div><b>{p.length} رایحه</b></div>{p.length?<div className="grid">{p.map(x=><article className="card" key={x.id}><div className="photo">{x.image_url?<img src={x.image_url} alt={x.name}/>:<strong>✦</strong>}</div><h3>{x.name}</h3><p>{x.description}</p><div className="row"><b>{money(Number(x.price))}</b><button onClick={()=>add(x)}>افزودن +</button></div></article>)}</div>:<div className="empty">هنوز محصولی ثبت نشده است.</div>}</section>
+<section id="support" className="support"><div><span>NEED HELP?</span><h2>برای انتخاب رایحه کنار شما هستیم.</h2><p>برای انتخاب عطر یا پیگیری سفارش با پشتیبانی در ارتباط باشید.</p></div><a className="gold" href={s.support_phone?"tel:"+s.support_phone:"#"}>☏ پشتیبانی</a></section><footer>{s.store_name} · {s.store_name_en}</footer>
+{bag&&<div className="overlay"><aside className="drawer"><button className="x" onClick={()=>setBag(false)}>×</button><span>YOUR BAG</span><h2>سبد خرید</h2>{cart.length?cart.map(x=><div className="cart" key={x.id}><b>{x.name}</b><div><button onClick={()=>setCart(c=>c.map(i=>i.id===x.id?{...i,quantity:Math.max(1,i.quantity-1)}:i))}>−</button>{x.quantity}<button onClick={()=>setCart(c=>c.map(i=>i.id===x.id?{...i,quantity:i.quantity+1}:i))}>+</button></div></div>):<div className="empty">سبد خالی است.</div>}<h3 className="total">جمع: {money(total)}</h3>{cart.length>0&&<button className="gold full" onClick={()=>{setBag(false);setCheckout(true)}}>ثبت سفارش</button>}</aside></div>}
+{checkout&&<Checkout s={s} cart={cart} total={total} close={()=>setCheckout(false)} done={()=>{setCart([]);setCheckout(false)}}/>}</main>}
+function Checkout({s,cart,total,close,done}:{s:S;cart:C[];total:number;close:()=>void;done:()=>void}){const[f,setF]=useState<any>({customer_full_name:"",phone:"",province:"",city:"",address:"",postal_code:"",payer_full_name:"",payment_tracking_code:""}),[step,setStep]=useState(1),[msg,setMsg]=useState("");const set=(k:string,v:string)=>setF((x:any)=>({...x,[k]:v}));const send=async()=>{const r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...f,total_price:total,payment_method:"card_to_card",items:cart.map(x=>({product_id:x.id,quantity:x.quantity,price:x.price}))})});const d=await r.json();if(!r.ok)setMsg(d.error||"خطا در ثبت سفارش");else{setMsg("سفارش ثبت شد و منتظر تأیید پرداخت است.");setTimeout(done,1000)}};return <div className="overlay"><div className="checkout"><button className="x" onClick={close}>×</button><span>STEP {step} / 2</span>{step===1?<><h2>اطلاعات ارسال</h2><div className="fields">{[["customer_full_name","نام و نام خانوادگی"],["phone","شماره تماس"],["province","استان"],["city","شهرستان"],["postal_code","کدپستی"]].map(([k,l])=><label key={k}>{l}<input value={f[k]} onChange={e=>set(k,e.target.value)} /></label>)}<label>آدرس دقیق<textarea value={f.address} onChange={e=>set("address",e.target.value)}/></label></div><button className="gold full" onClick={()=>{if(Object.values(f).slice(0,6).some((x:any)=>!x)){setMsg("همه فیلدهای ارسال اجباری هستند.");return}setMsg("");setStep(2)}}>ادامه به پرداخت</button></>:<><h2>کارت به کارت</h2><div className="payment"><small>مبلغ قابل پرداخت</small><strong>{money(total)}</strong><small>شماره کارت فروشگاه</small><code>{s.card_number||"هنوز ثبت نشده"}</code></div><label>نام و نام خانوادگی واریز کننده<input value={f.payer_full_name} onChange={e=>set("payer_full_name",e.target.value)}/></label><label>شناسه پرداخت<input value={f.payment_tracking_code} onChange={e=>set("payment_tracking_code",e.target.value)}/></label>{msg&&<p>{msg}</p>}<button className="gold full" onClick={()=>{if(!f.payer_full_name||!f.payment_tracking_code){setMsg("نام و شناسه پرداخت اجباری است.");return}send()}}>ثبت نهایی سفارش</button></>}</div></div>}
