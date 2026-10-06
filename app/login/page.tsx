@@ -1,0 +1,10 @@
+"use client";
+import {useEffect,useState} from "react";
+import {createSupabaseBrowserClient} from "@/lib/supabase-browser";
+export default function Login(){
+ const supabase=createSupabaseBrowserClient(); const[email,setEmail]=useState(""),[password,setPassword]=useState(""),[msg,setMsg]=useState(""),[busy,setBusy]=useState(false);
+ useEffect(()=>{supabase.auth.getUser().then(({data})=>{if(data.user)location.href="/account"})},[]);
+ async function attachPending(){const token=localStorage.getItem("galaxy_pending_order_token");if(!token)return;const{data:{session}}=await supabase.auth.getSession();if(!session)return;await fetch("/api/orders/attach",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},body:JSON.stringify({token})});localStorage.removeItem("galaxy_pending_order_token")}
+ async function go(){if(busy)return;setBusy(true);setMsg("");const{error}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(error){setMsg("ایمیل یا رمز عبور صحیح نیست.");setBusy(false);return}await attachPending();location.href="/account"}
+ return <main className="customer-auth"><div className="auth-card"><span>GALAXY MEMBER</span><h1>ورود به عطر کهکشان</h1><p>با ورود به حساب، سفارش‌ها و مزایای عضویت شما در دسترس خواهند بود.</p><label>ایمیل<input type="email" dir="ltr" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>رمز عبور<input type="password" dir="ltr" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{msg&&<div className="auth-msg">{msg}</div>}<button className="gold full" disabled={busy||!email||!password} onClick={go}>{busy?"در حال ورود...":"ورود"}</button><a className="auth-secondary" href="/">بازگشت به فروشگاه</a><div className="admin-entry"><a href="/admin/login">ورود مدیریت فروشگاه</a></div></div></main>
+}
