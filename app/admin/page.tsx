@@ -42,6 +42,7 @@ export default function Admin() {
     discount_end: "",
     process_image: false,
     category_ids: [],
+    sizes: [],
   });
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
@@ -142,6 +143,7 @@ export default function Admin() {
       if (image) body.append("image", image);
       body.append("process_image", String(Boolean(form.process_image)));
       body.append("category_ids", JSON.stringify(form.category_ids || []));
+      body.append("sizes_json", JSON.stringify(form.sizes || []));
 
       const response = await fetch("/api/admin/products", {
         method,
@@ -172,6 +174,7 @@ export default function Admin() {
         discount_end: "",
         process_image: false,
         category_ids: [],
+        sizes: [],
       });
       setImage(null);
       await load();
@@ -337,6 +340,7 @@ export default function Admin() {
       category_ids: (product.category_ids || []).map((item: any) =>
         item.category_id || item
       ),
+      sizes: (product.sizes || []).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
     });
     setImage(null);
   }
@@ -609,6 +613,18 @@ export default function Admin() {
             />
           </label>
 
+          <div className="size-admin">
+            <div className="size-admin-head"><div><b>اندازه‌های قابل فروش</b><small>برای هر میل قیمت، تخفیف و موجودی مستقل تعیین کنید.</small></div><button type="button" className="outline" onClick={()=>updateForm("sizes",[...(form.sizes||[]),{size_ml:"10",price:"",discount_percent:"0",stock:"0",is_active:true}])}>+ افزودن اندازه</button></div>
+            {(form.sizes||[]).map((z:any,i:number)=><div className="size-admin-row" key={i}>
+              <label>میل<input inputMode="numeric" value={z.size_ml} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,size_ml:e.target.value};updateForm("sizes",a)}}/></label>
+              <label>قیمت<input inputMode="numeric" value={faPrice(z.price)} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,price:e.target.value};updateForm("sizes",a)}}/></label>
+              <label>تخفیف ٪<input inputMode="numeric" value={z.discount_percent} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,discount_percent:e.target.value};updateForm("sizes",a)}}/></label>
+              <label>موجودی<input inputMode="numeric" value={z.stock} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,stock:e.target.value};updateForm("sizes",a)}}/></label>
+              <button type="button" className="remove-size" onClick={()=>updateForm("sizes",(form.sizes||[]).filter((_:any,j:number)=>j!==i))}>حذف</button>
+            </div>)}
+            {!(form.sizes||[]).length&&<small className="upload-hint">هنوز اندازه‌ای تعریف نشده است. بطری کامل از اطلاعات اصلی محصول استفاده می‌کند.</small>}
+          </div>
+
           <fieldset className="category-picker">
             <legend>دسته‌بندی محصول</legend>
             {(data.categories || [])
@@ -693,7 +709,7 @@ export default function Admin() {
             <div>
               {product.image_url && <img src={product.image_url} alt="" />}
               <b>{product.name}</b>
-              <small>بطری کامل: {faPrice(product.price)} تومان | {product.full_size_ml} میل</small><small>هر میل: {faPrice(product.price_per_ml)} تومان</small><small>تخفیف بطری: {product.discount_percent || 0}٪ | تخفیف میلی: {product.per_ml_discount_percent || 0}٪</small>
+              <small>بطری کامل: {faPrice(product.price)} تومان | {product.full_size_ml} میل</small><small>هر میل: {faPrice(product.price_per_ml)} تومان</small><small>تخفیف بطری: {product.discount_percent || 0}٪ | تخفیف پایه میلی: {product.per_ml_discount_percent || 0}٪</small><small>اندازه‌ها: {(product.sizes||[]).map((z:any)=>`${z.size_ml} میل · ${faPrice(Number(z.price)*(1-Number(z.discount_percent||0)/100))} تومان · ${z.discount_percent||0}٪ · موجودی ${z.stock}`).join(" | ") || "تعریف نشده"}</small>
               <small>
                 {(product.categories || [])
                   .map((category: any) => category.name)
