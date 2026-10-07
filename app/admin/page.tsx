@@ -35,6 +35,9 @@ export default function Admin() {
     price: "",
     stock: "0",
     discount_percent: "0",
+    full_size_ml: "100",
+    price_per_ml: "",
+    per_ml_discount_percent: "0",
     discount_start: "",
     discount_end: "",
     process_image: false,
@@ -92,7 +95,10 @@ export default function Admin() {
       ["description", "توضیحات"],
       ["price", "قیمت"],
       ["stock", "موجودی"],
-      ["discount_percent", "درصد تخفیف"],
+      ["discount_percent", "درصد تخفیف بطری کامل"],
+      ["full_size_ml", "حجم بطری کامل"],
+      ["price_per_ml", "قیمت هر میل"],
+      ["per_ml_discount_percent", "درصد تخفیف فروش میلی"],
     ];
     const missing = required.find(
       ([key]) => !String(form[key] ?? "").trim()
@@ -106,6 +112,8 @@ export default function Admin() {
       setMessage("قیمت محصول باید بیشتر از صفر باشد.");
       return;
     }
+    if (priceNumber(form.full_size_ml) <= 0 || priceNumber(form.price_per_ml) <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
+    if (Number(form.per_ml_discount_percent) < 0 || Number(form.per_ml_discount_percent) > 100) { setMessage("درصد تخفیف فروش میلی باید بین صفر تا صد باشد."); return; }
     if (priceNumber(form.stock) < 0) {
       setMessage("موجودی نمی‌تواند منفی باشد.");
       return;
@@ -157,6 +165,9 @@ export default function Admin() {
         price: "",
         stock: "0",
         discount_percent: "0",
+        full_size_ml: "100",
+        price_per_ml: "",
+        per_ml_discount_percent: "0",
         discount_start: "",
         discount_end: "",
         process_image: false,
@@ -315,6 +326,9 @@ export default function Admin() {
     setForm({
       ...product,
       price: faPrice(product.price),
+      full_size_ml: String(product.full_size_ml ?? 100),
+      price_per_ml: faPrice(product.price_per_ml ?? 0),
+      per_ml_discount_percent: String(product.per_ml_discount_percent ?? 0),
       stock: String(product.stock ?? 0),
       discount_percent: String(product.discount_percent ?? 0),
       discount_start: product.discount_start || "",
@@ -563,6 +577,18 @@ export default function Admin() {
             />
           </label>
           <label>
+            حجم بطری کامل (میل)
+            <input inputMode="numeric" value={form.full_size_ml} onChange={event=>updateForm("full_size_ml",event.target.value)} />
+          </label>
+          <label>
+            قیمت هر میل
+            <input inputMode="numeric" value={faPrice(form.price_per_ml)} onChange={event=>updateForm("price_per_ml",event.target.value)} />
+          </label>
+          <label>
+            درصد تخفیف فروش میلی
+            <input inputMode="numeric" value={form.per_ml_discount_percent} onChange={event=>updateForm("per_ml_discount_percent",event.target.value)} />
+          </label>
+          <label>
             شروع تخفیف
             <input
               type="datetime-local"
@@ -667,7 +693,7 @@ export default function Admin() {
             <div>
               {product.image_url && <img src={product.image_url} alt="" />}
               <b>{product.name}</b>
-              <small>{faPrice(product.price)} تومان</small>
+              <small>بطری کامل: {faPrice(product.price)} تومان | {product.full_size_ml} میل</small><small>هر میل: {faPrice(product.price_per_ml)} تومان</small><small>تخفیف بطری: {product.discount_percent || 0}٪ | تخفیف میلی: {product.per_ml_discount_percent || 0}٪</small>
               <small>
                 {(product.categories || [])
                   .map((category: any) => category.name)
