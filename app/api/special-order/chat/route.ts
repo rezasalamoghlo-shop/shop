@@ -25,7 +25,8 @@ const nextKey=(p:Prefs)=>order.find(k=>(k!=="gift_occasion"||p.target==="هدی�
 const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","موجود دارید","قیمت"]))return"catalog";if(has(n,["سلام","درود"]))return"greeting";return"other"};
 async function info(s:any){const {data}=await s.from("store_settings").select("address,support_phone,social_links").limit(1).maybeSingle();return data||{}}
 function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;const add=(v:string|undefined,w:number)=>{if(v&&text.includes(normalize(v)))score+=w};add(p.product_type,10);add(p.gender,10);add(p.season,7);add(p.occasion,5);add(p.longevity,6);add(p.sillage,6);add(p.birth_month,4);for(const z of p.scent||[])add(z,12);if(typeof p.budget==="number"){const price=Number(x.price);if(price<=p.budget)score+=7;else if(price<=p.budget*1.1)score+=2;else score-=5}return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
-const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";\nconst questionAccepts=(key:keyof Prefs,message:string)=>{
+const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";
+const questionAccepts=(key:keyof Prefs,message:string)=>{
  const n=normalize(message);
  if(key==="product_type")return has(n,["عطر","پرفیوم","perfume","ادکلن","کولون","cologne"]);
  if(key==="gender")return has(n,["مرد","مردانه","پسر","آقا","زن","زنانه","دختر","خانم","یونی","یونیسکس","unisex"]);
