@@ -85,7 +85,9 @@ export async function POST(request:Request){try{
   return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs});
  }
  const extracted=extract(message,prefs,current||undefined);
- if(it==="greeting"&&!Object.keys(prefs).length)return NextResponse.json({order_id:String(b.order_id||""),reply:"به عطر کهکشان خوش آمدید ✦\nمن سلیقه شما را دقیق تحلیل می‌کنم. اول بگویید عطر می‌خواهید یا ادکلن؟",done:false,intent:"greeting",preferences:prefs});
+ // A greeting can be part of a complete request. Parse the entire message first,
+ // then greet only when the message contains no usable perfume preferences.
+ if(it==="greeting"&&!Object.keys(prefs).length&&extracted.length===0)return NextResponse.json({order_id:String(b.order_id||""),reply:"به عطر کهکشان خوش آمدید ✦\nمن سلیقه شما را دقیق تحلیل می‌کنم. اول بگویید عطر می‌خواهید یا ادکلن؟",done:false,intent:"greeting",preferences:prefs});
  if(current&&it!=="greeting"&&!questionAccepts(current,message)&&extracted.length===0)return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs});
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
  const next=nextKey(prefs);
