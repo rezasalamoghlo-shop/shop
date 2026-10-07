@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 const db=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
-type Prefs={product_type?:string;gender?:string;target?:string;occasion?:string;gift_occasion?:string;time?:string;season?:string;longevity?:string;sillage?:string;scent?:string[];birth_month?:string;budget?:number|null};
+type Prefs={product_type?:string;gender?:string;target?:string;occasion?:string;gift_occasion?:string;time?:string;season?:string;longevity?:string;sillage?:string;scent?:string[];birth_month?:string;budget?:number|null;first_name?:string;last_name?:string;phone?:string};
 const months=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
 const scentMap:[string,string[]][]=[["شیرین",["شیرین","وانیلی","کاراملی","میوه‌ای"]],["تند",["تند","ادویه‌ای","فلفلی"]],["خنک",["خنک","تازه","fresh"]],["ملایم",["ملایم","نرم","لطیف"]],["گرم",["گرم","عنبر","کهربا"]],["تلخ",["تلخ","bitter"]],["چوبی",["چوبی","wood","عود"]],["مرکباتی",["مرکبات","مرکباتی","citrus"]],["دریایی",["دریایی","آبی","aquatic","marine"]],["شرقی",["شرقی","oriental"]],["گلدار",["گل","گلدار","رز","یاس"]],["پودری",["پودری","پودر"]]];
 const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك]/g,"ک").replace(/[ۀة]/g,"ه").replace(/[\u200c\u200f]/g," ").replace(/[،؛]/g,",").trim();
