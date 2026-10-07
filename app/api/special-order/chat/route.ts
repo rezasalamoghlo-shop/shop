@@ -58,8 +58,6 @@ if(it==="catalog"){const {data}=await db().from("products").select("name,price,s
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
  const s=db();const {data:products}=await s.from("products").select("id,name,description,price,stock,image_url,fragrance_profile").gt("stock",0).limit(100);
  const picks=recommend(products||[],prefs);const pickText=picks.length?picks.map((x:any,i:number)=>(i+1)+". "+x.name+" | "+money(x.price)+" | تناسب تقریبی "+Math.min(99,70+x.score)+"٪").join("\n"):"در حال حاضر محصول کاملاً منطبق و موجود پیدا نشد.";
- const insert=await s.from("special_orders").insert({visitor_id:String(b.visitor_id||"").slice(0,80),first_name:String(prefs.first_name||""),last_name:String(prefs.last_name||""),phone:String(prefs.phone||""),preferences:prefs,status:"pending",notes:"پروفایل تشخیص عطر تکمیل شد."}).select("id").single();if(insert.error)throw insert.error;
  const reply="پروفایل رایحه شما کامل شد. ✦\n\nانتخاب‌های پیشنهادی:\n"+pickText+"\n\nدلیل انتخاب: "+[prefs.product_type,prefs.gender,(prefs.scent||[]).join("، "),prefs.season,prefs.occasion].filter(Boolean).join("، ");
- await s.from("special_order_messages").insert([{special_order_id:insert.data.id,role:"user",content:message},{special_order_id:insert.data.id,role:"assistant",content:reply}]);
- return NextResponse.json({order_id:insert.data.id,reply,done:true,intent:"recommendation",preferences:prefs,recommendations:picks.map((x:any)=>({id:x.id,name:x.name,price:x.price,image_url:x.image_url,score:x.score}))})
+ return NextResponse.json({order_id:String(b.order_id||""),reply,done:true,intent:"recommendation",preferences:prefs,recommendations:picks.map((x:any)=>({id:x.id,name:x.name,price:x.price,image_url:x.image_url,score:x.score}))})
 }catch{return NextResponse.json({error:"در پردازش پیام مشکلی پیش آمد. لطفاً دوباره تلاش کنید."},{status:500})}}
