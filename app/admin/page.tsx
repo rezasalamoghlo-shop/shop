@@ -115,7 +115,8 @@ export default function Admin() {
     }
     if (priceNumber(form.full_size_ml) <= 0 || priceNumber(form.price_per_ml) <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
     if (Number(form.per_ml_discount_percent) < 0 || Number(form.per_ml_discount_percent) > 100) { setMessage("درصد تخفیف فروش میلی باید بین صفر تا صد باشد."); return; }
-    for (const z of form.sizes || []) { if (priceNumber(z.size_ml) <= 0 || priceNumber(z.size_ml) >= priceNumber(form.full_size_ml) || priceNumber(z.price) <= 0 || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100 || priceNumber(z.stock) < 0) { setMessage("اطلاعات یکی از اندازه‌ها نامعتبر است؛ میل، قیمت، تخفیف و موجودی را بررسی کنید."); return; } }\n    if (priceNumber(form.stock) < 0) {
+    for (const z of form.sizes || []) { if (priceNumber(z.size_ml) <= 0 || priceNumber(z.size_ml) >= priceNumber(form.full_size_ml) || priceNumber(z.price) <= 0 || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100 || priceNumber(z.stock) < 0) { setMessage("اطلاعات یکی از اندازه‌ها نامعتبر است؛ میل، قیمت، تخفیف و موجودی را بررسی کنید."); return; } }
+    if (priceNumber(form.stock) < 0) {
       setMessage("موجودی نمی‌تواند منفی باشد.");
       return;
     }
