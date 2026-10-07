@@ -115,7 +115,7 @@ export default function Admin() {
     }
     if (priceNumber(form.full_size_ml) <= 0 || priceNumber(form.price_per_ml) <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
     if (Number(form.per_ml_discount_percent) < 0 || Number(form.per_ml_discount_percent) > 100) { setMessage("درصد تخفیف فروش میلی باید بین صفر تا صد باشد."); return; }
-    if (priceNumber(form.stock) < 0) {
+    for (const z of form.sizes || []) { if (priceNumber(z.size_ml) <= 0 || priceNumber(z.size_ml) >= priceNumber(form.full_size_ml) || priceNumber(z.price) <= 0 || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100 || priceNumber(z.stock) < 0) { setMessage("اطلاعات یکی از اندازه‌ها نامعتبر است؛ میل، قیمت، تخفیف و موجودی را بررسی کنید."); return; } }\n    if (priceNumber(form.stock) < 0) {
       setMessage("موجودی نمی‌تواند منفی باشد.");
       return;
     }
@@ -143,7 +143,7 @@ export default function Admin() {
       if (image) body.append("image", image);
       body.append("process_image", String(Boolean(form.process_image)));
       body.append("category_ids", JSON.stringify(form.category_ids || []));
-      body.append("sizes_json", JSON.stringify(form.sizes || []));
+      body.append("sizes_json", JSON.stringify((form.sizes||[]).map((z:any)=>({size_ml:priceNumber(z.size_ml),price:priceNumber(z.price),discount_percent:Number(z.discount_percent)||0,stock:priceNumber(z.stock),is_active:z.is_active!==false}))));
 
       const response = await fetch("/api/admin/products", {
         method,
