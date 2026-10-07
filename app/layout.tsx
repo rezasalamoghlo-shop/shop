@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import "./globals.css";
+import LiveAdminStats from "@/app/components/live-admin-stats";
 
 export const metadata:Metadata={
   title:"عطر کهکشان | GALAXY",
@@ -25,5 +26,5 @@ export const metadata:Metadata={
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="fa" dir="rtl"><head><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/></head><body>{children}</body></html>;
+  return <html lang="fa" dir="rtl"><head><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/></head><body>{children}<LiveAdminStats/></body></html>;
 }
