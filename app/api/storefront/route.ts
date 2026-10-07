@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {unstable_cache} from "next/cache";
 import {createClient} from "@supabase/supabase-js";
 
-export const revalidate=30;
+export const revalidate=15;
 
 const getStorefront=unstable_cache(
   async()=>{
@@ -17,14 +17,14 @@ const getStorefront=unstable_cache(
     if(settingsError) throw settingsError;if(categoriesError) throw categoriesError;if(linksError) throw linksError;const cats=categories??[];const productList=(products??[]).map((p:any)=>({...p,category_ids:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>z.category_id),categories:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>cats.find((k:any)=>k.id===z.category_id)).filter(Boolean)}));return {products:productList,settings:settings??null,categories:cats};
   },
   ["galaxy-storefront-v1"],
-  {revalidate:30}
+  {revalidate:15}
 );
 
 export async function GET(){
   try{
     const data=await getStorefront();
     return NextResponse.json(data,{
-      headers:{"Cache-Control":"public, s-maxage=30, stale-while-revalidate=300"}
+      headers:{"Cache-Control":"public, s-maxage=15, stale-while-revalidate=120"}
     });
   }catch{
     return NextResponse.json({error:"خطا در دریافت اطلاعات فروشگاه."},{status:503});
