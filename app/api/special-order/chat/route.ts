@@ -4,7 +4,7 @@ const db=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPA
 type Prefs={product_type?:string;gender?:string;target?:string;occasion?:string;gift_occasion?:string;time?:string;season?:string;longevity?:string;sillage?:string;scent?:string[];birth_month?:string;budget?:number|null;first_name?:string;last_name?:string;phone?:string};
 const months=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
 const scentMap:[string,string[]][]=[["شیرین",["شیرین","وانیلی","کاراملی","میوه‌ای"]],["تند",["تند","ادویه‌ای","فلفلی"]],["خنک",["خنک","تازه","fresh"]],["ملایم",["ملایم","نرم","لطیف"]],["گرم",["گرم","عنبر","کهربا"]],["تلخ",["تلخ","bitter"]],["چوبی",["چوبی","wood","عود"]],["مرکباتی",["مرکبات","مرکباتی","citrus"]],["دریایی",["دریایی","آبی","aquatic","marine"]],["شرقی",["شرقی","oriental"]],["گلدار",["گل","گلدار","رز","یاس"]],["پودری",["پودری","پودر"]]];
-const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك]/g,"ک").replace(/[ۀة]/g,"ه").replace(/[\u200c\u200f]/g," ").replace(/[،؛]/g,",").trim();
+const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك]/g,"ک").replace(/[ۀة]/g,"ه").replace(/[\u200c\u200f]/g," ").replace(/[،؛]/g,",").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[؟?!]+/g," ").replace(/\s+/g," ").trim();
 const has=(s:string,words:string[])=>words.some(w=>normalize(s).includes(normalize(w)));
 function extract(message:string,p:Prefs){const n=normalize(message);const out:{key:keyof Prefs;value:any}[]=[];
 if(has(n,["ادکلن","کولون","cologne"]))out.push({key:"product_type",value:"ادکلن"});else if(has(n,["عطر","پرفیوم","perfume"]))out.push({key:"product_type",value:"عطر"});
@@ -24,8 +24,24 @@ const questions:Record<string,string>={product_type:"اول مشخص کنیم: �
 const nextKey=(p:Prefs)=>order.find(k=>(k!=="gift_occasion"||p.target==="هدیه/شخص دیگر")&&(p[k]===undefined||p[k]===""))||null;
 const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","موجود دارید","قیمت"]))return"catalog";if(has(n,["سلام","درود"]))return"greeting";return"other"};
 async function info(s:any){const {data}=await s.from("store_settings").select("address,support_phone,social_links").limit(1).maybeSingle();return data||{}}
-function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;if(p.product_type&&text.includes(normalize(p.product_type)))score+=12;if(p.gender&&text.includes(normalize(p.gender)))score+=12;for(const z of p.scent||[])if(text.includes(normalize(z)))score+=12;if(p.season&&text.includes(normalize(p.season)))score+=6;if(p.occasion&&text.includes(normalize(p.occasion)))score+=6;if(p.longevity&&text.includes(normalize(p.longevity)))score+=5;if(p.sillage&&text.includes(normalize(p.sillage)))score+=5;if(typeof p.budget==="number"&&Number(x.price)<=p.budget)score+=5;return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
-const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";
+function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;const add=(v:string|undefined,w:number)=>{if(v&&text.includes(normalize(v)))score+=w};add(p.product_type,10);add(p.gender,10);add(p.season,7);add(p.occasion,5);add(p.longevity,6);add(p.sillage,6);add(p.birth_month,4);for(const z of p.scent||[])add(z,12);if(typeof p.budget==="number"){const price=Number(x.price);if(price<=p.budget)score+=7;else if(price<=p.budget*1.1)score+=2;else score-=5}return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
+const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";\nconst questionAccepts=(key:keyof Prefs,message:string)=>{
+ const n=normalize(message);
+ if(key==="product_type")return has(n,["عطر","پرفیوم","perfume","ادکلن","کولون","cologne"]);
+ if(key==="gender")return has(n,["مرد","مردانه","پسر","آقا","زن","زنانه","دختر","خانم","یونی","یونیسکس","unisex"]);
+ if(key==="target")return has(n,["خودم","برای خود","برای من","هدیه","کادو","همسر","دوست","مادر","پدر","خواهر","برادر","دیگری","شخص دیگر"]);
+ if(key==="occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","مهمانی","قرار","رسمی","روزمره","دانشگاه","محل کار","روز"]);
+ if(key==="gift_occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","روز مادر","روز پدر","مهمانی","هدیه","کادو"]);
+ if(key==="time")return has(n,["روز","صبح","ظهر","شب","شبانه","هر دو","فرقی ندارد"]);
+ if(key==="season")return has(n,["بهار","تابستان","پاییز","زمستان","همه فصل","فرقی ندارد"]);
+ if(key==="longevity")return n.includes("ماندگاری")||has(n,["خیلی زیاد","خیلی بالا","بسیار زیاد","زیاد","بالا","متوسط","کم"]);
+ if(key==="sillage")return n.includes("پخش بو")||n.includes("خط بو")||has(n,["خیلی قوی","پخش بالا","بمب","قوی","زیاد","متوسط","ملایم","کم"]);
+ if(key==="scent")return scentMap.some(([,words])=>has(n,words));
+ if(key==="birth_month")return months.some(m=>n.includes(m))||has(n,["ماه تولد","متولد"]);
+ if(key==="budget")return has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت","بودجه"])||/\d{4,}/.test(n);
+ return false;
+};
+
 export const runtime="edge";
 export async function POST(request:Request){try{
  const b=await request.json();const message=String(b.message||"").trim();if(!message)return NextResponse.json({error:"پیام خالی است."},{status:400});
@@ -34,7 +50,7 @@ export async function POST(request:Request){try{
  if(it==="catalog"){const {data}=await db().from("products").select("name,price,stock").order("created_at",{ascending:false}).limit(12);const rows=(data||[]).filter((x:any)=>Number(x.stock)>0);const reply=rows.length?"محصولات موجود فعلی:\n"+rows.map((x:any)=>"• "+x.name+" | "+money(x.price)+" | موجودی: "+new Intl.NumberFormat("fa-IR").format(x.stock)).join("\n"):"در حال حاضر محصول موجودی ثبت نشده است.";return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs})}
  const extracted=extract(message,prefs);
  if(it==="greeting"&&!Object.keys(prefs).length)return NextResponse.json({order_id:String(b.order_id||""),reply:"به عطر کهکشان خوش آمدید ✦\nمن سلیقه شما را دقیق تحلیل می‌کنم. اول بگویید عطر می‌خواهید یا ادکلن؟",done:false,intent:"greeting",preferences:prefs});
- if(current&&it!=="greeting"&&!extracted.some(x=>x.key===current)){return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs})}
+ if(current&&it!=="greeting"&&!questionAccepts(current,message)){return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs})}
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
  const next=nextKey(prefs);
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
