@@ -135,7 +135,7 @@ export default function Admin() {
       Object.entries(form).forEach(([key, value]) => {
         body.append(
           key,
-          key === "price" ? String(priceNumber(value)) : String(value ?? "")
+          ["price","full_size_ml","price_per_ml","stock","discount_percent","per_ml_discount_percent"].includes(key) ? String(priceNumber(value)) : String(value ?? "")
         );
       });
       if (form.id) body.append("id", form.id);
