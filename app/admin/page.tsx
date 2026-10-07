@@ -306,7 +306,21 @@ export default function Admin() {
     }
   }
 
-  async function updateOrder(id: string, status: string) {
+    async function deleteSpecialOrder(id: string) {
+    if (action || orderBusy) return;
+    if (!confirm("این درخواست عطر ویژه حذف شود؟")) return;
+    setOrderBusy(id);
+    try {
+      const response = await fetch("/api/admin/special-orders?id=" + encodeURIComponent(id), { method: "DELETE" });
+      const result = await response.json().catch(() => null);
+      setMessage(response.ok ? "درخواست عطر ویژه حذف شد." : (result?.error || "خطا در حذف درخواست"));
+      if (response.ok) await load();
+    } finally {
+      setOrderBusy("");
+    }
+  }
+
+async function updateOrder(id: string, status: string) {
     if (orderBusy || action) return;
     setOrderBusy(id);
     try {
@@ -750,6 +764,9 @@ export default function Admin() {
                     .join(" · ")}
                 </small>
                 <small>{order.notes || ""}</small>
+                <button className="special-delete" disabled={Boolean(orderBusy) || Boolean(action)} onClick={() => deleteSpecialOrder(order.id)}>
+                  {orderBusy === order.id ? "در حال حذف..." : "حذف درخواست"}
+                </button>
               </div>
             </div>
           ))
