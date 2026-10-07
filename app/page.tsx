@@ -5,7 +5,8 @@ import {useEffect,useMemo,useState} from "react";
 import {createSupabaseBrowserClient} from "@/lib/supabase-browser";
 import SpecialPerfume from "@/app/components/special-perfume";
 
-type Size={id:string;size_ml:number;price:number;discount_percent:number;stock:number;is_active:boolean};\ntype P={id:string;name:string;description:string|null;price:number;stock:number;image_url:string|null;discount_percent:number;discount_start:string|null;discount_end:string|null;full_size_ml:number;price_per_ml:number;per_ml_discount_percent:number;sizes:Size[];category_ids:string[];categories:any[]};
+type Size={id:string;size_ml:number;price:number;discount_percent:number;stock:number;is_active:boolean};
+type P={id:string;name:string;description:string|null;price:number;stock:number;image_url:string|null;discount_percent:number;discount_start:string|null;discount_end:string|null;full_size_ml:number;price_per_ml:number;per_ml_discount_percent:number;sizes:Size[];category_ids:string[];categories:any[]};
 type Cat={id:string;name:string;slug:string;description:string|null};
 type S={store_name:string;store_name_en:string;hero_title:string;hero_text:string;address:string|null;card_number:string|null;support_phone:string|null;social_links:any[]};
 type C=P&{quantity:number;size_ml:number;pricing_type:"full"|"ml";unit_price:number};
@@ -13,7 +14,8 @@ type C=P&{quantity:number;size_ml:number;pricing_type:"full"|"ml";unit_price:num
 const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";
 const activeDiscount=(x:P)=>{const n=Date.now(),a=x.discount_start?new Date(x.discount_start).getTime():-Infinity,b=x.discount_end?new Date(x.discount_end).getTime():Infinity;return Number(x.discount_percent)>0&&n>=a&&n<=b};
 const salePrice=(x:P)=>activeDiscount(x)?Number(x.price)*(1-Number(x.discount_percent)/100):Number(x.price);
-const perMlPrice=(x:P)=>{const base=Number(x.price_per_ml)||Number(x.price)/Math.max(1,Number(x.full_size_ml)||100);const d=Number(x.per_ml_discount_percent)||0;return d>0?base*(1-d/100):base};\nconst sizePrice=(x:P,z:Size)=>Number(z.price)*(1-Number(z.discount_percent||0)/100);
+const perMlPrice=(x:P)=>{const base=Number(x.price_per_ml)||Number(x.price)/Math.max(1,Number(x.full_size_ml)||100);const d=Number(x.per_ml_discount_percent)||0;return d>0?base*(1-d/100):base};
+const sizePrice=(x:P,z:Size)=>Number(z.price)*(1-Number(z.discount_percent||0)/100);
 
 function visitorId(){
   const key="galaxy_visitor_id";
