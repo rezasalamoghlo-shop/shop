@@ -45,19 +45,55 @@ const questionAccepts=(key:keyof Prefs,message:string)=>{
 };
 
 export const runtime="edge";
-export async function POST(request:Request){try{\n const b=await request.json();\n const message=String(b.message||"").trim();\n if(!message)return NextResponse.json({error:"پیام خالی است."},{status:400});\n const visitorId=String(b.visitor_id||"").trim();\n const prefs:Prefs=(b.preferences&&typeof b.preferences==="object"?b.preferences:{}) as Prefs;\n const specialAction=String(b.special_action||"");\n if(specialAction==="create"){\n  if(!visitorId)return NextResponse.json({error:"شناسه کاربر الزامی است."},{status:400});\n  const firstName=String(b.first_name||"").trim(),lastName=String(b.last_name||"").trim(),phone=String(b.phone||"").trim();\n  if(!firstName||!lastName||!phone)return NextResponse.json({error:"نام، نام خانوادگی و شماره تماس را کامل وارد کنید."},{status:400});\n  const s=db();const {data:order,error}=await s.from("special_orders").insert({visitor_id:visitorId,first_name:firstName,last_name:lastName,phone,preferences:prefs,notes:"ثبت‌شده از مشاور هوشمند عطر ویژه",status:"pending"}).select("id").single();\n  if(error||!order)throw new Error("special_order_create_failed");\n  await s.from("special_order_messages").insert([{special_order_id:order.id,role:"user",content:"درخواست سفارش ویژه را تأیید کردم."},{special_order_id:order.id,role:"assistant",content:"درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود."}]);\n  return NextResponse.json({order_id:order.id,reply:"سفارش عطر ویژه شما با موفقیت ثبت شد. ✦\\n\\nاطلاعات شما برای کارشناس ارسال شد. لطفاً منتظر پاسخ کارشناس باشید.",done:true,special_order_created:true,preferences:{...prefs,first_name:firstName,last_name:lastName,phone}});\n }\n if(has(normalize(message),["بله","آره","اره","حتماً","حتما","ثبت کن","سفارش ویژه","سفارش عطر ویژه"]))return NextResponse.json({order_id:String(b.order_id||""),reply:"حتماً. برای ثبت سفارش ویژه، نام، نام خانوادگی و شماره تماس خود را وارد کنید.",done:false,needs_special_form:true,preferences:prefs});\n
- const b=await request.json();const message=String(b.message||"").trim();if(!message)return NextResponse.json({error:"پیام خالی است."},{status:400});
- const prefs:Prefs=(b.preferences&&typeof b.preferences==="object"?b.preferences:{}) as Prefs;const it=intent(message);const current=nextKey(prefs);
- if(it==="address"||it==="social"||it==="support"){const x=await info(db());let reply="";if(it==="address")reply=x.address?"آدرس عطر کهکشان: "+x.address:"آدرس هنوز ثبت نشده است.";if(it==="support")reply=x.support_phone?"شماره پشتیبانی: "+x.support_phone:"شماره پشتیبانی هنوز ثبت نشده است.";if(it==="social")reply=Array.isArray(x.social_links)&&x.social_links.length?x.social_links.map((z:any)=>z?.name&&z?.url?z.name+": "+z.url:"").filter(Boolean).join("\n"):"پیج‌ها هنوز ثبت نشده‌اند.";return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs})}
-if(it==="catalog"){const {data}=await db().from("products").select("name,price,stock,full_size_ml,price_per_ml,per_ml_discount_percent,discount_percent,discount_start,discount_end").order("created_at",{ascending:false}).limit(12);const rows=(data||[]).filter((x:any)=>Number(x.stock)>0);const reply=rows.length?"محصولات موجود فعلی:\n"+rows.map((x:any)=>{const ml=Number(x.price_per_ml)||Number(x.price)/Math.max(1,Number(x.full_size_ml)||100);return "• "+x.name+" | بطری کامل "+money(Number(x.price))+" | هر میل "+money(ml)+" | موجودی: "+new Intl.NumberFormat("fa-IR").format(x.stock)}).join("\n"):"در حال حاضر محصول موجودی ثبت نشده است.";return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs})}
+export async function POST(request:Request){try{
+ const b=await request.json();
+ const message=String(b.message||"").trim();
+ if(!message)return NextResponse.json({error:"پیام خالی است."},{status:400});
+ const visitorId=String(b.visitor_id||"").trim();
+ const prefs:Prefs=(b.preferences&&typeof b.preferences==="object"?b.preferences:{}) as Prefs;
+ const specialAction=String(b.special_action||"");
+ if(specialAction==="create"){
+  if(!visitorId)return NextResponse.json({error:"شناسه کاربر الزامی است."},{status:400});
+  const firstName=String(b.first_name||"").trim(),lastName=String(b.last_name||"").trim(),phone=String(b.phone||"").trim();
+  if(!firstName||!lastName||!phone)return NextResponse.json({error:"نام، نام خانوادگی و شماره تماس را کامل وارد کنید."},{status:400});
+  const s=db();
+  const {data:order,error}=await s.from("special_orders").insert({visitor_id:visitorId,first_name:firstName,last_name:lastName,phone,preferences:prefs,notes:"ثبت‌شده از مشاور هوشمند عطر ویژه",status:"pending"}).select("id").single();
+  if(error||!order)throw new Error("special_order_create_failed");
+  await s.from("special_order_messages").insert([
+   {special_order_id:order.id,role:"user",content:"درخواست سفارش ویژه را تأیید کردم."},
+   {special_order_id:order.id,role:"assistant",content:"درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود."}
+  ]);
+  return NextResponse.json({order_id:order.id,reply:"سفارش عطر ویژه شما با موفقیت ثبت شد. ✦\n\nاطلاعات شما برای کارشناس ارسال شد. لطفاً منتظر پاسخ کارشناس باشید.",done:true,special_order_created:true,preferences:{...prefs,first_name:firstName,last_name:lastName,phone}});
+ }
+ const n=normalize(message);
+ if(has(n,["بله","آره","اره","حتماً","حتما","ثبت کن","سفارش ویژه","سفارش عطر ویژه"])){
+  return NextResponse.json({order_id:String(b.order_id||""),reply:"حتماً. برای ثبت سفارش ویژه، نام، نام خانوادگی و شماره تماس خود را وارد کنید.",done:false,needs_special_form:true,preferences:prefs});
+ }
+ const it=intent(message);
+ const current=nextKey(prefs);
+ if(it==="address"||it==="social"||it==="support"){
+  const x=await info(db());let reply="";
+  if(it==="address")reply=x.address?"آدرس عطر کهکشان: "+x.address:"آدرس هنوز ثبت نشده است.";
+  if(it==="support")reply=x.support_phone?"شماره پشتیبانی: "+x.support_phone:"شماره پشتیبانی هنوز ثبت نشده است.";
+  if(it==="social")reply=Array.isArray(x.social_links)&&x.social_links.length?x.social_links.map((z:any)=>z?.name&&z?.url?z.name+": "+z.url:"").filter(Boolean).join("\n"):"پیج‌ها هنوز ثبت نشده‌اند.";
+  return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs});
+ }
+ if(it==="catalog"){
+  const {data}=await db().from("products").select("name,description,price,stock,full_size_ml,price_per_ml,per_ml_discount_percent,discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").order("created_at",{ascending:false}).limit(12);
+  const rows=(data||[]).filter((x:any)=>Number(x.stock)>0);
+  const reply=rows.length?"محصولات موجود فعلی:\n"+rows.map((x:any)=>"• "+x.name+" | "+money(Number(x.price))+" | "+String(x.description||"بدون توضیحات")).join("\n\n"):"در حال حاضر محصول موجودی ثبت نشده است.";
+  return NextResponse.json({order_id:String(b.order_id||""),reply,done:false,intent:it,preferences:prefs});
+ }
  const extracted=extract(message,prefs,current||undefined);
  if(it==="greeting"&&!Object.keys(prefs).length)return NextResponse.json({order_id:String(b.order_id||""),reply:"به عطر کهکشان خوش آمدید ✦\nمن سلیقه شما را دقیق تحلیل می‌کنم. اول بگویید عطر می‌خواهید یا ادکلن؟",done:false,intent:"greeting",preferences:prefs});
- if(current&&it!=="greeting"&&!questionAccepts(current,message)&&extracted.length===0){return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs})}
+ if(current&&it!=="greeting"&&!questionAccepts(current,message)&&extracted.length===0)return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs});
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
  const next=nextKey(prefs);
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
- const s=db();const {data:products}=await s.from("products").select("id,name,description,price,stock,image_url,fragrance_profile,discount_percent,full_size_ml,price_per_ml,per_ml_discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").gt("stock",0).limit(100);
- const picks=recommend(products||[],prefs);const pickText=picks.length?picks.map((x:any,i:number)=>(i+1)+". "+x.name+" | "+money(x.price)+" | "+String(x.description||"بدون توضیحات")+" | تناسب تقریبی "+Math.min(99,70+x.score)+"٪").join("\n\n"):"در حال حاضر محصول کاملاً منطبق و موجود پیدا نشد.";
+ const s=db();
+ const {data:products}=await s.from("products").select("id,name,description,price,stock,image_url,fragrance_profile,discount_percent,full_size_ml,price_per_ml,per_ml_discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").gt("stock",0).limit(100);
+ const picks=recommend(products||[],prefs);
+ const pickText=picks.length?picks.map((x:any,i:number)=>(i+1)+". "+x.name+" | "+money(x.price)+" | "+String(x.description||"بدون توضیحات")+" | تناسب تقریبی "+Math.min(99,70+x.score)+"٪").join("\n\n"):"در حال حاضر محصول کاملاً منطبق و موجود پیدا نشد.";
  const reply=picks.length?"پروفایل رایحه شما کامل شد. ✦\n\nانتخاب‌های پیشنهادی:\n"+pickText+"\n\nدلیل انتخاب: "+[prefs.product_type,prefs.gender,(prefs.scent||[]).join("، "),prefs.season,prefs.occasion].filter(Boolean).join("، "):"با این مشخصات، در موجودی فعلی گزینه‌ای که به اندازه کافی با سلیقه شما مطابقت داشته باشد پیدا نکردم. ✦\n\nاگر مایل باشید، می‌توانید از بخش «سفارش عطر ویژه» درخواستتان را ثبت کنید تا کارشناس آن را بررسی کند.\n\nآیا می‌خواهید سفارش ویژه ثبت کنید؟";
- return NextResponse.json({order_id:String(b.order_id||""),reply,done:Boolean(picks.length),needs_special_confirmation:!picks.length,intent:"recommendation",preferences:prefs,recommendations:picks.map((x:any)=>({id:x.id,name:x.name,description:x.description,price:x.price,image_url:x.image_url,score:x.score}))})
+ return NextResponse.json({order_id:String(b.order_id||""),reply,done:Boolean(picks.length),needs_special_confirmation:!picks.length,intent:"recommendation",preferences:prefs,recommendations:picks.map((x:any)=>({id:x.id,name:x.name,description:x.description,price:x.price,image_url:x.image_url,discount_percent:x.discount_percent,full_size_ml:x.full_size_ml,price_per_ml:x.price_per_ml,per_ml_discount_percent:x.per_ml_discount_percent,sizes:x.product_sizes||[],score:x.score}))});
 }catch{return NextResponse.json({error:"در پردازش پیام مشکلی پیش آمد. لطفاً دوباره تلاش کنید."},{status:500})}}
