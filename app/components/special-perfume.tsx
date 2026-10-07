@@ -1,72 +1,12 @@
 "use client";
-
-import { useState } from "react";
-
-type Message = { role: "user" | "assistant"; content: string };
-
-export default function SpecialPerfume() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState("");
-  const [orderId, setOrderId] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-
-  async function send() {
-    const value = text.trim();
-    if (!value || busy || done) return;
-    setText("");
-    setMessages((items) => [...items, { role: "user", content: value }]);
-    setBusy(true);
-    try {
-      const response = await fetch("/api/special-order/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id: orderId, message: value }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "Request failed");
-      setOrderId(data.order_id || "");
-      setMessages((items) => [
-        ...items,
-        { role: "assistant", content: data.reply || "درخواست شما ثبت شد." },
-      ]);
-      setDone(Boolean(data.done));
-    } catch {
-      setMessages((items) => [
-        ...items,
-        { role: "assistant", content: "در ثبت پیام مشکلی پیش آمد. لطفاً دوباره تلاش کنید." },
-      ]);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section id="special" className="special-perfume">
-      <div className="special-copy">
-        <span>GALAXY SPECIAL</span>
-        <h2>عطر ویژه خودتان را پیدا کنید.</h2>
-        <p>ربات عطر کهکشان چند سؤال کوتاه درباره سلیقه، موقعیت استفاده و رایحه مورد علاقه‌تان می‌پرسد و درخواست شما را برای بررسی تیم ما ثبت می‌کند.</p>
-        <div className="special-points">
-          <span>✦ رایحه و نت‌های مورد علاقه</span>
-          <span>✦ شدت و ماندگاری</span>
-          <span>✦ مناسب فصل و موقعیت</span>
-        </div>
-      </div>
-      <div className="special-chat">
-        <div className="chat-head"><span>GALAXY BOT</span><b>مشاور عطر ویژه</b></div>
-        <div className="chat-body">
-          {messages.length === 0 && <div className="bot-message">به بخش عطر ویژه خوش آمدید. برای شروع، بگویید عطر را برای چه کسی می‌خواهید؟</div>}
-          {messages.map((message, index) => (
-            <div key={index} className={message.role === "user" ? "user-message" : "bot-message"}>{message.content}</div>
-          ))}
-          {busy && <div className="bot-message typing">در حال آماده‌سازی پاسخ...</div>}
-        </div>
-        <div className="chat-input">
-          <input value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") send(); }} disabled={busy || done} placeholder={done ? "درخواست شما ثبت شد" : "پیام خود را بنویسید..."} />
-          <button onClick={send} disabled={busy || done || !text.trim()}>{busy ? "در حال ارسال..." : "ارسال"}</button>
-        </div>
-      </div>
-    </section>
-  );
+import {useEffect,useState} from "react";
+type Message={role:"user"|"assistant";content:string};
+const vid=()=>{let x=localStorage.getItem("galaxy_visitor_id");if(!x){x=crypto.randomUUID();localStorage.setItem("galaxy_visitor_id",x)}return x};
+export default function SpecialPerfume(){
+ const[messages,setMessages]=useState<Message[]>([]),[text,setText]=useState(""),[orderId,setOrderId]=useState(""),[busy,setBusy]=useState(false),[done,setDone]=useState(false);
+ useEffect(()=>{const saved=localStorage.getItem("galaxy_bot_order_id");if(saved)setOrderId(saved)},[]);
+ useEffect(()=>{if(orderId)localStorage.setItem("galaxy_bot_order_id",orderId)},[orderId]);
+ async function send(){const value=text.trim();if(!value||busy)return;setText("");setMessages(x=>[...x,{role:"user",content:value}]);setBusy(true);try{const r=await fetch("/api/special-order/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({order_id:orderId,message:value,visitor_id:vid()})});const d=await r.json();if(!r.ok)throw new Error(d?.error);setOrderId(d.order_id||orderId);setMessages(x=>[...x,{role:"assistant",content:d.reply||"پاسخی دریافت نشد."}]);setDone(Boolean(d.done))}catch{setMessages(x=>[...x,{role:"assistant",content:"در پردازش پیام مشکلی پیش آمد. لطفاً دوباره تلاش کنید."}])}finally{setBusy(false)}}
+ function newChat(){localStorage.removeItem("galaxy_bot_order_id");setOrderId("");setMessages([]);setDone(false);setText("")}
+ return <section id="special" className="special-perfume"><div className="special-copy"><span>GALAXY SPECIAL</span><h2>مشاور هوشمند عطر کهکشان</h2><p>منظورتان را از متن فارسی تشخیص می‌دهم، ویژگی‌های عطر را استخراج می‌کنم، پاسخ‌های نامرتبط را رد می‌کنم و در پایان از موجودی واقعی فروشگاه پیشنهاد می‌دهم.</p><div className="special-points"><span>✦ تشخیص عطر یا ادکلن و جنسیت</span><span>✦ تحلیل مناسبت، فصل، ماندگاری و پخش بو</span><span>✦ تحلیل رایحه، ماه تولد و بودجه</span><span>✦ پاسخ آدرس، پشتیبانی و شبکه‌های اجتماعی</span></div></div><div className="special-chat"><div className="chat-head"><div><span>GALAXY BOT</span><b>موتور تشخیص نیت و رایحه</b></div><button className="new-chat" onClick={newChat}>＋ گفتگوی جدید</button></div><div className="chat-body">{messages.length===0&&<div className="bot-message">به عطر کهکشان خوش آمدید ✦<br/>اول بگویید: عطر می‌خواهید یا ادکلن؟</div>}{messages.map((m,i)=><div key={i} className={m.role==="user"?"user-message":"bot-message"}>{m.content}</div>)}{busy&&<div className="bot-message typing">در حال تحلیل پاسخ...</div>}</div><div className="chat-input"><input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send()}} placeholder={done?"برای اصلاح یا پرسش جدید پیام بدهید...":"پاسخ خود را بنویسید..."} disabled={busy}/><button onClick={send} disabled={busy||!text.trim()}>{busy?"تحلیل...":"ارسال"}</button></div></div></section>
 }
