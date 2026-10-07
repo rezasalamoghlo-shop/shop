@@ -29,7 +29,7 @@ export default function Home(){
   useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem("galaxy_cart")||"[]");if(Array.isArray(saved))setCart(saved)}catch{}},[]);
   useEffect(()=>{localStorage.setItem("galaxy_cart",JSON.stringify(cart))},[cart]);
   useEffect(()=>{let live=true;fetch("/api/storefront").then(r=>r.ok?r.json():Promise.reject()).then(d=>{if(!live)return;setP((d.products??[]) as P[]);setCats((d.categories??[]) as Cat[]);if(d.settings)setS({...d.settings,hero_title:"عطر کهکشان"} as S)}).catch(()=>{}).finally(()=>setLoading(false));return()=>{live=false}},[]);
-  useEffect(()=>{const id=visitorId();const ping=()=>fetch("/api/analytics/heartbeat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:id,page:"storefront"})}).catch(()=>{});ping();const t=setInterval(ping,15000);return()=>clearInterval(t)},[]);
+  useEffect(()=>{const id=visitorId();const supabase=createSupabaseBrowserClient();const channel=supabase.channel("galaxy-site-presence",{config:{presence:{key:id}}});channel.subscribe(async status=>{if(status==="SUBSCRIBED")await channel.track({page:"storefront"})});return()=>{supabase.removeChannel(channel)}},[]);
 
   const filtered=useMemo(()=>{const q=search.trim().toLocaleLowerCase("fa");return p.filter(x=>{const inCat=category==="all"||(x.category_ids||[]).includes(category);const text=((x.name||"")+" "+(x.description||"")+" "+(x.categories||[]).map((z:any)=>z.name).join(" ")).toLocaleLowerCase("fa");return inCat&&(!q||text.includes(q))})},[p,search,category]);
   const total=useMemo(()=>cart.reduce((a,x)=>a+salePrice(x)*x.quantity,0),[cart]);
