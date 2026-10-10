@@ -53,6 +53,8 @@ export default function Admin() {
   const [cropDimensions, setCropDimensions] = useState({width: 0, height: 0});
   const [deleting, setDeleting] = useState("");
   const [orderBusy, setOrderBusy] = useState("");
+  const [specialDrafts, setSpecialDrafts] = useState<Record<string,string>>({});
+  const [specialProducts, setSpecialProducts] = useState<Record<string,string>>({});
 
   async function load() {
     const response = await fetch("/api/admin/data");
@@ -309,6 +311,31 @@ export default function Admin() {
       const result = await response.json().catch(() => null);
       setMessage(response.ok ? "درخواست عطر ویژه حذف شد." : (result?.error || "خطا در حذف درخواست"));
       if (response.ok) await load();
+    } finally {
+      setOrderBusy("");
+    }
+  }
+
+  async function specialAction(id: string, actionName: string, extra: Record<string, any> = {}) {
+    if (orderBusy || action) return;
+    if (actionName === "add_to_cart" && !confirm("محصول انتخاب‌شده به سبد خرید مشتری اضافه شود و درخواست پایان یابد؟")) return;
+    setOrderBusy(id);
+    try {
+      const response = await fetch("/api/special-order/conversation", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: actionName, ...extra }),
+      });
+      const result = await response.json().catch(() => null);
+      setMessage(response.ok
+        ? actionName === "start" ? "گفتگوی مستقیم با مشتری آغاز شد."
+          : actionName === "message" ? "پیام برای مشتری ارسال شد."
+          : "محصول به سبد مشتری اضافه شد و درخواست پایان یافت."
+        : result?.error || "عملیات درخواست ویژه ناموفق بود.");
+      if (response.ok) {
+        setSpecialDrafts((current) => ({ ...current, [id]: "" }));
+        await load();
+      }
     } finally {
       setOrderBusy("");
     }
@@ -735,33 +762,47 @@ async function updateOrder(id: string, status: string) {
 
       <section className="panel">
         <h2>درخواست‌های عطر ویژه</h2>
+        <p>پس از شروع گفتگو، پیام‌ها مستقیماً بین شما و مشتری ردوبدل می‌شوند و مشاور هوشمند دخالتی ندارد.</p>
         {(data.special_orders || []).length ? (
-          data.special_orders.map((order: any) => (
-            <div className="order" key={order.id}>
+          data.special_orders.map((order: any) => {
+            const statusLabels: Record<string,string> = { pending: "در انتظار بررسی", in_progress: "گفتگو با کارشناس", completed: "نهایی‌شده", cancelled: "لغوشده" };
+            const labels: Record<string,string> = { product_type:"نوع محصول", gender:"جنسیت", target:"برای چه کسی", occasion:"مناسبت", gift_occasion:"مناسبت هدیه", time:"زمان استفاده", season:"فصل", longevity:"ماندگاری", sillage:"پخش بو", scent:"رایحه", birth_month:"ماه تولد", budget:"بودجه" };
+            const prefs = Object.entries(order.preferences || {}).filter(([key]) => !["first_name","last_name","phone"].includes(key)).map(([key,value]) => {
+              const shown = value == null ? "بدون محدودیت" : Array.isArray(value) ? value.join("، ") : typeof value === "object" ? JSON.stringify(value) : String(value);
+              return (labels[key] || key) + ": " + shown;
+            });
+            return <div className="order" key={order.id}>
               <div>
-                <b>
-                  {[order.first_name, order.last_name]
-                    .filter(Boolean)
-                    .join(" ") || "مشتری عطر ویژه"}
-                </b>
-                <small>
-                  {order.phone || "شماره ثبت نشده"} | وضعیت: {order.status}
-                </small>
-                <small>
-                  {Object.entries(order.preferences || {})
-                    .map(([key, value]) => key + ": " + String(value))
-                    .join(" · ")}
-                </small>
+                <b>{[order.first_name, order.last_name].filter(Boolean).join(" ") || "مشتری عطر ویژه"}</b>
+                <small>{order.phone || "شماره ثبت نشده"} | وضعیت: {statusLabels[order.status] || "در انتظار بررسی"}</small>
+                <small>{prefs.join(" · ") || "مشخصات تکمیلی ثبت نشده است."}</small>
                 <small>{order.notes || ""}</small>
-                <button className="special-delete" disabled={Boolean(orderBusy) || Boolean(action)} onClick={() => deleteSpecialOrder(order.id)}>
-                  {orderBusy === order.id ? "در حال حذف..." : "حذف درخواست"}
-                </button>
+                <div className="special-conversation" style={{display:"grid",gap:8,marginTop:12}}>
+                  <b>گفتگوی مشتری و کارشناس</b>
+                  <div style={{display:"grid",gap:6,maxHeight:260,overflowY:"auto",padding:10,border:"1px solid #e5d9ef",borderRadius:10}}>
+                    {(order.messages||[]).map((m:any)=><div key={m.id} style={{padding:8,borderRadius:8,background:m.role==="user"?"#f3e8ff":"#f8fafc"}}>
+                      <small>{m.role==="user"?"مشتری":"کارشناس عطر کهکشان"}</small><div style={{whiteSpace:"pre-wrap"}}>{m.content}</div>
+                    </div>)}
+                    {!(order.messages||[]).length&&<small>هنوز پیامی ثبت نشده است.</small>}
+                  </div>
+                  {order.status==="pending"&&<button className="gold" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>specialAction(order.id,"start")}>{orderBusy===order.id?"در حال شروع...":"تأیید و شروع گفتگو"}</button>}
+                  {order.status==="in_progress"&&<>
+                    <label>پیام برای مشتری<textarea value={specialDrafts[order.id]||""} onChange={e=>setSpecialDrafts(v=>({...v,[order.id]:e.target.value}))} placeholder="پیام خود را مستقیم برای مشتری بنویسید"/></label>
+                    <button disabled={Boolean(orderBusy)||Boolean(action)||!(specialDrafts[order.id]||"").trim()} onClick={()=>specialAction(order.id,"message",{content:specialDrafts[order.id]})}>{orderBusy===order.id?"در حال ارسال...":"ارسال پیام به مشتری"}</button>
+                    <label>محصول نهایی برای افزودن به سبد خرید
+                      <select value={specialProducts[order.id]||""} onChange={e=>setSpecialProducts(v=>({...v,[order.id]:e.target.value}))}>
+                        <option value="">انتخاب عطر موجود</option>
+                        {(data.products||[]).filter((p:any)=>Number(p.stock)>0).map((p:any)=><option key={p.id} value={p.id}>{p.name} · {faPrice(p.price)} تومان · موجودی {p.stock}</option>)}
+                      </select>
+                    </label>
+                    <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||!specialProducts[order.id]} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id]})}>{orderBusy===order.id?"در حال نهایی‌سازی...":"افزودن به سبد خرید و پایان درخواست"}</button>
+                  </>}
+                  <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال انجام...":"حذف درخواست و آزادسازی مشاور"}</button>
+                </div>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="empty">درخواستی ثبت نشده است.</div>
-        )}
+          })
+        ) : <div className="empty">درخواستی ثبت نشده است.</div>}
       </section>
 
       <section className="panel">
