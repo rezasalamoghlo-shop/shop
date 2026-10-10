@@ -17,7 +17,14 @@ export async function GET(request:Request){
   const cart_additions=all.filter((m:any)=>typeof m.content==="string"&&m.content.startsWith(CART_PREFIX)).map((m:any)=>{try{return {id:m.id,...JSON.parse(m.content.slice(CART_PREFIX.length))}}catch{return null}}).filter(Boolean);
   const hiddenSystemMessages=new Set(["درخواست سفارش ویژه را تأیید کردم.","درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود.","کارشناس عطر کهکشان گفتگو را آغاز کرد. پیام‌های بعدی مستقیماً بین شما و کارشناس ردوبدل می‌شوند.","محصول نهایی به سبد خرید شما اضافه شد و درخواست ویژه پایان یافت. اکنون می‌توانید گفتگوی جدیدی با مشاور آغاز کنید."]);
   const messages=all.filter((m:any)=>!(typeof m.content==="string"&&(m.content.startsWith(CART_PREFIX)||hiddenSystemMessages.has(m.content)))).map((m:any)=>({id:m.id,role:m.role,content:m.content,created_at:m.created_at}));
-  return NextResponse.json({active:["pending","in_progress"].includes(order.status),status:order.status,order_id:order.id,messages,cart_additions});
+  const response={active:["pending","in_progress"].includes(order.status),status:order.status,order_id:order.id,messages,cart_additions};
+  // Terminal conversations are one-time handoff records: deliver any cart event first,
+  // then remove both the transcript and the request so completed chats do not accumulate.
+  if(["completed","cancelled"].includes(String(order.status))){
+    await s.from("special_order_messages").delete().eq("special_order_id",order.id);
+    await s.from("special_orders").delete().eq("id",order.id);
+  }
+  return NextResponse.json(response);
 }
 
 export async function POST(request:Request){
