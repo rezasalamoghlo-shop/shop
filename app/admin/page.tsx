@@ -59,6 +59,7 @@ export default function Admin() {
   const [specialProducts, setSpecialProducts] = useState<Record<string,string>>({});
   const [specialAmounts, setSpecialAmounts] = useState<Record<string,string>>({});
   const [specialPricing, setSpecialPricing] = useState<Record<string,"ml"|"full">>({});
+  const [liveChannel, setLiveChannel] = useState<any>(null);
 
   async function load() {
     const response = await fetch("/api/admin/data");
@@ -74,14 +75,16 @@ export default function Admin() {
   useEffect(() => {
     void load();
     const supabase = createSupabaseBrowserClient();
-    const channel = supabase.channel("galaxy-admin-catalog-live")
+    const channel = supabase.channel("galaxy-chat-refresh")
+      .on("broadcast", { event: "refresh" }, () => { void load(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void load(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => { void load(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "product_categories" }, () => { void load(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "product_sizes" }, () => { void load(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "store_settings" }, () => { void load(); })
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    setLiveChannel(channel);
+    return () => { setLiveChannel(null); void supabase.removeChannel(channel); };
   }, []);
 
   // Keep special-order conversations fresh without overwriting other unsaved admin form fields.
@@ -380,6 +383,7 @@ export default function Admin() {
         : result?.error || "عملیات درخواست ویژه ناموفق بود.");
       if (response.ok) {
         setSpecialDrafts((current) => ({ ...current, [id]: "" }));
+        if (liveChannel) await liveChannel.send({ type: "broadcast", event: "refresh", payload: {} });
         await load();
       }
     } finally {
