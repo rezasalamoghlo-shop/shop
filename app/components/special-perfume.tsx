@@ -29,6 +29,7 @@ export default function SpecialPerfume(){
    }
    localStorage.setItem("galaxy_cart_addition_ids",JSON.stringify([...seen]));
    if(changed){localStorage.setItem(cartKey,JSON.stringify(cart));window.dispatchEvent(new Event("galaxy-cart-updated"))}
+    if(["completed","cancelled"].includes(String(d.status||""))&&d.order_id){await fetch("/api/special-order/conversation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitor_id:visitor,order_id:d.order_id,action:"acknowledge_terminal"})})}
   }catch{}
  },[visitor]);
  useEffect(()=>{if(!visitor)return;void syncConversation();const t=window.setInterval(()=>void syncConversation(),4000);return()=>window.clearInterval(t)},[visitor,syncConversation]);
