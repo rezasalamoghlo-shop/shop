@@ -50,6 +50,7 @@ export default function Admin() {
   const [cropZoom, setCropZoom] = useState(1);
   const [cropX, setCropX] = useState(50);
   const [cropY, setCropY] = useState(50);
+  const [cropDimensions, setCropDimensions] = useState({width: 0, height: 0});
   const [deleting, setDeleting] = useState("");
   const [orderBusy, setOrderBusy] = useState("");
 
@@ -191,7 +192,7 @@ export default function Admin() {
     if (!file.type.startsWith("image/")) { setMessage("لطفاً یک فایل تصویری انتخاب کنید."); return; }
     if (cropSource) URL.revokeObjectURL(cropSource);
     setImage(file); setCropSource(URL.createObjectURL(file));
-    setCropZoom(1); setCropX(50); setCropY(50);
+    setCropZoom(1.35); setCropX(50); setCropY(50); setCropDimensions({width: 0, height: 0});
     setMessage("کادر برش را تنظیم کنید؛ فقط نسخه برش‌خورده ذخیره خواهد شد.");
   }
 
@@ -678,13 +679,13 @@ async function updateOrder(id: string, status: string) {
             {cropSource && (
               <div className="crop-tool">
                 <div className="crop-preview-frame">
-                  <img src={cropSource} alt="پیش‌نمایش برش تصویر" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:cropX+"% "+cropY+"%",transform:"scale("+cropZoom+")"}} />
+                  <img src={cropSource} alt="پیش‌نمایش برش تصویر" onLoad={e=>setCropDimensions({width:e.currentTarget.naturalWidth,height:e.currentTarget.naturalHeight})} style={{position:"absolute",maxWidth:"none",width:cropDimensions.width&&cropDimensions.height?(cropDimensions.width/Math.min(cropDimensions.width,cropDimensions.height)/cropZoom*100)+"%":"100%",height:cropDimensions.width&&cropDimensions.height?(cropDimensions.height/Math.min(cropDimensions.width,cropDimensions.height)/cropZoom*100)+"%":"100%",left:cropDimensions.width&&cropDimensions.height?(-((cropDimensions.width/Math.min(cropDimensions.width,cropDimensions.height)/cropZoom*100)-100)*cropX/100)+"%":"0%",top:cropDimensions.width&&cropDimensions.height?(-((cropDimensions.height/Math.min(cropDimensions.width,cropDimensions.height)/cropZoom*100)-100)*cropY/100)+"%":"0%"}} />
                   <span className="crop-circle-guide" />
                 </div>
                 <label>بزرگ‌نمایی<input type="range" min="1" max="3" step="0.05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
                 <label>موقعیت افقی<input type="range" min="0" max="100" value={cropX} onChange={e=>setCropX(Number(e.target.value))}/></label>
                 <label>موقعیت عمودی<input type="range" min="0" max="100" value={cropY} onChange={e=>setCropY(Number(e.target.value))}/></label>
-                <button type="button" className="outline" onClick={()=>{setCropZoom(1);setCropX(50);setCropY(50)}}>بازنشانی کادر</button>
+                <button type="button" className="outline" onClick={()=>{setCropZoom(1.35);setCropX(50);setCropY(50)}}>بازنشانی کادر</button>
               </div>
             )}
           </label>
