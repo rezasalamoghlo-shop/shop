@@ -349,7 +349,7 @@ export default function Admin() {
 
   async function specialAction(id: string, actionName: string, extra: Record<string, any> = {}) {
     if (orderBusy || action) return;
-    if (actionName === "add_to_cart" && !confirm("محصول با حجم انتخاب‌شده به سبد خرید مشتری اضافه شود و درخواست پایان یابد؟")) return;
+    if (actionName === "add_to_cart" && !confirm("محصول انتخاب‌شده به سبد خرید مشتری اضافه شود و گفتگوی ویژه پایان یابد؟")) return;
     setOrderBusy(id);
     try {
       const response = await fetch("/api/special-order/conversation", {
@@ -361,7 +361,7 @@ export default function Admin() {
       setMessage(response.ok
         ? actionName === "start" ? "گفتگوی مستقیم با مشتری آغاز شد."
           : actionName === "message" ? "پیام برای مشتری ارسال شد."
-          : "محصول به سبد مشتری اضافه شد و درخواست پایان یافت."
+          : "محصول به سبد خرید مشتری اضافه شد و گفتگوی ویژه پایان یافت."
         : result?.error || "عملیات درخواست ویژه ناموفق بود.");
       if (response.ok) {
         setSpecialDrafts((current) => ({ ...current, [id]: "" }));
@@ -850,7 +850,7 @@ async function updateOrder(id: string, status: string) {
                         </label>}
                       </div>
                       {specialProducts[order.id]&&(()=>{const p=(data.products||[]).find((x:any)=>x.id===specialProducts[order.id]);if(!p)return null;const full=Number(p.full_size_ml)||100;const ml=Number(specialAmounts[order.id]||10);const per=Number(p.price_per_ml)||Number(p.price)/full;const total=(specialPricing[order.id]||"ml")==="full"?Number(p.price)*(1-Number(p.discount_percent||0)/100):per*(1-Number(p.per_ml_discount_percent||0)/100)*ml;return <div className="admin-cart-preview">حجم بطری: {full} میل · مبلغ تقریبی: <strong>{faPrice(Math.round(total))} تومان</strong></div>})()}
-                      <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||!specialProducts[order.id]||((specialPricing[order.id]||"ml")==="ml"&&(!Number(specialAmounts[order.id])||Number(specialAmounts[order.id])<1||Number(specialAmounts[order.id])>Number((data.products||[]).find((p:any)=>p.id===specialProducts[order.id])?.full_size_ml||100)))} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id],pricing_type:specialPricing[order.id]||"ml",size_ml:Number(specialAmounts[order.id]||10)})}>{orderBusy===order.id?"در حال نهایی‌سازی...":"افزودن به سبد و پایان درخواست"}</button>
+                      <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||!specialProducts[order.id]||((specialPricing[order.id]||"ml")==="ml"&&(!Number(specialAmounts[order.id])||Number(specialAmounts[order.id])<1||Number(specialAmounts[order.id])>Number((data.products||[]).find((p:any)=>p.id===specialProducts[order.id])?.full_size_ml||100)))} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id],pricing_type:specialPricing[order.id]||"ml",size_ml:Number(specialAmounts[order.id]||10)})}>{orderBusy===order.id?"در حال نهایی‌سازی...":"افزودن به سبد خرید مشتری و پایان گفتگو"}</button>
                     </div>
                   </>}
                   <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال انجام...":"حذف درخواست و آزادسازی مشاور"}</button>
