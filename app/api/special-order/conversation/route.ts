@@ -61,7 +61,13 @@ export async function PUT(request:Request){
     if(findError||!order)return NextResponse.json({error:"درخواست پیدا نشد."},{status:404});
     if(action==="start"){
       if(order.status!=="pending")return NextResponse.json({error:"این درخواست قبلاً تعیین تکلیف شده یا گفتگو آغاز شده است."},{status:409});
-      const {error}=await s.from("special_orders").update({status:"in_progress"}).eq("id",id);
+      const {error:messageError}=await s.from("special_order_messages").insert({
+        special_order_id:id,
+        role:"assistant",
+        content:"سلام، من کارشناس عطر کهکشان هستم. درخواست شما را بررسی کردم. می‌توانید همین‌جا با من گفتگو کنید و اگر عطری مناسب سلیقه‌تان پیدا کردیم، آن را به سبد خریدتان اضافه می‌کنم."
+      });
+      if(messageError)return NextResponse.json({error:"پیام آغاز گفتگو ارسال نشد."},{status:500});
+      const {error}=await s.from("special_orders").update({status:"in_progress"}).eq("id",id).eq("status","pending");
       if(error)return NextResponse.json({error:"شروع گفتگو انجام نشد."},{status:500});
       return NextResponse.json({ok:true});
     }
