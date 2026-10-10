@@ -57,6 +57,8 @@ export async function POST(request:Request){try{
   const firstName=String(b.first_name||"").trim(),lastName=String(b.last_name||"").trim(),phone=String(b.phone||"").trim();
   if(!firstName||!lastName||!phone)return NextResponse.json({error:"نام، نام خانوادگی و شماره تماس را کامل وارد کنید."},{status:400});
   const s=db();
+  const {data:activeOrder}=await s.from("special_orders").select("id").eq("visitor_id",visitorId).in("status",["pending","in_progress"]).order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(activeOrder)return NextResponse.json({error:"درخواست عطر ویژه شما هنوز در حال بررسی است. تا تعیین تکلیف آن نمی‌توانید درخواست جدیدی ثبت کنید."},{status:409});
   const {data:order,error}=await s.from("special_orders").insert({visitor_id:visitorId,first_name:firstName,last_name:lastName,phone,preferences:prefs,notes:"ثبت‌شده از مشاور هوشمند عطر ویژه",status:"pending"}).select("id").single();
   if(error||!order)throw new Error("special_order_create_failed");
   await s.from("special_order_messages").insert([
@@ -64,6 +66,10 @@ export async function POST(request:Request){try{
    {special_order_id:order.id,role:"assistant",content:"درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود."}
   ]);
   return NextResponse.json({order_id:order.id,reply:"سفارش عطر ویژه شما با موفقیت ثبت شد. ✦\n\nاطلاعات شما برای کارشناس ارسال شد. لطفاً منتظر پاسخ کارشناس باشید.",done:true,special_order_created:true,preferences:{...prefs,first_name:firstName,last_name:lastName,phone}});
+ }
+ if(visitorId){
+  const {data:activeOrder}=await db().from("special_orders").select("id,status").eq("visitor_id",visitorId).in("status",["pending","in_progress"]).order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(activeOrder)return NextResponse.json({order_id:activeOrder.id,reply:activeOrder.status==="pending"?"درخواست عطر ویژه شما ثبت شده و در انتظار شروع گفتگو توسط کارشناس است. تا آن زمان امکان ارسال پیام جدید به مشاور وجود ندارد.":"گفتگوی شما با کارشناس عطر کهکشان فعال است. لطفاً پیام خود را در بخش گفتگوی مستقیم با کارشناس ارسال کنید.",done:true,locked:true,status:activeOrder.status});
  }
  const n=normalize(message);
  if(has(n,["بله","آره","اره","حتماً","حتما","ثبت کن","سفارش ویژه","سفارش عطر ویژه"])){
