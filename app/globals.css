@@ -117,3 +117,23 @@
 @keyframes particleLeft{0%,5%{transform:translate(-8px,25px) scale(.3);opacity:0}16%{opacity:1}70%{transform:translate(210px,-160px) scale(3.5);opacity:0}}
 @keyframes particleRight{0%,5%{transform:translate(8px,25px) scale(.3);opacity:0}16%{opacity:1}70%{transform:translate(-210px,-160px) scale(3.5);opacity:0}}
 @media(max-width:560px){.perfume-side-puffs:before,.perfume-side-puffs:after{width:100px;height:190px;filter:blur(13px)}.perfume-side-puffs .puff{width:14px;height:14px}}
+
+
+/* Messenger-style special order chat */
+.special-chat{min-height:540px;background:#0d1720;border-color:#263746;box-shadow:0 18px 55px #0004}
+.chat-head{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;background:#17232d;border-bottom-color:#293b49}
+.chat-head>div{display:grid;gap:5px}
+.chat-head b{font-size:15px;color:#f1f5f9}
+.chat-head .new-chat{white-space:nowrap;background:#202f3b;border:1px solid #405361;color:#e5d7f4;border-radius:10px;padding:9px 12px;font-family:inherit;font-size:11px}
+.chat-head .new-chat:disabled{opacity:.42}
+.chat-body{min-height:340px;max-height:480px;gap:12px;padding:18px 14px;background:radial-gradient(ellipse at 50% 0%,#1a2c3822,transparent 65%),#0e1922;scroll-behavior:smooth}
+.bot-message,.user-message{max-width:82%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 2px 6px #0002}
+.bot-message{background:#202f3a;border:1px solid #2b3f4c;color:#edf2f7;border-bottom-right-radius:5px}
+.user-message{background:#49366a;border:1px solid #634c85;color:#fff;border-bottom-left-radius:5px}
+.chat-input{align-items:center;background:#17232d;border-top-color:#293b49;padding:12px}
+.chat-input input{min-width:0;min-height:44px;background:#0d1720!important;border:1px solid #344956!important;color:#f8fafc!important;border-radius:22px!important;padding:10px 15px!important}
+.chat-input input:focus{border-color:#9b7ac1!important;outline:none}
+.chat-input button{min-height:42px;border-radius:22px;padding:0 18px;background:#49366a;border-color:#75569b;color:#fff;white-space:nowrap}
+.chat-input button:disabled{opacity:.4}
+.typing{font-size:11px;opacity:.72}
+@media(max-width:560px){.special-chat{min-height:520px;border-radius:16px}.chat-head{padding:13px 12px}.chat-head b{font-size:13px}.chat-head .new-chat{padding:8px 9px;font-size:10px}.chat-body{min-height:330px;max-height:54vh;padding:14px 10px}.bot-message,.user-message{max-width:90%;font-size:12px;padding:9px 11px}.chat-input{gap:6px;padding:9px}.chat-input button{padding:0 12px;font-size:11px}}
