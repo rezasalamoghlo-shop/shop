@@ -825,8 +825,8 @@ async function updateOrder(id: string, status: string) {
                     </div>)}
                     {!(order.messages||[]).length&&<div className="admin-chat-empty">هنوز پیامی ارسال نشده است. گفتگو را شروع کنید.</div>}
                   </div>
-                  {order.status==="pending"&&<div className="admin-chat-actions"><button className="gold" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>specialAction(order.id,"start")}>{orderBusy===order.id?"در حال شروع...":"تأیید و شروع گفتگو"}</button></div>}
-                  {order.status==="in_progress"&&<>
+                  {order.status==="pending"&&<div className="admin-chat-actions"><button className="gold" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>specialAction(order.id,"start")}>{orderBusy===order.id?"در حال شروع...":"▶ شروع گفتگو با مشتری"}</button></div>}
+                  {["pending","in_progress"].includes(order.status)&&<>
                     <div className="admin-chat-compose">
                       <textarea value={specialDrafts[order.id]||""} onChange={e=>setSpecialDrafts(v=>({...v,[order.id]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if((specialDrafts[order.id]||"").trim())specialAction(order.id,"message",{content:specialDrafts[order.id]})}}} placeholder="پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)"/>
                       <button disabled={Boolean(orderBusy)||Boolean(action)||!(specialDrafts[order.id]||"").trim()} onClick={()=>specialAction(order.id,"message",{content:specialDrafts[order.id]})}>{orderBusy===order.id?"…":"ارسال ➤"}</button>
@@ -850,10 +850,10 @@ async function updateOrder(id: string, status: string) {
                         </label>}
                       </div>
                       {specialProducts[order.id]&&(()=>{const p=(data.products||[]).find((x:any)=>x.id===specialProducts[order.id]);if(!p)return null;const full=Number(p.full_size_ml)||100;const ml=Number(specialAmounts[order.id]||10);const per=Number(p.price_per_ml)||Number(p.price)/full;const total=(specialPricing[order.id]||"ml")==="full"?Number(p.price)*(1-Number(p.discount_percent||0)/100):per*(1-Number(p.per_ml_discount_percent||0)/100)*ml;return <div className="admin-cart-preview">حجم بطری: {full} میل · مبلغ تقریبی: <strong>{faPrice(Math.round(total))} تومان</strong></div>})()}
-                      <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||!specialProducts[order.id]||((specialPricing[order.id]||"ml")==="ml"&&(!Number(specialAmounts[order.id])||Number(specialAmounts[order.id])<1||Number(specialAmounts[order.id])>Number((data.products||[]).find((p:any)=>p.id===specialProducts[order.id])?.full_size_ml||100)))} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id],pricing_type:specialPricing[order.id]||"ml",size_ml:Number(specialAmounts[order.id]||10)})}>{orderBusy===order.id?"در حال نهایی‌سازی...":"افزودن به سبد خرید مشتری و پایان گفتگو"}</button>
+                      <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||order.status!=="in_progress"||!specialProducts[order.id]||((specialPricing[order.id]||"ml")==="ml"&&(!Number(specialAmounts[order.id])||Number(specialAmounts[order.id])<1||Number(specialAmounts[order.id])>Number((data.products||[]).find((p:any)=>p.id===specialProducts[order.id])?.full_size_ml||100)))} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id],pricing_type:specialPricing[order.id]||"ml",size_ml:Number(specialAmounts[order.id]||10)})}>{orderBusy===order.id?"در حال نهایی‌سازی...":order.status!=="in_progress"?"ابتدا گفتگو را شروع کنید":"🛍 افزودن محصول به سبد مشتری و پایان گفتگو"}</button>
                     </div>
                   </>}
-                  <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال انجام...":"حذف درخواست و آزادسازی مشاور"}</button>
+                  <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال انجام...":"حذف گفتگو و درخواست"}</button>
                 </div>
               </div>
             </div>
