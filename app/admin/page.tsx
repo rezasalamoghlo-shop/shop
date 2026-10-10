@@ -800,7 +800,6 @@ async function updateOrder(id: string, status: string) {
               const shown = value == null ? "بدون محدودیت" : Array.isArray(value) ? value.join("، ") : typeof value === "object" ? JSON.stringify(value) : String(value);
               return (labels[key] || key) + ": " + shown;
             });
-            const selectedProduct = (data.products || []).find((p:any)=>p.id===specialProducts[order.id]);
             return <div className="order" key={order.id}>
               <div>
                 <b>{[order.first_name, order.last_name].filter(Boolean).join(" ") || "مشتری عطر ویژه"}</b>
