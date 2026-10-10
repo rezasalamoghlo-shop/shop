@@ -109,7 +109,12 @@ export async function POST(request:Request){try{
  const deferred=[...(prefs._deferred||[])];
  const skipped=[...(prefs._skipped||[])];
  if(current&&it!=="greeting"){
-  if(activeFollowup){
+  if(canDefer(message)){
+   // "فرقی ندارد" means the field is optional, not unanswered. Never ask it again.
+   prefs._deferred=deferred.filter(k=>k!==String(current));
+   prefs._skipped=Array.from(new Set([...skipped,String(current)]));
+   delete prefs._active_followup;
+  }else if(activeFollowup){
    if(currentAnswer){
     prefs._deferred=deferred.filter(k=>k!==String(current));
     prefs._skipped=skipped.filter(k=>k!==String(current));
