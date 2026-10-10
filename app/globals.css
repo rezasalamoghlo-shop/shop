@@ -24,7 +24,7 @@
 @keyframes dustBreath{50%{opacity:.85;transform:translate(-50%,-50%) rotate(-15deg) scale(1.04)}}
 @keyframes armsTurn{to{transform:rotate(352deg) scale(1.08)}}
 @keyframes starField{50%{opacity:1;transform:scale(1.7);filter:brightness(1.5)}}
-@media(max-width:560px){.milky-galaxy{inset:-4% -24%;background:radial-gradient(ellipse at 50% 50%,#ffffff10 0 5%,#b88cff12 12%,transparent 30%)}.milky-galaxy:before,.milky-galaxy:after{animation:galaxyDriftMobile 22s linear infinite;filter:blur(12px);opacity:.7}.galaxy-core{width:150px;height:150px;animation:corePulseMobile 5s ease-in-out infinite;filter:none;box-shadow:0 0 25px #fff,0 0 70px #a66cff88,0 0 120px #713dcc44}.galaxy-dust{filter:blur(1px);animation:dustBreathMobile 8s ease-in-out infinite}.galaxy-arms{transform:rotate(-8deg) scale(1.35);animation:armsTurnMobile 40s linear infinite}.galaxy-arms path{stroke-width:48;filter:none}.galaxy-arms path.sharp{filter:none;opacity:.18}.galaxy-star{left:calc(50% + (var(--g) - 14) * 5.2%);top:calc(50% + (var(--g) - 14) * 6px);animation:starFieldMobile 3.8s ease-in-out infinite;box-shadow:0 0 4px #fff,0 0 8px #a974ff;opacity:.55}.galaxy-star b{font-size:6px;text-shadow:none}.galaxy-star:nth-child(4n){transform:scale(1.4)}.galaxy-star:nth-child(9n) b{font-size:9px}.hero-copy{padding-left:14px;padding-right:14px}.hero-address{font-size:14px;margin-bottom:12px}}
+@media(max-width:560px){.milky-galaxy{inset:-4% -24%;background:radial-gradient(ellipse at 50% 50%,#ffffff10 0 5%,#b88cff12 12%,transparent 30%)}.milky-galaxy:before,.milky-galaxy:after{animation:galaxyDriftMobile 22s linear infinite;filter:blur(12px);opacity:.7}.galaxy-core{width:150px;height:150px;animation:corePulseMobile 5s ease-in-out infinite;filter:none;box-shadow:0 0 25px #fff,0 0 70px #a66cff88,0 0 120px #713dcc44}.galaxy-dust{filter:blur(1px);animation:dustBreathMobile 8s ease-in-out infinite}.galaxy-arms{transform:rotate(-8deg) scale(1.35);animation:armsTurnMobile 40s linear infinite}.galaxy-arms path{stroke-width:48;filter:none}.galaxy-arms path.sharp{filter:none;opacity:.18}.galaxy-star{left:calc(50% + (var(--g) - 14) * 5.2%);top:calc(50% + (var(--g) - 14) * 6px);animation:starFieldMobile 3.8s ease-in-out infinite;box-shadow:0 0 4px #fff,0 0 8px #a974ff;opacity:.55}.galaxy-star b{font-size:6px;text-shadow:none}.galaxy-star:nth-child(4n){transform:scale(1.4)}.galaxy-star:nth-child(9n) b{font-size:9px}.hero-copy{padding-left:14px;padding-right:14px}.hero-address{font-size:clamp(16px,3.6vw,20px);margin-bottom:12px}}
 @keyframes galaxyDriftMobile{from{transform:rotate(-18deg) scaleY(.48) translateX(-2%)}to{transform:rotate(342deg) scaleY(.48) translateX(2%)}}@keyframes corePulseMobile{50%{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 32px #fff,0 0 80px #a66cffaa,0 0 140px #713dcc55}}@keyframes dustBreathMobile{50%{opacity:.8;transform:translate(-50%,-50%) rotate(-15deg) scale(1.03)}}@keyframes armsTurnMobile{to{transform:rotate(352deg) scale(1.35)}}@keyframes starFieldMobile{50%{opacity:.95;transform:scale(1.45)}}
 @media(prefers-reduced-motion:reduce){.milky-galaxy *,.milky-galaxy:before,.milky-galaxy:after{animation:none!important}}
 
@@ -56,7 +56,7 @@
 .price-area del{color:#77717f;font-size:11px;text-decoration-thickness:1px}
 .price-area strong{color:#e4c46a;font-size:18px;line-height:1.35}
 .discount-badge{position:absolute;top:12px;left:12px;z-index:4;background:linear-gradient(135deg,#8f5cc7,#c89d3f);color:#fff;border:1px solid #f1d98a66;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:700;box-shadow:0 8px 20px #0007}
-.hero-address{position:relative;z-index:2;color:#ff1744;text-shadow:0 0 5px #ff1744,0 0 14px #ff1744,0 0 28px #ff174488;font-size:15px;line-height:1.9;margin:-2px auto 14px;max-width:680px}
+.hero-address{position:relative;z-index:2;color:#32105f;text-shadow:0 0 2px #d8b4fe,0 0 8px #7e22ce,0 0 18px #6b21a8aa;font-family:"Cormorant Garamond","Vazirmatn",serif;font-weight:800;font-size:clamp(20px,2.2vw,28px);letter-spacing:.15px;line-height:1.9;margin:-2px auto 14px;max-width:1000px}
 .support-address{color:#bdb4c5;font-size:12px;line-height:2;margin-top:12px;padding-right:2px}
 .row{padding-top:8px}
 .row button{width:100%}
@@ -67,7 +67,7 @@
   .price-area{margin-top:8px}
   .price-area strong{font-size:16px}
   .discount-badge{font-size:9px;padding:5px 8px}
-  .hero-address{font-size:11px;padding:0 12px}
+  .hero-address{font-size:clamp(16px,3.6vw,20px);padding:0 12px}
 }
 /* Cinematic side perfume puffs */
 .perfume-side-puffs{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}.perfume-side-puffs:before,.perfume-side-puffs:after{content:"";position:absolute;top:52%;width:70px;height:150px;opacity:0;filter:blur(12px);background:radial-gradient(ellipse,#f7e5bd55 0,#d5b4ff38 28%,#b98fff20 48%,transparent 72%);border-radius:50%;}.perfume-side-puffs:before{left:-35px;animation:sidePuffLeft 8s ease-in-out infinite}.perfume-side-puffs:after{right:-35px;animation:sidePuffRight 8s ease-in-out infinite 4s}.perfume-side-puffs .puff{position:absolute;top:54%;width:10px;height:10px;border-radius:50%;opacity:0;background:radial-gradient(circle,#fff9e5,#caa5ff 40%,transparent 72%);filter:blur(2px);box-shadow:0 0 18px #d9c0ff}.puff-left{left:0;animation:particleLeft 8s ease-out infinite}.puff-right{right:0;animation:particleRight 8s ease-out infinite 4s}@keyframes sidePuffLeft{0%,100%{transform:translate(-35px,20px) scale(.25);opacity:0}10%{opacity:.65}32%{transform:translate(65px,-25px) scale(2.2);opacity:.34}52%{transform:translate(130px,-75px) scale(3.2);opacity:0}}@keyframes sidePuffRight{0%,100%{transform:translate(35px,20px) scale(.25);opacity:0}10%{opacity:.65}32%{transform:translate(-65px,-25px) scale(2.2);opacity:.34}52%{transform:translate(-130px,-75px) scale(3.2);opacity:0}}@keyframes particleLeft{0%,8%{transform:translate(0,20px) scale(.3);opacity:0}18%{opacity:.8}70%{transform:translate(150px,-120px) scale(2.8);opacity:0}}@keyframes particleRight{0%,8%{transform:translate(0,20px) scale(.3);opacity:0}18%{opacity:.8}70%{transform:translate(-150px,-120px) scale(2.8);opacity:0}}@media(max-width:560px){.perfume-side-puffs:before,.perfume-side-puffs:after{width:48px;height:110px;filter:blur(9px);top:58%}.puff{top:60%!important}}@media(prefers-reduced-motion:reduce){.perfume-side-puffs{display:none}}
@@ -97,3 +97,23 @@
 .crop-tool input[type=range]{width:100%;accent-color:#a984d4}
 .crop-tool .outline{border:1px solid #76559a;background:#21172c;color:#eadcf8;border-radius:8px;padding:9px;cursor:pointer;font-family:inherit}
 @media(max-width:560px){.photo img{width:82%!important;inset:9%!important}.crop-preview-frame{width:min(100%,280px)}}
+
+/* Final hero address override */
+.hero-copy .hero-address{color:#32105f!important;text-shadow:0 0 2px #e9d5ff,0 0 9px #9333ea,0 0 22px #7e22ceaa;font-family:"Cormorant Garamond","Vazirmatn",serif;font-weight:800;font-size:clamp(20px,2.2vw,28px);max-width:1000px}
+@media(max-width:560px){.hero-copy .hero-address{font-size:clamp(16px,4vw,20px)}}
+/* Stronger fragrance puffs from both screen edges */
+.perfume-side-puffs:before,.perfume-side-puffs:after{top:48%;width:clamp(120px,18vw,230px);height:clamp(220px,34vh,380px);filter:blur(19px);opacity:0;background:radial-gradient(ellipse at center,#fff0c477 0,#e9caff66 20%,#b88aff48 42%,#9a62d522 62%,transparent 76%)}
+.perfume-side-puffs:before{left:-95px;animation:sidePuffLeft 7s ease-in-out infinite}
+.perfume-side-puffs:after{right:-95px;animation:sidePuffRight 7s ease-in-out infinite 3.5s}
+.perfume-side-puffs .puff{width:18px;height:18px;filter:blur(2px);box-shadow:0 0 22px #d9c0ff,0 0 42px #a56cff99;background:radial-gradient(circle,#fff8dc 0,#ead0ff 30%,#a96dff88 62%,transparent 76%)}
+.perfume-side-puffs .puff-left{left:0;animation:particleLeft 7s ease-out infinite}
+.perfume-side-puffs .puff-right{right:0;animation:particleRight 7s ease-out infinite 3.5s}
+.perfume-side-puffs .puff:nth-child(3){animation-delay:.7s!important;width:28px;height:28px}
+.perfume-side-puffs .puff:nth-child(4){animation-delay:4.2s!important;width:26px;height:26px}
+.perfume-side-puffs .puff:nth-child(5){animation-delay:1.4s!important;width:13px;height:13px}
+.perfume-side-puffs .puff:nth-child(6){animation-delay:4.9s!important;width:14px;height:14px}
+@keyframes sidePuffLeft{0%,100%{transform:translate(-100px,25px) scale(.2);opacity:0}9%{opacity:.95}28%{transform:translate(90px,-30px) scale(2.8);opacity:.65}48%{transform:translate(200px,-105px) scale(4.2);opacity:0}}
+@keyframes sidePuffRight{0%,100%{transform:translate(100px,25px) scale(.2);opacity:0}9%{opacity:.95}28%{transform:translate(-90px,-30px) scale(2.8);opacity:.65}48%{transform:translate(-200px,-105px) scale(4.2);opacity:0}}
+@keyframes particleLeft{0%,5%{transform:translate(-8px,25px) scale(.3);opacity:0}16%{opacity:1}70%{transform:translate(210px,-160px) scale(3.5);opacity:0}}
+@keyframes particleRight{0%,5%{transform:translate(8px,25px) scale(.3);opacity:0}16%{opacity:1}70%{transform:translate(-210px,-160px) scale(3.5);opacity:0}}
+@media(max-width:560px){.perfume-side-puffs:before,.perfume-side-puffs:after{width:100px;height:190px;filter:blur(13px)}.perfume-side-puffs .puff{width:14px;height:14px}}
