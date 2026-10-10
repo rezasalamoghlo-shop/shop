@@ -695,6 +695,11 @@ async function updateOrder(id: string, status: string) {
             onClick={() => saveProduct(form.id ? "PUT" : "POST")}
           >
             {action === "product-create"
+              ? "در حال ایجاد محصول..."
+              : action === "product-edit"
+              ? "در حال ویرایش محصول..."
+              : form.id
+              ? "ذخیره تغییرات محصول"
               : "ایجاد محصول"}
           </button>
         </div>
