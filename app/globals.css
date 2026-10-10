@@ -4,7 +4,7 @@
 .upload-hint{display:block;color:#7f7588;font-size:10px;line-height:1.8;margin-top:6px}.photo img{object-fit:contain;padding:24px;filter:drop-shadow(0 18px 28px #0008)}.admin-msg{color:#d9b75e}.admin button:disabled{opacity:.6;cursor:wait}
 .ai-image-toggle{display:flex;align-items:center;gap:8px;margin-top:9px;color:#d9b75e;font-size:12px;cursor:pointer}.ai-image-toggle input{width:16px;height:16px;accent-color:#d9b75e;margin:0}
 /* Product pricing and store address */
-.price-area{margin:10px 17px 0;min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px}.price-area del{color:#77717f;font-size:11px;text-decoration-thickness:1px}.price-area strong{color:#e4c46a;font-size:18px;line-height:1.35}.discount-badge{position:absolute;top:12px;left:12px;z-index:4;background:linear-gradient(135deg,#8f5cc7,#c89d3f);color:#fff;border:1px solid #f1d98a66;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:700;box-shadow:0 8px 20px #0007}.hero-address{position:relative;z-index:2;color:#ff1744;text-shadow:0 0 5px #ff1744,0 0 14px #ff1744,0 0 28px #ff174488;font-size:15px;line-height:1.9;margin:-2px auto 14px;max-width:680px}.support-address{color:#bdb4c5;font-size:12px;line-height:2;margin-top:12px;padding-right:2px}.row{padding-top:8px}.row button{width:100%}@media(max-width:560px){.price-area{margin-top:8px}.price-area strong{font-size:16px}.discount-badge{font-size:9px;padding:5px 8px}.hero-address{font-size:11px;padding:0 12px}}
+.price-area{margin:10px 17px 0;min-height:58px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px}.price-area del{color:#77717f;font-size:11px;text-decoration-thickness:1px}.price-area strong{color:#e4c46a;font-size:18px;line-height:1.35}.discount-badge{position:absolute;top:12px;left:12px;z-index:4;background:linear-gradient(135deg,#8f5cc7,#c89d3f);color:#fff;border:1px solid #f1d98a66;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:700;box-shadow:0 8px 20px #0007}.hero-address{position:relative;z-index:2;color:#4b168c;text-shadow:0 0 5px #6d28d9aa,0 0 14px #4c1d95aa,0 0 28px #3b076455;font-family:"Vazirmatn","IRANSansX",serif;font-weight:800;font-size:clamp(17px,1.7vw,22px);letter-spacing:.1px;line-height:1.9;margin:-2px auto 14px;max-width:900px}.support-address{color:#bdb4c5;font-size:12px;line-height:2;margin-top:12px;padding-right:2px}.row{padding-top:8px}.row button{width:100%}@media(max-width:560px){.price-area{margin-top:8px}.price-area strong{font-size:16px}.discount-badge{font-size:9px;padding:5px 8px}.hero-address{font-size:14px;padding:0 12px}}
 
 /* Neon Milky Way hero */
 .milky-galaxy{position:absolute;inset:-8% -4%;z-index:1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#ffffff12 0 4%,#b88cff14 12%,transparent 30%),radial-gradient(ellipse at 50% 50%,transparent 27%,#7b4dcc0b 42%,transparent 58%)}
@@ -84,3 +84,16 @@
 .special-form button:disabled{opacity:.55;cursor:not-allowed}
 .special-conversation{margin-top:10px;padding:10px;border:1px solid #302637;border-radius:9px;background:#100c15;display:grid;gap:7px;max-height:240px;overflow:auto;font-size:11px;line-height:1.8;color:#cfc5d5}
 .special-conversation b{color:#e4c46a}
+
+
+/* Product image crop and circular presentation */
+.photo{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.photo img{object-fit:cover!important;border-radius:50%;width:78%!important;height:auto!important;aspect-ratio:1/1;inset:11%!important;border:1px solid #b58aff55;box-shadow:0 8px 30px #0008}
+.crop-tool{display:grid;gap:12px;margin-top:12px;padding:14px;border:1px solid #40304f;border-radius:14px;background:#100c17}
+.crop-preview-frame{position:relative;width:min(100%,340px);aspect-ratio:1;margin:0 auto;overflow:hidden;border-radius:12px;background:#08060c;border:1px solid #8f6ab3}
+.crop-preview-frame img{display:block;max-width:none}
+.crop-circle-guide{position:absolute;inset:8%;border:2px solid #e4c46a;border-radius:50%;box-shadow:0 0 0 999px #05030a66;pointer-events:none}
+.crop-tool label{display:grid;gap:5px;font-size:12px;color:#d9c47e}
+.crop-tool input[type=range]{width:100%;accent-color:#a984d4}
+.crop-tool .outline{border:1px solid #76559a;background:#21172c;color:#eadcf8;border-radius:8px;padding:9px;cursor:pointer;font-family:inherit}
+@media(max-width:560px){.photo img{width:82%!important;inset:9%!important}.crop-preview-frame{width:min(100%,280px)}}
