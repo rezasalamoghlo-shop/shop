@@ -27,13 +27,13 @@ const giftEvents:[string,string[]][]=[
 for(const [value,words] of giftEvents){if(has(n,words)){out.push({key:"gift_occasion",value});break}}
 
 if(has(n,["صبح","ظهر","روز"]))out.push({key:"time",value:"روز"});else if(has(n,["شب","شبانه"]))out.push({key:"time",value:"شب"});
-for(const x of ["بهار","تابستان","پاییز","زمستان"])if(n.includes(x)){out.push({key:"season",value:x});break} if(has(n,["بیشتر فصل","اکثر فصل","چند فصل","همه فصل","تمام فصل","فصل ها","فصل‌های","هر فصل","فرقی ندارد"]))out.push({key:"season",value:"بیشتر فصل‌ها"});
+for(const x of ["بهار","تابستان","پاییز","زمستان"])if(n.includes(x)){out.push({key:"season",value:x});break} if(has(n,["بیشتر فصل","اکثر فصل","چند فصل","همه فصل","تمام فصل","فصل ها","فصل‌های","هر فصل"])||(current==="season"&&canDefer(n)))out.push({key:"season",value:"بیشتر فصل‌ها"});
 const longevityText=(n.includes("ماندگاری")||current==="longevity")?n:"";if(has(longevityText,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(has(longevityText,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(has(longevityText,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(has(longevityText,["کم"]))out.push({key:"longevity",value:"کم"});if(current==="longevity"&&!out.some(x=>x.key==="longevity")){if(anyExact(n,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(anyExact(n,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(anyExact(n,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(anyExact(n,["کم","ضعیف"]))out.push({key:"longevity",value:"کم"});}
 const sillageText=(n.includes("پخش بو")||n.includes("خط بو")||current==="sillage")?n:"";if(has(sillageText,["خیلی قوی","پخش بالا","بمب","خیلی خوب","بسیار خوب"]))out.push({key:"sillage",value:"خیلی قوی"});else if(has(sillageText,["قوی","زیاد","خوب"]))out.push({key:"sillage",value:"قوی"});else if(has(sillageText,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(has(sillageText,["ملایم","کم"]))out.push({key:"sillage",value:"ملایم"});
 if(current==="sillage"&&!out.some(x=>x.key==="sillage")){if(has(n,["خیلی قوی","خیلی زیاد","بسیار قوی"]))out.push({key:"sillage",value:"خیلی قوی"});else if(anyExact(n,["قوی","زیاد","بالا"]))out.push({key:"sillage",value:"قوی"});else if(anyExact(n,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(anyExact(n,["ملایم","کم","ضعیف"]))out.push({key:"sillage",value:"ملایم"});}
 const scents=scentMap.filter(([,words])=>has(n,words)).map(([name])=>name);if(scents.length)out.push({key:"scent",value:Array.from(new Set([...(p.scent||[]),...scents]))});
 for(const m of months)if(n.includes(m)){out.push({key:"birth_month",value:m});break}
-if(has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت"]))out.push({key:"budget",value:null});else{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
+if(current==="budget"&&has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت"]))out.push({key:"budget",value:null});else{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
 return out}
 const order=["product_type","gender","target","occasion","time","season","longevity","sillage","scent","birth_month","budget"] as (keyof Prefs)[];
 const questions:Record<string,string>={product_type:"اول مشخص کنیم: عطر می‌خواهید یا ادکلن؟",gender:"برای چه جنسیتی می‌خواهید؟ مردانه یا زنانه؟",target:"برای خودتان می‌خواهید یا برای شخص دیگری/هدیه؟",occasion:"بیشتر در چه موقعیتی از عطر استفاده می‌شود؟ روزمره، محل کار، دانشگاه، مهمانی، قرار یا موقعیت رسمی؟",gift_occasion:"اگر هدیه است، مناسبت هدیه چیست؟ مثلاً تولد، سالگرد یا ولنتاین.",time:"بیشتر برای روز می‌خواهید یا شب؟",season:"برای کدام فصل یا آب‌وهوا می‌خواهید؟",longevity:"ماندگاری را چطور می‌پسندید؟ کم، متوسط، زیاد یا خیلی زیاد؟",sillage:"پخش بو را چطور می‌پسندید؟ ملایم، متوسط، قوی یا خیلی قوی؟",scent:"چه رایحه‌ای دوست دارید؟ شیرین، تند، خنک، ملایم، گرم، تلخ، چوبی، مرکباتی، دریایی، شرقی، گلدار یا پودری.",birth_month:"ماه تولد شما یا شخصی که برای او می‌خواهید چیست؟",budget:"بودجه حدودی دارید؟ اگر محدودیتی ندارید فقط بگویید «فرقی ندارد»."};
@@ -42,23 +42,6 @@ const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی"
 async function info(s:any){const {data}=await s.from("store_settings").select("address,support_phone,social_links").limit(1).maybeSingle();return data||{}}
 function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;const add=(v:string|undefined,w:number)=>{if(v&&text.includes(normalize(v)))score+=w};add(p.product_type,10);add(p.gender,10);add(p.season,7);add(p.occasion,5);add(p.longevity,6);add(p.sillage,6);add(p.birth_month,4);for(const z of p.scent||[])add(z,12);if(typeof p.budget==="number"){const price=Number(x.price);if(price<=p.budget)score+=7;else if(price<=p.budget*1.1)score+=2;else score-=5}return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
 const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";
-const questionAccepts=(key:keyof Prefs,message:string)=>{
- const n=normalize(message);
- if(key==="product_type")return has(n,["عطر","پرفیوم","perfume","ادکلن","کولون","cologne"]);
- if(key==="gender")return has(n,["مرد","مردانه","پسر","آقا","زن","زنانه","دختر","خانم"]);
- if(key==="target")return has(n,["خودم","برای خود","برای من","هدیه","کادو","همسر","دوست","مادر","پدر","خواهر","برادر","دیگری","شخص دیگر"]);
- if(key==="occasion")return has(n,["روزمره","روزانه","مصرف روزانه","استفاده روزانه","مصرف روزمره","هر روز","روز کاری","همه جا","همه‌جا","استفاده عمومی","محل کار","سر کار","محیط کار","اداری","دانشگاه","مدرسه","کلاس","مهمانی","مهمونی","دورهمی","جشن","مراسم","قرار","دیت","رسمی","باشگاه","ورزش","در روز","برای روز","روز"]);
- if(key==="gift_occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","روز مادر","روز پدر","روز عشق"]);
- if(key==="time")return has(n,["روز","صبح","ظهر","شب","شبانه","هر دو","فرقی ندارد"]);
- if(key==="season")return has(n,["بهار","تابستان","پاییز","زمستان","همه فصل","تمام فصل","بیشتر فصل","اکثر فصل","چند فصل","هر فصل","فصل ها","فصل‌های","فرقی ندارد"]);
- if(key==="longevity")return n.includes("ماندگاری")||has(n,["خیلی زیاد","خیلی بالا","بسیار زیاد","زیاد","بالا","متوسط","کم","ضعیف"]);
- if(key==="sillage")return n.includes("پخش بو")||n.includes("خط بو")||has(n,["خیلی قوی","پخش بالا","بمب","قوی","زیاد","بالا","خوب","متوسط","ملایم","کم","ضعیف"]);
- if(key==="scent")return scentMap.some(([,words])=>has(n,words));
- if(key==="birth_month")return months.some(m=>n.includes(m))||has(n,["ماه تولد","متولد"]);
- if(key==="budget")return has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت","بودجه"])||/\d{4,}/.test(n);
- return false;
-};
-
 export const runtime="edge";
 export async function POST(request:Request){try{
  const b=await request.json();
@@ -127,9 +110,11 @@ export async function POST(request:Request){try{
   }
  }
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
- if(prefs.target!=="هدیه/شخص دیگر"){
+ if(prefs.target==="خودم"){
   prefs._deferred=(prefs._deferred||[]).filter(k=>k!=="gift_occasion");
   prefs._skipped=Array.from(new Set([...(prefs._skipped||[]),"gift_occasion"]));
+ }else if(prefs.target==="هدیه/شخص دیگر"){
+  prefs._skipped=(prefs._skipped||[]).filter(k=>k!=="gift_occasion");
  }
  const next=nextKey(prefs);
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
