@@ -205,3 +205,18 @@
 .contact-address{max-width:100%}
 .contact-address>span:last-child{overflow-wrap:anywhere}
 @media(max-width:560px){.contact-strip-inner{justify-content:flex-start;gap:7px 12px;padding:8px 12px}.contact-item{font-size:10px}.contact-address{flex-basis:100%}}
+
+
+/* Hero contact links: keep address beneath the store title and socials beneath the intro copy. */
+.contact-strip{display:none!important}
+.hero-copy .hero-address{margin:2px auto 12px;color:#f0d9a0!important;text-shadow:0 0 10px #b98fff55!important;font-family:inherit!important;font-size:clamp(13px,1.6vw,17px)!important;font-weight:500!important;line-height:1.9}
+.hero-contact-links{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 12px;margin:18px auto 22px;max-width:780px}
+.hero-contact-link{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid #d5ae4b3b;border-radius:999px;background:linear-gradient(135deg,#17111fdd,#0d0a13dd);color:#e9dfef;font-size:12px;line-height:1.5;text-decoration:none;transition:transform .2s,border-color .2s,background .2s;overflow-wrap:anywhere}
+.hero-contact-link:hover{transform:translateY(-2px);border-color:#e4c46a;background:#21172c;color:#f8e6ae}
+.hero-contact-icon{display:inline-grid;place-items:center;width:25px;height:25px;flex:0 0 25px;border-radius:50%;border:1px solid #e4c46a66;background:#e4c46a12;color:#f0d37d;font-size:15px;font-weight:800}
+.hero-social-instagram .hero-contact-icon{color:#f2a2d2;border-color:#f2a2d266;background:#f2a2d212}
+.hero-social-telegram .hero-contact-icon{color:#80d4f4;border-color:#80d4f466;background:#80d4f412}
+.hero-social-rubika .hero-contact-icon{color:#e8a0ff;border-color:#e8a0ff66;background:#e8a0ff12}
+.hero-social-whatsapp .hero-contact-icon{color:#8de3a4;border-color:#8de3a466;background:#8de3a412}
+.hero-social-aparat .hero-contact-icon{color:#ff9b9b;border-color:#ff9b9b66;background:#ff9b9b12}
+@media(max-width:560px){.hero-contact-links{gap:8px;margin:14px 12px 18px}.hero-contact-link{min-height:35px;padding:6px 9px;font-size:11px}.hero-contact-icon{width:23px;height:23px;flex-basis:23px}.hero-copy .hero-address{padding:0 14px;font-size:13px!important}}
