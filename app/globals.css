@@ -176,3 +176,10 @@
 .admin-cart-builder>button{width:100%;margin-top:2px}
 .admin-messenger+.special-delete{margin:10px 0 0!important}
 @media(max-width:560px){.admin-chat-messages{max-height:320px;min-height:160px;padding:12px 9px}.admin-chat-bubble{max-width:91%;padding:7px 9px}.admin-chat-content{font-size:11px}.admin-chat-compose{padding:8px;gap:6px}.admin-chat-compose button{padding:0 10px;font-size:10px}.admin-cart-builder{padding:11px}.admin-cart-size-row{grid-template-columns:1fr 1fr;gap:7px}}
+
+
+/* Make special-order actions unmistakably visible in the admin panel */
+.admin-messenger .admin-chat-actions .gold{display:block;min-height:44px;border:1px solid #d8b75f;background:linear-gradient(135deg,#98713a,#d7b85f);color:#17110a;font-weight:800;border-radius:10px;cursor:pointer}
+.admin .special-delete{display:block!important;width:100%;min-height:42px;padding:10px 14px!important;border:1px solid #a94e5b!important;border-radius:10px!important;background:#35171d!important;color:#ffd9de!important;font-weight:700;cursor:pointer}
+.admin .special-delete:hover{background:#51212a!important;border-color:#e17b88!important}
+.admin .special-delete:disabled,.admin-messenger .admin-chat-actions button:disabled{opacity:.55;cursor:wait}
