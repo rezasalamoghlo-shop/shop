@@ -88,7 +88,8 @@ export async function POST(request:Request){try{
   return NextResponse.json({order_id:String(b.order_id||""),reply:"حتماً. برای ثبت سفارش ویژه، نام، نام خانوادگی و شماره تماس خود را وارد کنید.",done:false,needs_special_form:true,preferences:prefs});
  }
  const it=intent(message);
- const current=nextKey(prefs);
+ const activeFollowup=String(prefs._active_followup||"");
+ const current=(activeFollowup?activeFollowup:nextKey(prefs)) as keyof Prefs|null;
  if(it==="address"||it==="social"||it==="support"){
   const x=await info(db());let reply="";
   if(it==="address")reply=x.address?"آدرس عطر کهکشان: "+x.address:"آدرس هنوز ثبت نشده است.";
@@ -106,10 +107,37 @@ export async function POST(request:Request){try{
  // A greeting can be part of a complete request. Parse the entire message first,
  // then greet only when the message contains no usable perfume preferences.
  if(it==="greeting"&&!Object.keys(prefs).length&&extracted.length===0)return NextResponse.json({order_id:String(b.order_id||""),reply:"به عطر کهکشان خوش آمدید ✦\nمن سلیقه شما را دقیق تحلیل می‌کنم. اول بگویید عطر می‌خواهید یا ادکلن؟",done:false,intent:"greeting",preferences:prefs});
- if(current&&it!=="greeting"&&!questionAccepts(current,message)&&extracted.length===0)return NextResponse.json({order_id:String(b.order_id||""),reply:"این پاسخ مربوط به سؤال فعلی نیست. لطفاً فقط پاسخ همین سؤال را بگویید:\n\n"+questions[current],done:false,intent:"invalid",preferences:prefs});
+ const currentAnswer=Boolean(current&&extracted.some(x=>x.key===current));
+ const deferred=[...(prefs._deferred||[])];
+ const skipped=[...(prefs._skipped||[])];
+ if(current&&it!=="greeting"){
+  if(activeFollowup){
+   if(currentAnswer){
+    prefs._deferred=deferred.filter(k=>k!==String(current));
+    prefs._skipped=skipped.filter(k=>k!==String(current));
+   }else{
+    // A differently phrased second attempt is the last attempt. Do not repeat it again.
+    prefs._deferred=deferred.filter(k=>k!==String(current));
+    prefs._skipped=Array.from(new Set([...skipped,String(current)]));
+   }
+   delete prefs._active_followup;
+  }else if(!currentAnswer){
+   // Defer any unanswered or ambiguous field and continue through the rest of the profile.
+   prefs._deferred=Array.from(new Set([...deferred,String(current)]));
+  }
+ }
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
+ if(prefs.target!=="هدیه/شخص دیگر"){
+  prefs._deferred=(prefs._deferred||[]).filter(k=>k!=="gift_occasion");
+  prefs._skipped=Array.from(new Set([...(prefs._skipped||[]),"gift_occasion"]));
+ }
  const next=nextKey(prefs);
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
+ const followup=order.find(k=>(prefs._deferred||[]).includes(String(k))&&!(prefs._skipped||[]).includes(String(k))&&prefs[k]===undefined);
+ if(followup){
+  prefs._active_followup=String(followup);
+  return NextResponse.json({order_id:String(b.order_id||""),reply:followupQuestions[String(followup)]||questions[String(followup)],done:false,intent:it,preferences:prefs});
+ }
  const s=db();
  const {data:products}=await s.from("products").select("id,name,description,price,stock,image_url,fragrance_profile,discount_percent,full_size_ml,price_per_ml,per_ml_discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").gt("stock",0).limit(100);
  let picks=recommend(products||[],prefs);if(picks.length&&picks[0].score<25)picks=[];
