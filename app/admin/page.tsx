@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 const faPrice = (value: unknown) => {
   const digits = "۰۱۲۳۴۵۶۷۸۹";
@@ -71,7 +72,16 @@ export default function Admin() {
   }
 
   useEffect(() => {
-    load();
+    void load();
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase.channel("galaxy-admin-catalog-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "product_categories" }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "product_sizes" }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "store_settings" }, () => { void load(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
   }, []);
 
   // Keep special-order conversations fresh without overwriting other unsaved admin form fields.
@@ -87,8 +97,13 @@ export default function Admin() {
             id: o.id, status: o.status,
             messages: (o.messages || []).map((m: any) => ({ id: m.id, role: m.role, content: m.content, created_at: m.created_at }))
           })));
-          if (signature(current.special_orders) === signature(result.special_orders)) return current;
-          return { ...current, special_orders: result.special_orders || [] };
+          const ordersSignature = (orders: any[]) => JSON.stringify((orders || []).map((o: any) => ({
+            id: o.id, status: o.status, total_price: o.total_price, updated_at: o.updated_at, created_at: o.created_at
+          })));
+          const sameSpecial = signature(current.special_orders) === signature(result.special_orders);
+          const sameOrders = ordersSignature(current.orders) === ordersSignature(result.orders);
+          if (sameSpecial && sameOrders) return current;
+          return { ...current, special_orders: result.special_orders || [], orders: result.orders || current.orders || [] };
         });
       } catch {}
     }, 2500);
