@@ -15,7 +15,8 @@ export async function GET(request:Request){
   const {data:rows}=await s.from("special_order_messages").select("*").eq("special_order_id",order.id).order("created_at",{ascending:true});
   const all=rows||[];
   const cart_additions=all.filter((m:any)=>typeof m.content==="string"&&m.content.startsWith(CART_PREFIX)).map((m:any)=>{try{return {id:m.id,...JSON.parse(m.content.slice(CART_PREFIX.length))}}catch{return null}}).filter(Boolean);
-  const messages=all.filter((m:any)=>!(typeof m.content==="string"&&m.content.startsWith(CART_PREFIX))).map((m:any)=>({id:m.id,role:m.role,content:m.content,created_at:m.created_at}));
+  const hiddenSystemMessages=new Set(["درخواست سفارش ویژه را تأیید کردم.","درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود.","کارشناس عطر کهکشان گفتگو را آغاز کرد. پیام‌های بعدی مستقیماً بین شما و کارشناس ردوبدل می‌شوند.","محصول نهایی به سبد خرید شما اضافه شد و درخواست ویژه پایان یافت. اکنون می‌توانید گفتگوی جدیدی با مشاور آغاز کنید."]);
+  const messages=all.filter((m:any)=>!(typeof m.content==="string"&&(m.content.startsWith(CART_PREFIX)||hiddenSystemMessages.has(m.content)))).map((m:any)=>({id:m.id,role:m.role,content:m.content,created_at:m.created_at}));
   return NextResponse.json({active:["pending","in_progress"].includes(order.status),status:order.status,order_id:order.id,messages,cart_additions});
 }
 
@@ -49,7 +50,6 @@ export async function PUT(request:Request){
       if(order.status!=="pending")return NextResponse.json({error:"این درخواست قبلاً تعیین تکلیف شده یا گفتگو آغاز شده است."},{status:409});
       const {error}=await s.from("special_orders").update({status:"in_progress"}).eq("id",id);
       if(error)return NextResponse.json({error:"شروع گفتگو انجام نشد."},{status:500});
-      await s.from("special_order_messages").insert({special_order_id:id,role:"assistant",content:"کارشناس عطر کهکشان گفتگو را آغاز کرد. پیام‌های بعدی مستقیماً بین شما و کارشناس ردوبدل می‌شوند."});
       return NextResponse.json({ok:true});
     }
     if(action==="message"){
@@ -73,7 +73,6 @@ export async function PUT(request:Request){
       if(messageError)return NextResponse.json({error:"افزودن محصول به سبد خرید انجام نشد."},{status:500});
       const {error:statusError}=await s.from("special_orders").update({status:"completed"}).eq("id",id);
       if(statusError)return NextResponse.json({error:"محصول ثبت شد اما بستن درخواست انجام نشد. با پشتیبانی تماس بگیرید."},{status:500});
-      await s.from("special_order_messages").insert({special_order_id:id,role:"assistant",content:"محصول نهایی به سبد خرید شما اضافه شد و درخواست ویژه پایان یافت. اکنون می‌توانید گفتگوی جدیدی با مشاور آغاز کنید."});
       return NextResponse.json({ok:true});
     }
     return NextResponse.json({error:"عملیات ناشناخته است."},{status:400});
