@@ -44,6 +44,7 @@ export default function Admin() {
     sizes: [],
   });
   const [image, setImage] = useState<File | null>(null);
+  const [imageInputKey, setImageInputKey] = useState(0);
   const [message, setMessage] = useState("");
   const [action, setAction] = useState("");
   const [cropSource, setCropSource] = useState<string | null>(null);
@@ -210,6 +211,7 @@ export default function Admin() {
         sizes: [],
       });
       setImage(null);
+      setImageInputKey((key) => key + 1);
       if (cropSource) URL.revokeObjectURL(cropSource);
       setCropSource(null);
       await load();
@@ -723,6 +725,7 @@ async function updateOrder(id: string, status: string) {
           <label>
             تصویر محصول
             <input
+              key={imageInputKey}
               type="file"
               accept="image/*"
                             onChange={(event) =>
