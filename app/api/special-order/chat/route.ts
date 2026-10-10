@@ -33,11 +33,26 @@ const sillageText=(n.includes("پخش بو")||n.includes("خط بو")||current==
 if(current==="sillage"&&!out.some(x=>x.key==="sillage")){if(has(n,["خیلی قوی","خیلی زیاد","بسیار قوی"]))out.push({key:"sillage",value:"خیلی قوی"});else if(anyExact(n,["قوی","زیاد","بالا"]))out.push({key:"sillage",value:"قوی"});else if(anyExact(n,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(anyExact(n,["ملایم","کم","ضعیف"]))out.push({key:"sillage",value:"ملایم"});}
 const scents=scentMap.filter(([,words])=>has(n,words)).map(([name])=>name);if(scents.length)out.push({key:"scent",value:Array.from(new Set([...(p.scent||[]),...scents]))});
 for(const m of months)if(n.includes(m)){out.push({key:"birth_month",value:m});break}
-if(current==="budget"&&has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت"]))out.push({key:"budget",value:null});else{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
+{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
 return out}
 const order=["product_type","gender","target","occasion","gift_occasion","time","season","longevity","sillage","scent","birth_month","budget"] as (keyof Prefs)[];
 const questions:Record<string,string>={product_type:"اول مشخص کنیم: عطر می‌خواهید یا ادکلن؟",gender:"برای چه جنسیتی می‌خواهید؟ مردانه، زنانه یا اسپرت (مشترک برای زن و مرد)؟",target:"برای خودتان می‌خواهید یا برای شخص دیگری/هدیه؟",occasion:"بیشتر در چه موقعیتی از عطر استفاده می‌شود؟ روزمره، محل کار، دانشگاه، مهمانی، قرار یا موقعیت رسمی؟",gift_occasion:"اگر هدیه است، مناسبت هدیه چیست؟ مثلاً تولد، سالگرد یا ولنتاین.",time:"بیشتر برای روز می‌خواهید یا شب؟",season:"برای کدام فصل یا آب‌وهوا می‌خواهید؟",longevity:"ماندگاری را چطور می‌پسندید؟ کم، متوسط، زیاد یا خیلی زیاد؟",sillage:"پخش بو را چطور می‌پسندید؟ ملایم، متوسط، قوی یا خیلی قوی؟",scent:"چه رایحه‌ای دوست دارید؟ شیرین، تند، خنک، ملایم، گرم، تلخ، چوبی، مرکباتی، دریایی، شرقی، گلدار یا پودری.",birth_month:"ماه تولد شما یا شخصی که برای او می‌خواهید چیست؟",budget:"بودجه حدودی دارید؟ اگر محدودیتی ندارید فقط بگویید «فرقی ندارد»."};
 const nextKey=(p:Prefs)=>order.find(k=>(k!=="gift_occasion"||p.target==="هدیه/شخص دیگر")&&(p[k]===undefined||p[k]==="")&&!(p._deferred||[]).includes(String(k))&&!(p._skipped||[]).includes(String(k)))||null;
+const canDefer=(m:string)=>has(normalize(m),["فرقی ندارد","فرقی نداره","فرقی نمی‌کند","تفاوتی ندارد","مهم نیست","هرچی","هر کدام","هرکدوم","نمی‌دونم","نمیدونم","هنوز نمی‌دانم","مطمئن نیستم","بعداً","بعدا","نمی‌دانم","اختیاری"]);
+const followupQuestions:Record<string,string>={
+ product_type:"راستی درباره نوع عطر هنوز انتخاب مشخصی نداریم. عطر می‌خواهید یا ادکلن؟ اگر تفاوتی برایتان ندارد، بگویید «فرقی ندارد» تا همین‌طور ثبت کنم.",
+ gender:"یک نکته را هنوز مشخص نکردیم: رایحه مردانه، زنانه یا اسپرتِ مشترک برای هر دو را ترجیح می‌دهید؟ اگر برایتان مهم نیست، بگویید «فرقی ندارد».",
+ target:"راستی عطر را برای خودتان می‌خواهید یا برای شخص دیگری؟ اگر فرقی ندارد، می‌توانم این مورد را نادیده بگیرم.",
+ occasion:"برای اینکه پیشنهاد دقیق‌تر شود، بیشتر کجا از عطر استفاده می‌کنید: روزمره، محل کار، دانشگاه یا مهمانی؟ اگر موقعیت خاصی ندارید، بگویید «فرقی ندارد».",
+ gift_occasion:"راستی مناسبت هدیه را نگفتید. برای تولد، سالگرد، ولنتاین یا مناسبت دیگری است؟ اگر مناسبت خاصی نیست، بگویید «فرقی ندارد».",
+ time:"یک مورد کوچک باقی مانده: عطر را بیشتر روز استفاده می‌کنید یا شب؟ اگر هر دو یا فرقی ندارد، همین را بگویید.",
+ season:"برای فصل استفاده، ترجیح خاصی دارید؟ بهار، تابستان، پاییز، زمستان یا بیشتر فصل‌ها؟ اگر فرقی ندارد، بگویید.",
+ longevity:"ماندگاری را ترجیح می‌دهید کم، متوسط، زیاد یا خیلی زیاد باشد؟ اگر برایتان مهم نیست، بگویید «فرقی ندارد».",
+ sillage:"پخش بو را ملایم، متوسط، قوی یا خیلی قوی می‌پسندید؟ اگر حساسیتی ندارید، بگویید «فرقی ندارد».",
+ scent:"راستی سبک رایحه را مشخص نکردیم. شیرین، تلخ، خنک، گرم، چوبی، گلی یا سبک دیگری؟ اگر انتخاب خاصی ندارید، بگویید «فرقی ندارد».",
+ birth_month:"اگر دوست دارید، ماه تولدتان را هم برای پیشنهاد دقیق‌تر بگویید؛ اگر مایل نیستید یا مهم نیست، بگویید «فرقی ندارد».",
+ budget:"برای بودجه محدودیتی دارید؟ می‌توانید مبلغ حدودی بگویید یا اگر محدودیتی ندارید بگویید «فرقی ندارد»."
+};
 const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","موجود دارید","قیمت"]))return"catalog";if(has(n,["سلام","درود"]))return"greeting";return"other"};
 async function info(s:any){const {data}=await s.from("store_settings").select("address,support_phone,social_links").limit(1).maybeSingle();return data||{}}
 function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;const add=(v:string|undefined,w:number)=>{if(v&&text.includes(normalize(v)))score+=w};add(p.product_type,10);add(p.gender,10);add(p.season,7);add(p.occasion,5);add(p.longevity,6);add(p.sillage,6);add(p.birth_month,4);for(const z of p.scent||[])add(z,12);if(typeof p.budget==="number"){const price=Number(x.price);if(price<=p.budget)score+=7;else if(price<=p.budget*1.1)score+=2;else score-=5}return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
