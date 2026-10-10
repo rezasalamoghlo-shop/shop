@@ -40,14 +40,16 @@ export default function Admin() {
     per_ml_discount_percent: "0",
     discount_start: "",
     discount_end: "",
-    process_image: false,
     category_ids: [],
     sizes: [],
   });
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [action, setAction] = useState("");
-  const [processingImage, setProcessingImage] = useState(false);
+  const [cropSource, setCropSource] = useState<string | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropX, setCropX] = useState(50);
+  const [cropY, setCropY] = useState(50);
   const [deleting, setDeleting] = useState("");
   const [orderBusy, setOrderBusy] = useState("");
 
@@ -89,7 +91,7 @@ export default function Admin() {
   }
 
   async function saveProduct(method: "POST" | "PUT") {
-    if (action || processingImage) return;
+    if (action) return;
 
     const required = [
       ["name", "نام عطر"],
@@ -141,8 +143,7 @@ export default function Admin() {
         );
       });
       if (form.id) body.append("id", form.id);
-      if (image) body.append("image", image);
-      body.append("process_image", String(Boolean(form.process_image)));
+      if (image) { const cropped = await cropImageFile(image, cropZoom, cropX, cropY); body.append("image", cropped, cropped.name); }
       body.append("category_ids", JSON.stringify(form.category_ids || []));
       body.append("sizes_json", JSON.stringify((form.sizes||[]).map((z:any)=>({size_ml:priceNumber(z.size_ml),price:priceNumber(z.price),discount_percent:Number(z.discount_percent)||0,stock:priceNumber(z.stock),is_active:z.is_active!==false}))));
 
@@ -173,11 +174,12 @@ export default function Admin() {
         per_ml_discount_percent: "0",
         discount_start: "",
         discount_end: "",
-        process_image: false,
-        category_ids: [],
+            category_ids: [],
         sizes: [],
       });
       setImage(null);
+      if (cropSource) URL.revokeObjectURL(cropSource);
+      setCropSource(null);
       await load();
     } finally {
       setAction("");
@@ -186,36 +188,27 @@ export default function Admin() {
 
   async function chooseImage(file: File | null) {
     if (!file) return;
+    if (!file.type.startsWith("image/")) { setMessage("لطفاً یک فایل تصویری انتخاب کنید."); return; }
+    if (cropSource) URL.revokeObjectURL(cropSource);
+    setImage(file); setCropSource(URL.createObjectURL(file));
+    setCropZoom(1); setCropX(50); setCropY(50);
+    setMessage("کادر برش را تنظیم کنید؛ فقط نسخه برش‌خورده ذخیره خواهد شد.");
+  }
 
-    if (!form.process_image) {
-      setImage(file);
-      setMessage("تصویر بدون پردازش هوش مصنوعی آماده ذخیره است.");
-      return;
-    }
-
-    setProcessingImage(true);
-    setMessage("در حال حذف هوشمند پس‌زمینه تصویر...");
-
+  async function cropImageFile(file: File, zoom: number, x: number, y: number): Promise<File> {
+    const url = URL.createObjectURL(file);
     try {
-      const { removeBackground } = await import("@imgly/background-removal");
-      const blob = await removeBackground(file, {
-        output: { format: "image/png", quality: 0.92 },
-      });
-      setImage(
-        new File(
-          [blob],
-          file.name.replace(/\.[^.]+$/, "") + ".png",
-          { type: "image/png" }
-        )
-      );
-      setMessage("پس‌زمینه حذف شد و تصویر آماده ذخیره است.");
-    } catch (error) {
-      console.error(error);
-      setImage(file);
-      setMessage("حذف پس‌زمینه انجام نشد، تصویر اصلی آماده آپلود شد.");
-    } finally {
-      setProcessingImage(false);
-    }
+      const img = new window.Image(); img.src = url;
+      await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(new Error("بارگذاری تصویر ناموفق بود")); });
+      const side = Math.min(img.naturalWidth, img.naturalHeight) / zoom;
+      const left = Math.max(0, Math.min(img.naturalWidth - side, (img.naturalWidth - side) * x / 100));
+      const top = Math.max(0, Math.min(img.naturalHeight - side, (img.naturalHeight - side) * y / 100));
+      const canvas = document.createElement("canvas"); canvas.width = 720; canvas.height = 720;
+      const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("امکان برش تصویر وجود ندارد");
+      ctx.drawImage(img, left, top, side, side, 0, 0, 720, 720);
+      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("ساخت تصویر برش‌خورده ناموفق بود")), "image/webp", 0.88));
+      return new File([blob], file.name.replace(/\.[^.]+$/, "") + "-crop.webp", { type: "image/webp" });
+    } finally { URL.revokeObjectURL(url); }
   }
 
   async function saveCategory() {
@@ -351,13 +344,14 @@ async function updateOrder(id: string, status: string) {
       discount_percent: String(product.discount_percent ?? 0),
       discount_start: product.discount_start || "",
       discount_end: product.discount_end || "",
-      process_image: false,
-      category_ids: (product.category_ids || []).map((item: any) =>
+        category_ids: (product.category_ids || []).map((item: any) =>
         item.category_id || item
       ),
       sizes: (product.sizes || []).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
     });
     setImage(null);
+    if (cropSource) URL.revokeObjectURL(cropSource);
+    setCropSource(null);
   }
 
   if (!data) {
@@ -425,7 +419,7 @@ async function updateOrder(id: string, status: string) {
           </label>
           <button
             className="gold"
-            disabled={Boolean(action) || processingImage}
+            disabled={Boolean(action)}
             onClick={saveCategory}
           >
             {action === "category-create"
@@ -541,7 +535,7 @@ async function updateOrder(id: string, status: string) {
           ))}
           <button
             className="gold"
-            disabled={Boolean(action) || processingImage}
+            disabled={Boolean(action)}
             onClick={saveSettings}
           >
             {action === "settings"
@@ -674,44 +668,33 @@ async function updateOrder(id: string, status: string) {
             <input
               type="file"
               accept="image/*"
-              disabled={processingImage}
-              onChange={(event) =>
+                            onChange={(event) =>
                 chooseImage(event.target.files?.[0] || null)
               }
             />
-            <span className="ai-image-toggle">
-              <input
-                type="checkbox"
-                checked={Boolean(form.process_image)}
-                disabled={processingImage}
-                onChange={(event) =>
-                  updateForm("process_image", event.target.checked)
-                }
-              />
-              پردازش تصویر با هوش مصنوعی و حذف پس‌زمینه
-            </span>
             <small className="upload-hint">
-              {processingImage
-                ? "در حال پردازش تصویر با هوش مصنوعی..."
-                : form.process_image
-                ? "پس‌زمینه تصویر هنگام انتخاب حذف می‌شود."
-                : "تصویر بدون پردازش هوش مصنوعی ذخیره می‌شود."}
+              تصویر را انتخاب کنید و با تنظیم بزرگ‌نمایی و موقعیت، قسمت دلخواه را در کادر مشخص کنید. فقط نسخه برش‌خورده ذخیره می‌شود.
             </small>
+            {cropSource && (
+              <div className="crop-tool">
+                <div className="crop-preview-frame">
+                  <img src={cropSource} alt="پیش‌نمایش برش تصویر" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:cropX+"% "+cropY+"%",transform:"scale("+cropZoom+")"}} />
+                  <span className="crop-circle-guide" />
+                </div>
+                <label>بزرگ‌نمایی<input type="range" min="1" max="3" step="0.05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label>
+                <label>موقعیت افقی<input type="range" min="0" max="100" value={cropX} onChange={e=>setCropX(Number(e.target.value))}/></label>
+                <label>موقعیت عمودی<input type="range" min="0" max="100" value={cropY} onChange={e=>setCropY(Number(e.target.value))}/></label>
+                <button type="button" className="outline" onClick={()=>{setCropZoom(1);setCropX(50);setCropY(50)}}>بازنشانی کادر</button>
+              </div>
+            )}
           </label>
 
           <button
             className="gold"
-            disabled={Boolean(action) || processingImage}
+            disabled={Boolean(action)}
             onClick={() => saveProduct(form.id ? "PUT" : "POST")}
           >
-            {processingImage
-              ? "در حال پردازش تصویر..."
-              : action === "product-create"
-              ? "در حال ایجاد محصول..."
-              : action === "product-edit"
-              ? "در حال ویرایش محصول..."
-              : form.id
-              ? "ذخیره تغییرات محصول"
+            {action === "product-create"
               : "ایجاد محصول"}
           </button>
         </div>
