@@ -8,9 +8,24 @@ const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك
 const has=(s:string,words:string[])=>words.some(w=>normalize(s).includes(normalize(w))); const anyExact=(s:string,words:string[])=>words.some(w=>normalize(s)===normalize(w));
 function extract(message:string,p:Prefs,current?:keyof Prefs){const n=normalize(message);const out:{key:keyof Prefs;value:any}[]=[];
 if(has(n,["ادکلن","کولون","cologne"]))out.push({key:"product_type",value:"ادکلن"});else if(has(n,["عطر","پرفیوم","perfume"]))out.push({key:"product_type",value:"عطر"});
-if(has(n,["مرد","مردانه","پسر","آقا","آقای","شوهر","پدر","male"]))out.push({key:"gender",value:"مردانه"});else if(has(n,["زن","زنانه","دختر","خانم","خانمم","همسرم","همسرم خانم","مادر","female"]))out.push({key:"gender",value:"زنانه"});
-if(has(n,["خودم","برای خود","برای من","خودم میخوام","برای خودم"]))out.push({key:"target",value:"خودم"});else if(has(n,["هدیه","کادو","همسرم","همسر","شوهرم","شوهر","دوستم","دوست من","مادرم","پدرم","خواهرم","برادرم","برای همسر","برای شوهر","برای مادر","برای پدر","برای دوست","برای دیگری","برای شخص دیگر","برای یکی دیگه","برای یکی دیگر"]))out.push({key:"target",value:"هدیه/شخص دیگر"});
-for(const x of ["تولد","سالگرد","عروسی","روز مادر","روز پدر","ولنتاین","مهمانی","قرار","رسمی","روزمره","دانشگاه","محل کار"])if(n.includes(x)){out.push({key:(p.target==="هدیه/شخص دیگر"||has(n,["هدیه","کادو"]))?"gift_occasion":"occasion",value:x});break}if(!out.some(x=>x.key==="occasion")&&has(n,["در روز","طی روز","در طول روز","برای روز"]))out.push({key:"occasion",value:"روزمره"});
+if(has(n,["مرد","مردانه","پسر","آقا","آقای","آقایون","شوهر","پدر","برای آقا","مخصوص آقایان","male"]))out.push({key:"gender",value:"مردانه"});else if(has(n,["زن","زنانه","دختر","خانم","خانمم","بانوان","برای خانم","مخصوص خانم‌ها","همسرم","همسرم خانم","مادر","female"]))out.push({key:"gender",value:"زنانه"});
+if(has(n,["خودم","برای خود","برای من","خودم میخوام","خودم میخوام","میخوام خودم استفاده کنم","مصرف خودم","برای خودم"]))out.push({key:"target",value:"خودم"});else if(has(n,["هدیه","کادو","برای هدیه","برای کادو","همسرم","همسر","شوهرم","شوهر","دوستم","دوست من","مادرم","پدرم","خواهرم","برادرم","برای همسر","برای شوهر","برای مادر","برای پدر","برای دوست","برای دیگری","برای شخص دیگر","برای یکی دیگه","برای یکی دیگر"]))out.push({key:"target",value:"هدیه/شخص دیگر"});
+// Separate the perfume's intended use from the occasion for giving the gift.
+const useCases:[string,string[]][]=[
+["روزمره",["روزمره","روزانه","مصرف روزانه","استفاده روزانه","هر روز","روزهای عادی","روز کاری","استفاده روزانه","روزانه استفاده","روز"]],
+["محل کار",["محل کار","سر کار","محیط کار","اداری","محل اداره","دفتر کار","کار روزانه"]],
+["دانشگاه",["دانشگاه","مدرسه","کلاس","دانشجویی"]],
+["مهمانی",["مهمانی","مهمونی","دورهمی","جشن","مراسم"]],
+["قرار",["قرار","دیت","قرار عاشقانه"]],
+["رسمی",["رسمی","جلسه رسمی","مراسم رسمی"]],
+["باشگاه",["باشگاه","ورزش","تمرین"]]
+];
+for(const [value,words] of useCases){if(has(n,words)){out.push({key:"occasion",value});break}}
+const giftEvents:[string,string[]][]=[
+["روز مادر",["روز مادر"]],["روز پدر",["روز پدر"]],["ولنتاین",["ولنتاین","روز عشق"]],["سالگرد",["سالگرد","سالگرد ازدواج"]],["تولد",["تولد","جشن تولد"]],["عروسی",["عروسی","ازدواج"]]
+];
+for(const [value,words] of giftEvents){if(has(n,words)){out.push({key:"gift_occasion",value});break}}
+
 if(has(n,["صبح","ظهر","روز"]))out.push({key:"time",value:"روز"});else if(has(n,["شب","شبانه"]))out.push({key:"time",value:"شب"});
 for(const x of ["بهار","تابستان","پاییز","زمستان"])if(n.includes(x)){out.push({key:"season",value:x});break} if(has(n,["بیشتر فصل","اکثر فصل","چند فصل","همه فصل","تمام فصل","فصل ها","فصل‌های","هر فصل","فرقی ندارد"]))out.push({key:"season",value:"بیشتر فصل‌ها"});
 const longevityText=(n.includes("ماندگاری")||current==="longevity")?n:"";if(has(longevityText,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(has(longevityText,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(has(longevityText,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(has(longevityText,["کم"]))out.push({key:"longevity",value:"کم"});if(current==="longevity"&&!out.some(x=>x.key==="longevity")){if(anyExact(n,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(anyExact(n,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(anyExact(n,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(anyExact(n,["کم","ضعیف"]))out.push({key:"longevity",value:"کم"});}
@@ -20,7 +35,7 @@ const scents=scentMap.filter(([,words])=>has(n,words)).map(([name])=>name);if(sc
 for(const m of months)if(n.includes(m)){out.push({key:"birth_month",value:m});break}
 if(has(n,["فرقی ندارد","مهم نیست","ندارم","بدون محدودیت"]))out.push({key:"budget",value:null});else{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
 return out}
-const order=["product_type","gender","target","occasion","gift_occasion","time","season","longevity","sillage","scent","birth_month","budget"] as (keyof Prefs)[];
+const order=["product_type","gender","target","occasion","time","season","longevity","sillage","scent","birth_month","budget"] as (keyof Prefs)[];
 const questions:Record<string,string>={product_type:"اول مشخص کنیم: عطر می‌خواهید یا ادکلن؟",gender:"برای چه جنسیتی می‌خواهید؟ مردانه یا زنانه؟",target:"برای خودتان می‌خواهید یا برای شخص دیگری/هدیه؟",occasion:"برای چه مناسبتی می‌خواهید؟ مثلاً روزمره، رسمی، مهمانی یا قرار.",gift_occasion:"اگر هدیه است، مناسبت هدیه چیست؟ مثلاً تولد، سالگرد یا ولنتاین.",time:"بیشتر برای روز می‌خواهید یا شب؟",season:"برای کدام فصل یا آب‌وهوا می‌خواهید؟",longevity:"ماندگاری را چطور می‌پسندید؟ کم، متوسط، زیاد یا خیلی زیاد؟",sillage:"پخش بو را چطور می‌پسندید؟ ملایم، متوسط، قوی یا خیلی قوی؟",scent:"چه رایحه‌ای دوست دارید؟ شیرین، تند، خنک، ملایم، گرم، تلخ، چوبی، مرکباتی، دریایی، شرقی، گلدار یا پودری.",birth_month:"ماه تولد شما یا شخصی که برای او می‌خواهید چیست؟",budget:"بودجه حدودی دارید؟ اگر محدودیتی ندارید فقط بگویید «فرقی ندارد»."};
 const nextKey=(p:Prefs)=>order.find(k=>(k!=="gift_occasion"||p.target==="هدیه/شخص دیگر")&&(p[k]===undefined||p[k]===""))||null;
 const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","موجود دارید","قیمت"]))return"catalog";if(has(n,["سلام","درود"]))return"greeting";return"other"};
@@ -32,8 +47,8 @@ const questionAccepts=(key:keyof Prefs,message:string)=>{
  if(key==="product_type")return has(n,["عطر","پرفیوم","perfume","ادکلن","کولون","cologne"]);
  if(key==="gender")return has(n,["مرد","مردانه","پسر","آقا","زن","زنانه","دختر","خانم"]);
  if(key==="target")return has(n,["خودم","برای خود","برای من","هدیه","کادو","همسر","دوست","مادر","پدر","خواهر","برادر","دیگری","شخص دیگر"]);
- if(key==="occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","مهمانی","قرار","رسمی","روزمره","دانشگاه","محل کار","روز"]);
- if(key==="gift_occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","روز مادر","روز پدر","مهمانی","هدیه","کادو"]);
+ if(key==="occasion")return has(n,["روزمره","روزانه","مصرف روزانه","استفاده روزانه","هر روز","روز کاری","محل کار","سر کار","محیط کار","اداری","دانشگاه","مدرسه","کلاس","مهمانی","مهمونی","دورهمی","جشن","مراسم","قرار","دیت","رسمی","باشگاه","ورزش","در روز","برای روز","روز"]);
+ if(key==="gift_occasion")return has(n,["تولد","سالگرد","عروسی","ولنتاین","روز مادر","روز پدر","روز عشق"]);
  if(key==="time")return has(n,["روز","صبح","ظهر","شب","شبانه","هر دو","فرقی ندارد"]);
  if(key==="season")return has(n,["بهار","تابستان","پاییز","زمستان","همه فصل","تمام فصل","بیشتر فصل","اکثر فصل","چند فصل","هر فصل","فصل ها","فصل‌های","فرقی ندارد"]);
  if(key==="longevity")return n.includes("ماندگاری")||has(n,["خیلی زیاد","خیلی بالا","بسیار زیاد","زیاد","بالا","متوسط","کم","ضعیف"]);
