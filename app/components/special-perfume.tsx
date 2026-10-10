@@ -7,7 +7,7 @@ const cartKey="galaxy_cart";
 export default function SpecialPerfume(){
  const[messages,setMessages]=useState<Message[]>([]),[text,setText]=useState(""),[orderId,setOrderId]=useState(""),[busy,setBusy]=useState(false),[done,setDone]=useState(false),[needsSpecial,setNeedsSpecial]=useState(false),[showForm,setShowForm]=useState(false),[preferences,setPreferences]=useState<Prefs>({}),[form,setForm]=useState({first_name:"",last_name:"",phone:""}),[visitor,setVisitor]=useState(""),[locked,setLocked]=useState(false),[status,setStatus]=useState("none"),[adminStarted,setAdminStarted]=useState(false);
  useEffect(()=>{try{setVisitor(vid());const saved=localStorage.getItem("galaxy_bot_order_id"),m=localStorage.getItem("galaxy_bot_messages"),p=localStorage.getItem("galaxy_bot_preferences");if(saved)setOrderId(saved);if(m)setMessages(JSON.parse(m));if(p)setPreferences(JSON.parse(p))}catch{}},[]);
- useEffect(()=>{if(orderId)localStorage.setItem("galaxy_bot_order_id",orderId);localStorage.setItem("galaxy_bot_messages",JSON.stringify(messages));localStorage.setItem("galaxy_bot_preferences",JSON.stringify(preferences))},[orderId,messages,preferences]);
+ useEffect(()=>{if(done&&!locked){localStorage.removeItem("galaxy_bot_order_id");localStorage.removeItem("galaxy_bot_messages");localStorage.removeItem("galaxy_bot_preferences");return}if(orderId)localStorage.setItem("galaxy_bot_order_id",orderId);localStorage.setItem("galaxy_bot_messages",JSON.stringify(messages));localStorage.setItem("galaxy_bot_preferences",JSON.stringify(preferences))},[orderId,messages,preferences,done,locked]);
  const syncConversation=useCallback(async()=>{
   if(!visitor)return;
   try{
