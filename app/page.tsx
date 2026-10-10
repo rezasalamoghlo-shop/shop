@@ -31,6 +31,7 @@ export default function Home(){
 
   useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem("galaxy_cart")||"[]");if(Array.isArray(saved))setCart(saved)}catch{}},[]);
   useEffect(()=>{localStorage.setItem("galaxy_cart",JSON.stringify(cart))},[cart]);
+  useEffect(()=>{const syncCart=()=>{try{const saved=JSON.parse(localStorage.getItem("galaxy_cart")||"[]");if(Array.isArray(saved))setCart(saved)}catch{}};window.addEventListener("galaxy-cart-updated",syncCart);return()=>window.removeEventListener("galaxy-cart-updated",syncCart)},[]);
   useEffect(()=>{let live=true;fetch("/api/storefront").then(r=>r.ok?r.json():Promise.reject()).then(d=>{if(!live)return;setP((d.products??[]) as P[]);setCats((d.categories??[]) as Cat[]);if(d.settings)setS({...d.settings,hero_title:"عطر کهکشان"} as S)}).catch(()=>{}).finally(()=>setLoading(false));return()=>{live=false}},[]);
   useEffect(()=>{const id=visitorId();const supabase=createSupabaseBrowserClient();const channel=supabase.channel("galaxy-site-presence",{config:{presence:{key:id}}});channel.subscribe(async status=>{if(status==="SUBSCRIBED")await channel.track({page:"storefront"})});return()=>{supabase.removeChannel(channel)}},[]);
 
