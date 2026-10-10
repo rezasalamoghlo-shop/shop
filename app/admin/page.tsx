@@ -809,7 +809,11 @@ async function updateOrder(id: string, status: string) {
                 <small>{order.phone || "شماره ثبت نشده"} | وضعیت: {statusLabels[order.status] || "در انتظار بررسی"}</small>
                 <small>{prefs.join(" · ") || "مشخصات تکمیلی ثبت نشده است."}</small>
                 <small>{order.notes || ""}</small>
-                <div className="special-conversation admin-messenger" style={{marginTop:12}}>
+                <div className="admin-special-order-panel" style={{marginTop:12}}>
+                  <div className="admin-special-order-actions">
+                    {order.status==="pending" ? <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>specialAction(order.id,"start")}>{orderBusy===order.id?"در حال شروع...":"✓ تأیید و شروع گفتگو"}</button> : <button disabled>{order.status==="in_progress"?"گفتگو در حال انجام است":"گفتگو پایان یافته"}</button>}
+                    <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال حذف...":"حذف سفارش ویژه"}</button>
+                  </div>
                   <div className="admin-messenger-head">
                     <div className="admin-messenger-avatar">✦</div>
                     <div><b>گفتگوی سفارش ویژه</b><small>{order.status==="in_progress"?"گفتگوی زنده با مشتری":order.status==="pending"?"برای شروع گفتگو تأیید کنید":"گفتگو پایان یافته"}</small></div>
@@ -825,7 +829,7 @@ async function updateOrder(id: string, status: string) {
                     </div>)}
                     {!(order.messages||[]).length&&<div className="admin-chat-empty">هنوز پیامی ارسال نشده است. گفتگو را شروع کنید.</div>}
                   </div>
-                  {order.status==="pending"&&<div className="admin-chat-actions"><button className="gold" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>specialAction(order.id,"start")}>{orderBusy===order.id?"در حال شروع...":"▶ شروع گفتگو با مشتری"}</button></div>}
+                  
                   {["pending","in_progress"].includes(order.status)&&<>
                     <div className="admin-chat-compose">
                       <textarea value={specialDrafts[order.id]||""} onChange={e=>setSpecialDrafts(v=>({...v,[order.id]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if((specialDrafts[order.id]||"").trim())specialAction(order.id,"message",{content:specialDrafts[order.id]})}}} placeholder="پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter برای خط جدید)"/>
@@ -853,7 +857,6 @@ async function updateOrder(id: string, status: string) {
                       <button className="gold" disabled={Boolean(orderBusy)||Boolean(action)||order.status!=="in_progress"||!specialProducts[order.id]||((specialPricing[order.id]||"ml")==="ml"&&(!Number(specialAmounts[order.id])||Number(specialAmounts[order.id])<1||Number(specialAmounts[order.id])>Number((data.products||[]).find((p:any)=>p.id===specialProducts[order.id])?.full_size_ml||100)))} onClick={()=>specialAction(order.id,"add_to_cart",{product_id:specialProducts[order.id],pricing_type:specialPricing[order.id]||"ml",size_ml:Number(specialAmounts[order.id]||10)})}>{orderBusy===order.id?"در حال نهایی‌سازی...":order.status!=="in_progress"?"ابتدا گفتگو را شروع کنید":"🛍 افزودن محصول به سبد مشتری و پایان گفتگو"}</button>
                     </div>
                   </>}
-                  <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>deleteSpecialOrder(order.id)}>{orderBusy===order.id?"در حال انجام...":"حذف گفتگو و درخواست"}</button>
                 </div>
               </div>
             </div>
