@@ -26,7 +26,7 @@ function visitorId(){
 
 export default function Home(){
   const[p,setP]=useState<P[]>([]),[cats,setCats]=useState<Cat[]>([]),[search,setSearch]=useState(""),[category,setCategory]=useState("all");
-  const[s,setS]=useState<S>({store_name:"عطر کهکشان",store_name_en:"GALAXY",hero_title:"عطر کهکشان",hero_text:"رایحه‌ای که پیش از شما وارد اتاق می‌شود.",address:null,card_number:null,support_phone:null,social_links:[]});
+  const[s,setS]=useState<S>({store_name:"عطر کهکشان",store_name_en:"GALAXY",hero_title:"عطر کهکشان",hero_text:"",address:null,card_number:null,support_phone:null,social_links:[]});
   const[cart,setCart]=useState<C[]>([]),[bag,setBag]=useState(false),[checkout,setCheckout]=useState(false),[loading,setLoading]=useState(true),[selectedSizes,setSelectedSizes]=useState<Record<string,number>>({});
 
   useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem("galaxy_cart")||"[]");if(Array.isArray(saved))setCart(saved)}catch{}},[]);
