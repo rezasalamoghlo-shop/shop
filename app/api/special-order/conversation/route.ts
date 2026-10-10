@@ -17,23 +17,29 @@ export async function GET(request:Request){
   const cart_additions=all.filter((m:any)=>typeof m.content==="string"&&m.content.startsWith(CART_PREFIX)).map((m:any)=>{try{return {id:m.id,...JSON.parse(m.content.slice(CART_PREFIX.length))}}catch{return null}}).filter(Boolean);
   const hiddenSystemMessages=new Set(["درخواست سفارش ویژه را تأیید کردم.","درخواست شما ثبت شد. اطلاعات برای کارشناس ارسال شد و ادامه مکالمه از طریق سفارش ویژه پیگیری می‌شود.","کارشناس عطر کهکشان گفتگو را آغاز کرد. پیام‌های بعدی مستقیماً بین شما و کارشناس ردوبدل می‌شوند.","محصول نهایی به سبد خرید شما اضافه شد و درخواست ویژه پایان یافت. اکنون می‌توانید گفتگوی جدیدی با مشاور آغاز کنید."]);
   const messages=all.filter((m:any)=>!(typeof m.content==="string"&&(m.content.startsWith(CART_PREFIX)||hiddenSystemMessages.has(m.content)))).map((m:any)=>({id:m.id,role:m.role,content:m.content,created_at:m.created_at}));
-  const response={active:["pending","in_progress"].includes(order.status),status:order.status,order_id:order.id,messages,cart_additions};
-  // Terminal conversations are one-time handoff records: deliver any cart event first,
-  // then remove both the transcript and the request so completed chats do not accumulate.
-  if(["completed","cancelled"].includes(String(order.status))){
-    await s.from("special_order_messages").delete().eq("special_order_id",order.id);
-    await s.from("special_orders").delete().eq("id",order.id);
-  }
-  return NextResponse.json(response);
+  return NextResponse.json({active:["pending","in_progress"].includes(order.status),status:order.status,order_id:order.id,messages,cart_additions});
 }
 
 export async function POST(request:Request){
   try{
     const b=await request.json();
     const visitorId=String(b.visitor_id||"").trim();
+    const action=String(b.action||"");
+    const s=db();
+    if(action==="acknowledge_terminal"){
+      const id=String(b.order_id||"").trim();
+      if(!visitorId||!id)return NextResponse.json({error:"شناسه گفتگو معتبر نیست."},{status:400});
+      const {data:terminal}=await s.from("special_orders").select("id,status").eq("id",id).eq("visitor_id",visitorId).maybeSingle();
+      if(!terminal)return NextResponse.json({ok:true});
+      if(!["completed","cancelled"].includes(String(terminal.status)))return NextResponse.json({error:"گفتگو هنوز پایان نیافته است."},{status:409});
+      const {error:messagesError}=await s.from("special_order_messages").delete().eq("special_order_id",id);
+      if(messagesError)return NextResponse.json({error:"پاک‌سازی تاریخچه انجام نشد."},{status:500});
+      const {error:orderError}=await s.from("special_orders").delete().eq("id",id).eq("visitor_id",visitorId);
+      if(orderError)return NextResponse.json({error:"حذف گفتگوی پایان‌یافته انجام نشد."},{status:500});
+      return NextResponse.json({ok:true});
+    }
     const content=String(b.content||"").trim();
     if(!visitorId||!content)return NextResponse.json({error:"پیام معتبر نیست."},{status:400});
-    const s=db();
     const {data:order}=await s.from("special_orders").select("id,status").eq("visitor_id",visitorId).in("status",["pending","in_progress"]).order("created_at",{ascending:false}).limit(1).maybeSingle();
     if(!order)return NextResponse.json({error:"درخواست فعالی برای گفتگو وجود ندارد."},{status:404});
     if(order.status!=="in_progress")return NextResponse.json({error:"گفتگو هنوز توسط کارشناس آغاز نشده است."},{status:423});
