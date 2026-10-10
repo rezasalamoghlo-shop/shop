@@ -63,12 +63,21 @@ export async function PUT(request:Request){
     if(action==="add_to_cart"){
       if(order.status!=="in_progress")return NextResponse.json({error:"ابتدا گفتگو را آغاز کنید."},{status:409});
       const productId=String(b.product_id||"").trim();
+      const pricingType=String(b.pricing_type||"ml");
+      const requestedMl=Number(b.size_ml);
       if(!productId)return NextResponse.json({error:"محصولی انتخاب نشده است."},{status:400});
+      if(!["ml","full"].includes(pricingType))return NextResponse.json({error:"نوع فروش نامعتبر است."},{status:400});
       const {data:p,error:productError}=await s.from("products").select("id,name,description,price,stock,image_url,discount_percent,discount_start,discount_end,full_size_ml,price_per_ml,per_ml_discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").eq("id",productId).single();
       if(productError||!p||Number(p.stock)<1)return NextResponse.json({error:"محصول انتخاب‌شده موجود نیست."},{status:400});
+      const fullSize=Math.max(1,Number(p.full_size_ml)||100);
+      if(pricingType==="ml"&&(!Number.isFinite(requestedMl)||requestedMl<1||requestedMl>fullSize))return NextResponse.json({error:"حجم درخواستی باید حداقل ۱ میل و حداکثر "+fullSize+" میل باشد."},{status:400});
       const now=Date.now(),start=p.discount_start?new Date(p.discount_start).getTime():-Infinity,end=p.discount_end?new Date(p.discount_end).getTime():Infinity;
       const discount=Number(p.discount_percent||0)>0&&now>=start&&now<=end?Number(p.discount_percent):0;
-      const cartItem={...p,quantity:1,size_ml:Number(p.full_size_ml)||100,pricing_type:"full",unit_price:Math.round(Number(p.price)*(1-discount/100)),categories:[],category_ids:[],sizes:p.product_sizes||[]};
+      const sizeMl=pricingType==="full"?fullSize:Math.round(requestedMl);
+      const perMlBase=Number(p.price_per_ml)||Number(p.price)/fullSize;
+      const perMlDiscount=Number(p.per_ml_discount_percent||0);
+      const unitPrice=pricingType==="full"?Math.round(Number(p.price)*(1-discount/100)):Math.round(perMlBase*(1-perMlDiscount/100)*sizeMl);
+      const cartItem={...p,quantity:1,size_ml:sizeMl,pricing_type:pricingType,unit_price:unitPrice,categories:[],category_ids:[],sizes:p.product_sizes||[]};
       const {error:messageError}=await s.from("special_order_messages").insert({special_order_id:id,role:"assistant",content:CART_PREFIX+JSON.stringify({cartItem,order_id:id})});
       if(messageError)return NextResponse.json({error:"افزودن محصول به سبد خرید انجام نشد."},{status:500});
       const {error:statusError}=await s.from("special_orders").update({status:"completed"}).eq("id",id);
