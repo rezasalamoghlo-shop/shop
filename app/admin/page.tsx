@@ -60,6 +60,11 @@ export default function Admin() {
   const [specialAmounts, setSpecialAmounts] = useState<Record<string,string>>({});
   const [specialPricing, setSpecialPricing] = useState<Record<string,"ml"|"full">>({});
   const [liveChannel, setLiveChannel] = useState<any>(null);
+  const [shippingMethods, setShippingMethods] = useState<any[]>([]);
+  const [shippingDraft, setShippingDraft] = useState<any>({name:"",description:"",cost:"0",estimated_delivery:"",is_active:true,sort_order:0});
+  const [shippingEditId, setShippingEditId] = useState("");
+  const [shippingBusy, setShippingBusy] = useState(false);
+  const [members, setMembers] = useState<any[]>([]);
 
   async function load() {
     const response = await fetch("/api/admin/data");
@@ -70,6 +75,12 @@ export default function Admin() {
     const result = await response.json();
     result.settings.social_links = result.settings.social_links || [];
     setData(result);
+    const [shippingResponse, membersResponse] = await Promise.all([
+      fetch("/api/admin/shipping", { cache: "no-store" }),
+      fetch("/api/admin/members", { cache: "no-store" })
+    ]);
+    if (shippingResponse.ok) { const shippingData = await shippingResponse.json(); setShippingMethods(shippingData.methods || []); }
+    if (membersResponse.ok) { const memberData = await membersResponse.json(); setMembers(memberData.members || []); }
   }
 
   useEffect(() => {
@@ -139,6 +150,44 @@ export default function Admin() {
       ...data,
       settings: { ...data.settings, social_links: links },
     });
+  }
+
+  async function saveShippingMethod() {
+    if (shippingBusy) return;
+    const name = String(shippingDraft.name || "").trim();
+    const delivery = String(shippingDraft.estimated_delivery || "").trim();
+    const cost = priceNumber(shippingDraft.cost);
+    if (!name || !delivery || cost < 0) { setMessage("نام، هزینه و زمان تحویل روش ارسال را کامل کنید."); return; }
+    setShippingBusy(true);
+    try {
+      const response = await fetch("/api/admin/shipping", {
+        method: shippingEditId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...shippingDraft, id: shippingEditId || undefined, name, cost })
+      });
+      const result = await response.json();
+      if (!response.ok) { setMessage(result.error || "ذخیره روش ارسال انجام نشد."); return; }
+      setMessage(shippingEditId ? "روش ارسال ویرایش شد." : "روش ارسال اضافه شد.");
+      setShippingDraft({name:"",description:"",cost:"0",estimated_delivery:"",is_active:true,sort_order:shippingMethods.length});
+      setShippingEditId("");
+      const refreshed = await fetch("/api/admin/shipping", { cache: "no-store" });
+      if (refreshed.ok) { const d = await refreshed.json(); setShippingMethods(d.methods || []); }
+    } catch { setMessage("ارتباط با سرور برقرار نشد."); }
+    finally { setShippingBusy(false); }
+  }
+
+  async function deleteShippingMethod(id: string) {
+    if (shippingBusy) return;
+    setShippingBusy(true);
+    try {
+      const response = await fetch("/api/admin/shipping?id=" + encodeURIComponent(id), { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) { setMessage(result.error || "حذف روش ارسال انجام نشد."); return; }
+      setShippingMethods(current => current.filter((item:any) => item.id !== id));
+      if (shippingEditId === id) { setShippingEditId(""); setShippingDraft({name:"",description:"",cost:"0",estimated_delivery:"",is_active:true,sort_order:0}); }
+      setMessage("روش ارسال حذف شد.");
+    } catch { setMessage("ارتباط با سرور برقرار نشد."); }
+    finally { setShippingBusy(false); }
   }
 
   async function saveProduct(method: "POST" | "PUT") {
@@ -624,6 +673,37 @@ async function updateOrder(id: string, status: string) {
         </div>
 
         <div className="panel">
+          <h2>روش‌های ارسال</h2>
+          <p>هزینه و زمان تحویل هر روش در همین بخش تنظیم می‌شود و مشتری هنگام خرید آن را انتخاب می‌کند.</p>
+          <label>نام روش ارسال<input value={shippingDraft.name} onChange={e=>setShippingDraft((x:any)=>({...x,name:e.target.value}))} placeholder="مثلاً پست پیشتاز"/></label>
+          <label>هزینه ارسال (تومان)<input inputMode="numeric" value={faPrice(shippingDraft.cost)} onChange={e=>setShippingDraft((x:any)=>({...x,cost:e.target.value}))}/></label>
+          <label>زمان تقریبی تحویل<input value={shippingDraft.estimated_delivery} onChange={e=>setShippingDraft((x:any)=>({...x,estimated_delivery:e.target.value}))} placeholder="مثلاً ۲ تا ۴ روز کاری"/></label>
+          <label>توضیحات اختیاری<textarea value={shippingDraft.description||""} onChange={e=>setShippingDraft((x:any)=>({...x,description:e.target.value}))} placeholder="توضیح کوتاه درباره روش ارسال"/></label>
+          <label>ترتیب نمایش<input type="number" min="0" value={shippingDraft.sort_order} onChange={e=>setShippingDraft((x:any)=>({...x,sort_order:e.target.value}))}/></label>
+          <label className="category-check"><input type="checkbox" checked={shippingDraft.is_active!==false} onChange={e=>setShippingDraft((x:any)=>({...x,is_active:e.target.checked}))}/> نمایش برای مشتریان</label>
+          <div className="admin-special-order-actions">
+            <button className="gold" disabled={shippingBusy} onClick={saveShippingMethod}>{shippingBusy?"در حال ذخیره...":shippingEditId?"ذخیره ویرایش روش ارسال":"افزودن روش ارسال"}</button>
+            {shippingEditId&&<button type="button" disabled={shippingBusy} onClick={()=>{setShippingEditId("");setShippingDraft({name:"",description:"",cost:"0",estimated_delivery:"",is_active:true,sort_order:shippingMethods.length})}}>انصراف از ویرایش</button>}
+          </div>
+          <div className="category-admin-list">
+            {shippingMethods.map((method:any)=><div className="admin-row" key={method.id}>
+              <div><b>{method.name} · {faPrice(method.cost)} تومان</b><small>تحویل: {method.estimated_delivery} · {method.is_active?"فعال":"غیرفعال"}</small>{method.description&&<small>{method.description}</small>}</div>
+              <div><button disabled={shippingBusy} onClick={()=>{setShippingEditId(method.id);setShippingDraft({...method,cost:String(method.cost),sort_order:String(method.sort_order??0)})}}>ویرایش</button><button disabled={shippingBusy} onClick={()=>deleteShippingMethod(method.id)}>حذف</button></div>
+            </div>)}
+            {!shippingMethods.length&&<div className="empty">هنوز روش ارسالی تعریف نشده است.</div>}
+          </div>
+        </div>
+
+        <div className="panel">
+          <h2>باشگاه مشتریان عطر کهکشان</h2>
+          <p>فهرست مشتریانی که حساب کاربری ساخته‌اند. امکانات حق عضویت و تخفیف‌های دوره‌ای در مرحله بعد قابل توسعه است.</p>
+          {members.length ? members.map((member:any)=><div className="admin-row" key={member.id}>
+            <div><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small></div>
+            <span>عضو</span>
+          </div>) : <div className="empty">هنوز عضوی در باشگاه ثبت نشده است.</div>}
+        </div>
+
+        <div className="panel">
           <h2>{form.id ? "ویرایش" : "افزودن"} محصول</h2>
 
           <label>
@@ -896,6 +976,8 @@ async function updateOrder(id: string, status: string) {
                   {order.postal_code}
                 </small>
                 <small>{order.address}</small>
+                <small>ارسال: {order.shipping_method_name || "ثبت نشده"} · هزینه ارسال: {Number(order.shipping_cost||0).toLocaleString("fa-IR")} تومان · تحویل: {order.estimated_delivery || "ثبت نشده"}</small>
+                <small>جمع محصولات: {Number(order.subtotal_price ?? order.total_price).toLocaleString("fa-IR")} تومان</small>
                 <small>
                   شناسه پرداخت: {order.payment_tracking_code} | واریزکننده:{" "}
                   {order.payer_full_name}
