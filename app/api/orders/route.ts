@@ -31,8 +31,8 @@ export async function POST(r:Request){
       const {data:authResult,error:authError}=await s.auth.getUser(accessToken);
       if(!authError&&authResult.user){
         memberUser=authResult.user;
-        const {data:profile}=await s.from("profiles").select("discount_percent").eq("id",memberUser.id).maybeSingle();
-        memberDiscount=Math.max(0,Math.min(100,Number(profile?.discount_percent)||0));
+        const {data:profile}=await s.from("profiles").select("discount_percent,discount_active").eq("id",memberUser.id).maybeSingle();
+        memberDiscount=profile?.discount_active?Math.max(0,Math.min(100,Number(profile?.discount_percent)||0)):0;
       }
     }
     const {data:shipping,error:shippingError}=await s.from("shipping_methods").select("id,name,cost,estimated_delivery").eq("id",b.shipping_method_id).eq("is_active",true).maybeSingle();
