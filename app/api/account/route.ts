@@ -19,6 +19,6 @@ export async function GET(r:Request){
   const {data:campaign,error:campaignError}=await s.from("club_discount_campaigns").select("discount_percent,starts_at,ends_at").eq("id",1).maybeSingle();
   if(campaignError)throw campaignError;
   const active=Boolean(campaign&&new Date(campaign.starts_at).getTime()<=now.getTime()&&new Date(campaign.ends_at).getTime()>now.getTime());
-  return NextResponse.json({user:{id:u.id,phone:u.phone||u.user_metadata?.phone||"",name:profile?.full_name||u.user_metadata?.full_name||"",created_at:profile?.member_since||profile?.created_at||u.created_at},discount:{percent:active?Number(campaign.discount_percent||0):0,active,ends_at:active?campaign.ends_at:null},orders:orders||[]});
+  return NextResponse.json({user:{id:u.id,phone:u.phone||u.user_metadata?.phone||"",name:profile?.full_name||u.user_metadata?.full_name||"",created_at:profile?.member_since||profile?.created_at||u.created_at},discount:{percent:active&&campaign?Number(campaign.discount_percent||0):0,active,ends_at:active&&campaign?campaign.ends_at:null},orders:orders||[]});
  }catch{return NextResponse.json({error:"اطلاعات حساب فعلاً دریافت نشد."},{status:500})}
 }
