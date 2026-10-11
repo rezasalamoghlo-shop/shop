@@ -209,7 +209,7 @@
 
 /* Hero contact links: keep address beneath the store title and socials beneath the intro copy. */
 .contact-strip{display:none!important}
-.hero-copy .hero-address{margin:2px auto 12px;color:#f0d9a0!important;text-shadow:0 0 10px #b98fff55!important;font-family:inherit!important;font-size:clamp(13px,1.6vw,17px)!important;font-weight:500!important;line-height:1.9}
+.hero-copy .hero-address{margin:2px auto 12px;color:#4c168a!important;text-shadow:0 0 2px #ead7ff,0 0 8px #a855f7,0 0 18px #7e22ce!important;font-family:inherit!important;font-size:clamp(13px,1.6vw,17px)!important;font-weight:700!important;line-height:1.9}
 .hero-contact-links{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 12px;margin:18px auto 22px;max-width:780px}
 .hero-contact-link{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:7px 12px;border:1px solid #d5ae4b3b;border-radius:999px;background:linear-gradient(135deg,#17111fdd,#0d0a13dd);color:#e9dfef;font-size:12px;line-height:1.5;text-decoration:none;transition:transform .2s,border-color .2s,background .2s;overflow-wrap:anywhere}
 .hero-contact-link:hover{transform:translateY(-2px);border-color:#e4c46a;background:#21172c;color:#f8e6ae}
@@ -223,3 +223,5 @@
 
 /* Hero social links sit clearly between the intro and the discovery button. */
 .hero-contact-links{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;margin:0 auto 26px;max-width:760px}.hero-contact-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;border:1px solid #d5ae4b44;border-radius:999px;background:#110d1bbd;color:#e7d9b7;font-size:12px;transition:transform .2s,border-color .2s,background .2s}.hero-contact-link:hover{transform:translateY(-2px);border-color:#e4c46a;background:#21182d}.hero-contact-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;color:#e4c46a;font-size:18px;line-height:1}.hero-social-instagram .hero-contact-icon{color:#e8b5d7}.hero-copy>.gold{margin-top:0}@media(max-width:560px){.hero-contact-links{gap:8px;margin-bottom:22px}.hero-contact-link{font-size:11px;padding:8px 10px}}
+
+.hero-contact-pending{opacity:.72;cursor:default}.hero-social-telegram .hero-contact-icon{color:#80d4f4;border-color:#80d4f466;background:#80d4f412}.hero-social-rubika .hero-contact-icon{color:#e8a0ff;border-color:#e8a0ff66;background:#e8a0ff12}
