@@ -67,7 +67,10 @@ export default function Admin() {
   const [members, setMembers] = useState<any[]>([]);
   const [memberSearch, setMemberSearch] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
-  const [bulkDiscount, setBulkDiscount] = useState("0");
+  const [bulkDiscount, setBulkDiscount] = useState("10");
+  const [discountDays, setDiscountDays] = useState("10");
+  const [clubCampaign, setClubCampaign] = useState<any>(null);
+  const [clubDiscountBusy, setClubDiscountBusy] = useState(false);
   const [orderSearch, setOrderSearch] = useState("");
 
   async function load() {
@@ -79,12 +82,14 @@ export default function Admin() {
     const result = await response.json();
     result.settings.social_links = result.settings.social_links || [];
     setData(result);
-    const [shippingResponse, membersResponse] = await Promise.all([
+    const [shippingResponse, membersResponse, clubDiscountResponse] = await Promise.all([
       fetch("/api/admin/shipping", { cache: "no-store" }),
-      fetch("/api/admin/members", { cache: "no-store" })
+      fetch("/api/admin/members", { cache: "no-store" }),
+      fetch("/api/admin/club-discount", { cache: "no-store" })
     ]);
     if (shippingResponse.ok) { const shippingData = await shippingResponse.json(); setShippingMethods(shippingData.methods || []); }
     if (membersResponse.ok) { const memberData = await membersResponse.json(); setMembers(memberData.members || []); }
+    if (clubDiscountResponse.ok) { const clubData = await clubDiscountResponse.json(); setClubCampaign(clubData.campaign || null); }
   }
 
   useEffect(() => {
@@ -109,8 +114,12 @@ export default function Admin() {
         const response = await fetch("/api/admin/data", { cache: "no-store" });
         if (!response.ok) return;
         const result = await response.json();
-        const memberResponse = await fetch("/api/admin/members", { cache: "no-store" });
+        const [memberResponse, clubDiscountResponse] = await Promise.all([
+          fetch("/api/admin/members", { cache: "no-store" }),
+          fetch("/api/admin/club-discount", { cache: "no-store" })
+        ]);
         if (memberResponse.ok) { const memberResult = await memberResponse.json(); setMembers(memberResult.members || []); }
+        if (clubDiscountResponse.ok) { const clubResult = await clubDiscountResponse.json(); setClubCampaign(clubResult.campaign || null); }
         setData((current: any) => {
           if (!current) return current;
           const signature = (orders: any[]) => JSON.stringify((orders || []).map((o: any) => ({
@@ -484,6 +493,40 @@ async function updateOrder(id: string, status: string) {
     finally{setAction("");}
   }
 
+  async function saveGlobalClubDiscount() {
+    if (clubDiscountBusy || action) return;
+    const percent = Number(bulkDiscount), days = Number(discountDays);
+    if (!Number.isFinite(percent) || percent <= 0 || percent > 100) { setMessage("درصد تخفیف باید بیشتر از صفر و حداکثر ۱۰۰ باشد."); return; }
+    if (!Number.isInteger(days) || days < 1 || days > 3650) { setMessage("مدت اعتبار باید بین ۱ تا ۳۶۵۰ روز باشد."); return; }
+    if (!window.confirm("تخفیف " + percent + "٪ برای تمام اعضای باشگاه به مدت " + days + " روز فعال شود؟")) return;
+    setClubDiscountBusy(true);
+    try {
+      const response = await fetch("/api/admin/club-discount", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discount_percent: percent, duration_days: days })
+      });
+      const result = await response.json();
+      if (!response.ok) { setMessage(result.error || "ذخیره تخفیف انجام نشد."); return; }
+      setClubCampaign(result.campaign || null);
+      setMessage("تخفیف سراسری برای تمام اعضای باشگاه فعال شد.");
+    } catch { setMessage("ارتباط با سرور برقرار نشد."); }
+    finally { setClubDiscountBusy(false); }
+  }
+
+  async function deleteGlobalClubDiscount() {
+    if (clubDiscountBusy || action || !clubCampaign) return;
+    if (!window.confirm("تخفیف سراسری برای تمام اعضا غیرفعال و حذف شود؟")) return;
+    setClubDiscountBusy(true);
+    try {
+      const response = await fetch("/api/admin/club-discount", { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) { setMessage(result.error || "حذف تخفیف انجام نشد."); return; }
+      setClubCampaign(null);
+      setMessage("تخفیف سراسری غیرفعال و حذف شد.");
+    } catch { setMessage("ارتباط با سرور برقرار نشد."); }
+    finally { setClubDiscountBusy(false); }
+  }
+
   async function changeMemberPassword(id:string,name:string) {
     if(action)return;
     const password=window.prompt("رمز جدید برای "+(name||"این عضو")+" را وارد کنید (حداقل ۸ نویسه):");
@@ -504,22 +547,21 @@ async function updateOrder(id: string, status: string) {
     finally{setOrderBusy("");}
   }
 
-  async function bulkMemberAction(kind:"discount"|"delete"|"activate"|"deactivate") {
-    const ids=[...new Set(selectedMemberIds)];if(!ids.length||action)return;
-    if(kind==="delete"&&!window.confirm("حذف "+ids.length+" عضو انتخاب‌شده؟ حساب‌ها حذف و سوابق سفارش از حساب جدا اما حفظ می‌شوند."))return;
-    if(kind==="discount"&&(!Number.isFinite(Number(bulkDiscount))||Number(bulkDiscount)<0||Number(bulkDiscount)>100)){setMessage("درصد تخفیف باید بین صفر تا صد باشد.");return;}
-    const isDelete=kind==="delete",body:any=isDelete?{ids}:kind==="discount"?{ids,discount_percent:Number(bulkDiscount),discount_active:Number(bulkDiscount)>0}:{ids,discount_active:kind==="activate"};
-    setAction("members-bulk-"+kind);
-    try{
-      const response=await fetch("/api/admin/members",{method:isDelete?"DELETE":"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const result=await response.json();
-      if(isDelete){const deleted=new Set<string>(result.deleted_ids||[]);setMembers(current=>current.filter((m:any)=>!deleted.has(m.id)));setSelectedMemberIds(current=>current.filter(id=>!deleted.has(id)));}
-      else if(result.updated_members?.length){const updates=new Map<string,any>(result.updated_members.map((m:any)=>[m.id,m]));setMembers(current=>current.map((m:any)=>updates.has(m.id)?{...m,...updates.get(m.id)}:m));if(response.ok)setSelectedMemberIds([]);}
-      if(result.failed?.length){setMessage("حذف "+(result.deleted_ids||[]).length+" عضو انجام شد؛ "+result.failed.length+" مورد ناموفق بود.");}
-      else if(!response.ok||!result.ok){setMessage(result.error||"عملیات گروهی انجام نشد.");}
-      else{setMessage(kind==="delete"?"اعضای انتخاب‌شده حذف شدند.":kind==="discount"?"درصد تخفیف ذخیره شد و تخفیف فعال شد.":kind==="activate"?"تخفیف اعضای انتخاب‌شده فعال شد.":"تخفیف اعضای انتخاب‌شده غیرفعال شد.");}
-      if(isDelete)await load();
-    }catch{setMessage("ارتباط با سرور برقرار نشد.");}
-    finally{setAction("");}
+  async function bulkMemberAction(kind:"delete") {
+    const ids=[...new Set(selectedMemberIds)]; if(!ids.length||action)return;
+    if(!window.confirm("حذف "+ids.length+" عضو انتخاب‌شده؟ حساب‌ها حذف و سوابق سفارش از حساب جدا اما حفظ می‌شوند."))return;
+    setAction("members-bulk-delete");
+    try {
+      const response=await fetch("/api/admin/members",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});
+      const result=await response.json();
+      const deleted=new Set<string>(result.deleted_ids||[]);
+      setMembers(current=>current.filter((m:any)=>!deleted.has(m.id)));
+      setSelectedMemberIds(current=>current.filter(id=>!deleted.has(id)));
+      if(result.failed?.length) setMessage("حذف "+deleted.size+" عضو انجام شد؛ "+result.failed.length+" مورد ناموفق بود.");
+      else if(!response.ok||!result.ok) setMessage(result.error||"حذف گروهی انجام نشد.");
+      else setMessage("اعضای انتخاب‌شده حذف شدند.");
+    } catch { setMessage("ارتباط با سرور برقرار نشد."); }
+    finally { setAction(""); }
   }
 
   function editProduct(product: any) {
@@ -759,27 +801,24 @@ async function updateOrder(id: string, status: string) {
         </div>
 
         <div className="panel" id="club-members">
-          <div className="club-admin-heading"><div><span className="admin-kicker">GALAXY CUSTOMER CLUB</span><h2>باشگاه مشتریان عطر کهکشان</h2><p>حذف اعضا، مدیریت گروهی و کنترل فعال بودن تخفیف.</p></div><strong className="club-count">{members.length.toLocaleString("fa-IR")} عضو</strong></div>
-          <label className="admin-search-label">جست‌وجوی اعضا<input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)} placeholder="نام، شماره تماس یا ایمیل"/></label>
+          <div className="club-admin-heading"><div><span className="admin-kicker">GALAXY CUSTOMER CLUB</span><h2>باشگاه مشتریان عطر کهکشان</h2><p>مدیریت اعضا و یک تخفیف زمان‌دار مشترک برای همه اعضای باشگاه.</p></div><strong className="club-count">{members.length.toLocaleString("fa-IR")} عضو</strong></div>
+          <label className="admin-search-label">جست‌وجوی اعضا<input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)} placeholder="نام یا شماره تماس"/></label>
           <div className="club-selection-toolbar">
-            <label className="category-check"><input type="checkbox" checked={members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length>0&&members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).every((m:any)=>selectedMemberIds.includes(m.id))} onChange={e=>{const visible=members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((m:any)=>m.id);setSelectedMemberIds(current=>e.target.checked?Array.from(new Set([...current,...visible])):current.filter(id=>!visible.includes(id)))}}/>انتخاب اعضای نمایش‌داده‌شده</label>
+            <label className="category-check"><input type="checkbox" checked={members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length>0&&members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).every((m:any)=>selectedMemberIds.includes(m.id))} onChange={e=>{const visible=members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((m:any)=>m.id);setSelectedMemberIds(current=>e.target.checked?Array.from(new Set([...current,...visible])):current.filter(id=>!visible.includes(id)))}}/>انتخاب اعضای نمایش‌داده‌شده</label>
             <span className="selected-count">{selectedMemberIds.length.toLocaleString("fa-IR")} عضو انتخاب‌شده</span>
-            <button className="special-delete" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("delete")}>{action==="members-bulk-delete"?"در حال حذف...":"حذف گروهی"}</button>
+            <button className="special-delete" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("delete")}>{action==="members-bulk-delete"?"در حال حذف...":"حذف اعضای انتخاب‌شده"}</button>
           </div>
           <div className="club-discount-panel">
-            <div><b>مدیریت تخفیف اعضای انتخاب‌شده</b><small>تخفیف فقط برای اعضای واردشده به حساب کاربری و در صورت فعال بودن اعمال می‌شود.</small></div>
-            <label>درصد تخفیف (%)<input type="number" min="0" max="100" step="1" value={bulkDiscount} onChange={e=>setBulkDiscount(e.target.value)}/></label>
-            <button className="gold" disabled={!selectedMemberIds.length||Boolean(action)||!Number.isFinite(Number(bulkDiscount))||Number(bulkDiscount)<0||Number(bulkDiscount)>100} onClick={()=>void bulkMemberAction("discount")}>{action==="members-bulk-discount"?"در حال ذخیره...":"اعمال تخفیف"}</button>
-            <div className="club-toggle-actions"><button className="club-activate" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("activate")}>{action==="members-bulk-activate"?"در حال فعال‌سازی...":"فعال کردن تخفیف"}</button><button className="club-deactivate" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("deactivate")}>{action==="members-bulk-deactivate"?"در حال غیرفعال‌سازی...":"غیرفعال کردن تخفیف"}</button></div>
+            <div><b>مدیریت تخفیف سراسری باشگاه</b><small>این تخفیف برای تمام اعضا فعال است و به انتخاب اعضا وابسته نیست. پس از پایان زمان، خودکار منقضی می‌شود.</small></div>
+            <label>درصد تخفیف (%)<input type="number" min="1" max="100" step="1" value={bulkDiscount} onChange={e=>setBulkDiscount(e.target.value)}/></label>
+            <label>مدت اعتبار (روز)<input type="number" min="1" max="3650" step="1" value={discountDays} onChange={e=>setDiscountDays(e.target.value)}/></label>
+            <button className="gold" disabled={clubDiscountBusy||Boolean(action)} onClick={()=>void saveGlobalClubDiscount()}>{clubDiscountBusy?"در حال ذخیره...":clubCampaign?"به‌روزرسانی تخفیف سراسری":"فعال‌سازی برای همه اعضا"}</button>
+            {clubCampaign ? <div className="club-campaign-status"><b>تخفیف فعال: {Number(clubCampaign.discount_percent).toLocaleString("fa-IR")}٪</b><span>شروع: {new Date(clubCampaign.starts_at).toLocaleString("fa-IR")}</span><span>پایان: {new Date(clubCampaign.ends_at).toLocaleString("fa-IR")}</span><button className="special-delete" disabled={clubDiscountBusy||Boolean(action)} onClick={()=>void deleteGlobalClubDiscount()}>غیرفعال‌سازی و حذف تخفیف</button></div> : <div className="club-campaign-empty">در حال حاضر تخفیف سراسری فعالی وجود ندارد.</div>}
           </div>
-          {members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")+" "+String(member.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length ? members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")+" "+String(member.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((member:any)=><div className="admin-row member-admin-row" key={member.id}>
+          {members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length ? members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((member:any)=><div className="admin-row member-admin-row" key={member.id}>
             <label className="member-select"><input aria-label={"انتخاب "+(member.full_name||member.phone)} type="checkbox" checked={selectedMemberIds.includes(member.id)} onChange={e=>setSelectedMemberIds(current=>e.target.checked?Array.from(new Set([...current,member.id])):current.filter(id=>id!==member.id))}/></label>
-            <div className="member-admin-details"><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small>
-              <label>درصد تخفیف اختصاصی (%)<input type="number" min="0" max="100" step="1" value={member.discount_percent??0} onChange={e=>setMembers(current=>current.map((m:any)=>m.id===member.id?{...m,discount_percent:e.target.value}:m))}/></label>
-              <div className="member-discount-status"><span>وضعیت تخفیف</span><label className="club-switch"><input type="checkbox" checked={Boolean(member.discount_active)} disabled={Boolean(action)} onChange={e=>void memberAction(member.id,"toggle",e.target.checked)}/><span>{member.discount_active?"فعال":"غیرفعال"}</span></label></div>
-              <button className="gold" disabled={Boolean(action)||!Number.isFinite(Number(member.discount_percent))||Number(member.discount_percent)<0||Number(member.discount_percent)>100} onClick={()=>void memberAction(member.id,"discount",member.discount_percent)}>{action==="member-"+member.id?"در حال ذخیره...":"ذخیره و فعال‌سازی تخفیف"}</button>
-              <button className="outline" disabled={Boolean(action)} onClick={()=>void changeMemberPassword(member.id,member.full_name||member.phone)}>{action==="member-password-"+member.id?"در حال تغییر رمز...":"تغییر رمز عبور عضو"}</button>
-            </div>
+            <div className="member-admin-details"><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||"شماره تماس ثبت نشده"}</small><small>تاریخ عضویت: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small></div>
+            <button className="outline" disabled={Boolean(action)} onClick={()=>void changeMemberPassword(member.id,member.full_name||member.phone)}>{action==="member-password-"+member.id?"در حال تغییر رمز...":"تغییر رمز"}</button>
             <button className="special-delete member-delete-button" disabled={Boolean(action)} onClick={()=>void memberAction(member.id,"delete")}>{action==="member-delete-"+member.id?"در حال حذف...":"حذف عضو"}</button>
           </div>) : <div className="empty">عضوی با این مشخصات پیدا نشد.</div>}
         </div>
