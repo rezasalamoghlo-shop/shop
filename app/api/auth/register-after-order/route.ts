@@ -14,9 +14,9 @@ export async function POST(r:Request){
     const phone=normalizePhone(rawPhone);
     if(!/^\+[1-9][0-9]{7,14}$/.test(phone))return NextResponse.json({error:"شماره تماس معتبر نیست."},{status:400});
     const s=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
-    const {data:order,error:oe}=await s.from("orders").select("id,status,phone,customer_full_name,user_id").eq("public_token",token).maybeSingle();
+    const {data:order,error:oe}=await s.from("orders").select("id,status,payment_status,phone,customer_full_name,user_id").eq("public_token",token).maybeSingle();
     if(oe||!order)return NextResponse.json({error:"سفارش پیدا نشد."},{status:404});
-    if(order.status!=="paid")return NextResponse.json({error:"ساخت حساب فقط پس از تأیید پرداخت توسط مدیر امکان‌پذیر است."},{status:403});
+    if(order.payment_status!=="paid"&&order.status!=="paid")return NextResponse.json({error:"ساخت حساب فقط پس از تأیید پرداخت توسط مدیر امکان‌پذیر است."},{status:403});
     if(order.user_id)return NextResponse.json({error:"این سفارش قبلاً به یک حساب متصل شده است. از صفحه ورود استفاده کنید."},{status:409});
     if(normalizePhone(String(order.phone||""))!==phone)return NextResponse.json({error:"شماره تماس باید با شماره ثبت‌شده در سفارش یکسان باشد."},{status:403});
     const {data:created,error:ce}=await s.auth.admin.createUser({phone,password,phone_confirm:true,user_metadata:{full_name:fullName||order.customer_full_name||""}});
