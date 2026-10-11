@@ -21,8 +21,8 @@ const priceNumber = (value: unknown) =>
 
 const socials = [
   ["instagram", "اینستاگرام"],
-  ["rubika", "روبیکا"],
-  ["telegram", "تلگرام"],
+  ["rubika", "آدرس پی‌وی پشتیبانی روبیکا"],
+  ["telegram", "آدرس پی‌وی پشتیبانی تلگرام"],
   ["whatsapp", "واتساپ"],
   ["aparat", "آپارات"],
   ["website", "سایت دیگر"],
@@ -600,12 +600,13 @@ async function updateOrder(id: string, status: string) {
               }
             />
           </label>
+          <p className="upload-hint">آدرس تلگرام و روبیکا در پنجره «پشتیبانی رایحه» نمایش داده می‌شود. لینک کامل پی‌وی یا فقط نام کاربری را وارد کنید؛ این مقادیر هر زمان قابل تغییر هستند.</p>
           {socials.map(([key, label]) => (
             <label key={key}>
-              لینک {label}
+              {key === "telegram" || key === "rubika" ? label : `لینک ${label}`}
               <input
                 dir="ltr"
-                placeholder="https://..."
+                placeholder={key === "telegram" ? "https://t.me/username یا username" : key === "rubika" ? "https://rubika.ir/username یا username" : "https://..."}
                 value={socialValue(key)}
                 onChange={(event) => setSocial(key, event.target.value)}
               />
