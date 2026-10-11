@@ -5,11 +5,32 @@ const db=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPA
 const validId=(id:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 export async function GET(){
  if(!await isAdmin())return NextResponse.json({error:"Unauthorized"},{status:401});
- try{const s=db();const [{data:profiles,error:pe},{data:authData,error:ae}]=await Promise.all([s.from("profiles").select("id,full_name,email,member_since,created_at,discount_percent").order("member_since",{ascending:false}),s.auth.admin.listUsers({page:1,perPage:1000})]);if(pe||ae)throw pe||ae;const users=authData.users||[];const members=(profiles||[]).map((p:any)=>{const u=users.find((x:any)=>x.id===p.id);return{id:p.id,full_name:p.full_name||u?.user_metadata?.full_name||"",phone:u?.phone||"",email:p.email||u?.email||"",member_since:p.member_since||p.created_at||u?.created_at||null,discount_percent:Number(p.discount_percent||0)}});return NextResponse.json({members})}catch{return NextResponse.json({error:"دریافت اعضای باشگاه انجام نشد."},{status:500})}
+ try{const s=db();const [{data:profiles,error:pe},{data:authData,error:ae}]=await Promise.all([s.from("profiles").select("id,full_name,email,member_since,created_at,discount_percent,discount_active").order("member_since",{ascending:false}),s.auth.admin.listUsers({page:1,perPage:1000})]);if(pe||ae)throw pe||ae;const users=authData.users||[];const members=(profiles||[]).map((p:any)=>{const u=users.find((x:any)=>x.id===p.id);return{id:p.id,full_name:p.full_name||u?.user_metadata?.full_name||"",phone:u?.phone||"",email:p.email||u?.email||"",member_since:p.member_since||p.created_at||u?.created_at||null,discount_percent:Number(p.discount_percent||0),discount_active:Boolean(p.discount_active)}});return NextResponse.json({members})}catch{return NextResponse.json({error:"دریافت اعضای باشگاه انجام نشد."},{status:500})}
 }
 export async function PATCH(r:Request){
  if(!await isAdmin())return NextResponse.json({error:"Unauthorized"},{status:401});
- try{const b=await r.json(),ids=Array.from(new Set<string>((Array.isArray(b.ids)?b.ids:[b.id]).map((x:any)=>String(x||"")))),discount=Number(b.discount_percent);if(!ids.length||ids.length>500||ids.some(id=>!validId(id)))return NextResponse.json({error:"فهرست اعضا معتبر نیست."},{status:400});if(!Number.isFinite(discount)||discount<0||discount>100)return NextResponse.json({error:"درصد تخفیف باید بین صفر تا صد باشد."},{status:400});const {data,error}=await db().from("profiles").update({discount_percent:discount}).in("id",ids).select("id");if(error)throw error;const updated=(data||[]).map((x:any)=>x.id);if(updated.length!==ids.length)return NextResponse.json({error:"برخی اعضا پیدا نشدند؛ فهرست را تازه کنید.",updated_ids:updated},{status:409});return NextResponse.json({ok:true,discount_percent:discount,updated_ids:updated})}catch{return NextResponse.json({error:"ذخیره تخفیف عضو یا اعضا انجام نشد."},{status:500})}
+ try{
+  const b=await r.json();
+  const ids=Array.from(new Set<string>((Array.isArray(b.ids)?b.ids:[b.id]).map((x:any)=>String(x||""))));
+  if(!ids.length||ids.length>500||ids.some(id=>!validId(id)))return NextResponse.json({error:"فهرست اعضا معتبر نیست."},{status:400});
+  const update:any={};
+  if(Object.prototype.hasOwnProperty.call(b,"discount_percent")){
+   const discount=Number(b.discount_percent);
+   if(!Number.isFinite(discount)||discount<0||discount>100)return NextResponse.json({error:"درصد تخفیف باید بین صفر تا صد باشد."},{status:400});
+   update.discount_percent=discount;
+   if(!Object.prototype.hasOwnProperty.call(b,"discount_active"))update.discount_active=discount>0;
+  }
+  if(Object.prototype.hasOwnProperty.call(b,"discount_active")){
+   if(typeof b.discount_active!=="boolean")return NextResponse.json({error:"وضعیت تخفیف معتبر نیست."},{status:400});
+   update.discount_active=b.discount_active;
+  }
+  if(!Object.keys(update).length)return NextResponse.json({error:"تغییری برای ذخیره مشخص نشده است."},{status:400});
+  const {data,error}=await db().from("profiles").update(update).in("id",ids).select("id,discount_percent,discount_active");
+  if(error)throw error;
+  const updated=(data||[]).map((x:any)=>({id:x.id,discount_percent:Number(x.discount_percent||0),discount_active:Boolean(x.discount_active)}));
+  if(updated.length!==ids.length)return NextResponse.json({error:"برخی اعضا پیدا نشدند؛ فهرست را تازه کنید.",updated_members:updated},{status:409});
+  return NextResponse.json({ok:true,updated_members:updated});
+ }catch{return NextResponse.json({error:"ذخیره تنظیمات تخفیف انجام نشد."},{status:500})}
 }
 async function removeMember(s:any,id:string){
  const [orders,messages,reviews,stores]=await Promise.all([s.from("orders").update({user_id:null}).eq("user_id",id),s.from("messages").delete().eq("user_id",id),s.from("reviews").delete().eq("user_id",id),s.from("stores").update({owner_id:null}).eq("owner_id",id)]);
