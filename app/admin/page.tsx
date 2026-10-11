@@ -484,6 +484,17 @@ async function updateOrder(id: string, status: string) {
     finally{setAction("");}
   }
 
+  async function changeMemberPassword(id:string,name:string) {
+    if(action)return;
+    const password=window.prompt("رمز جدید برای "+(name||"این عضو")+" را وارد کنید (حداقل ۸ نویسه):");
+    if(password===null)return;
+    if(password.length<8){setMessage("رمز جدید باید حداقل ۸ نویسه داشته باشد.");return;}
+    setAction("member-password-"+id);
+    try{const response=await fetch("/api/admin/members",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,new_password:password})});const result=await response.json();if(!response.ok)throw new Error(result.error||"تغییر رمز انجام نشد.");setMessage("رمز عبور "+(name||"عضو")+" تغییر کرد.");}
+    catch(e:any){setMessage(e.message||"تغییر رمز انجام نشد.");}
+    finally{setAction("");}
+  }
+
   async function deleteOrder(id:string) {
     if(orderBusy||action)return;
     if(!window.confirm("این سفارش و تمام اقلام آن از پایگاه داده حذف می‌شوند. این عملیات قابل بازگشت نیست. ادامه می‌دهید؟"))return;
@@ -767,6 +778,7 @@ async function updateOrder(id: string, status: string) {
               <label>درصد تخفیف اختصاصی (%)<input type="number" min="0" max="100" step="1" value={member.discount_percent??0} onChange={e=>setMembers(current=>current.map((m:any)=>m.id===member.id?{...m,discount_percent:e.target.value}:m))}/></label>
               <div className="member-discount-status"><span>وضعیت تخفیف</span><label className="club-switch"><input type="checkbox" checked={Boolean(member.discount_active)} disabled={Boolean(action)} onChange={e=>void memberAction(member.id,"toggle",e.target.checked)}/><span>{member.discount_active?"فعال":"غیرفعال"}</span></label></div>
               <button className="gold" disabled={Boolean(action)||!Number.isFinite(Number(member.discount_percent))||Number(member.discount_percent)<0||Number(member.discount_percent)>100} onClick={()=>void memberAction(member.id,"discount",member.discount_percent)}>{action==="member-"+member.id?"در حال ذخیره...":"ذخیره و فعال‌سازی تخفیف"}</button>
+              <button className="outline" disabled={Boolean(action)} onClick={()=>void changeMemberPassword(member.id,member.full_name||member.phone)}>{action==="member-password-"+member.id?"در حال تغییر رمز...":"تغییر رمز عبور عضو"}</button>
             </div>
             <button className="special-delete member-delete-button" disabled={Boolean(action)} onClick={()=>void memberAction(member.id,"delete")}>{action==="member-delete-"+member.id?"در حال حذف...":"حذف عضو"}</button>
           </div>) : <div className="empty">عضوی با این مشخصات پیدا نشد.</div>}
