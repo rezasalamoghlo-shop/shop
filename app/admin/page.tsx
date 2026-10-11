@@ -998,7 +998,8 @@ async function updateOrder(id: string, status: string) {
                 </small>
                 <small>{order.address}</small>
                 <small>ارسال: {order.shipping_method_name || "ثبت نشده"} · هزینه ارسال: {Number(order.shipping_cost||0).toLocaleString("fa-IR")} تومان · تحویل: {order.estimated_delivery || "ثبت نشده"}</small>
-                <small>جمع محصولات: {Number(order.subtotal_price ?? order.total_price).toLocaleString("fa-IR")} تومان</small>\n                <small>تخفیف باشگاه: {Number(order.discount_percent||0).toLocaleString("fa-IR")}٪ · {Number(order.discount_amount||0).toLocaleString("fa-IR")} تومان</small>
+                <small>جمع محصولات: {Number(order.subtotal_price ?? order.total_price).toLocaleString("fa-IR")} تومان</small>
+                <small>تخفیف باشگاه: {Number(order.discount_percent||0).toLocaleString("fa-IR")}٪ · {Number(order.discount_amount||0).toLocaleString("fa-IR")} تومان</small>
                 <small>
                   شناسه پرداخت: {order.payment_tracking_code} | واریزکننده:{" "}
                   {order.payer_full_name}
