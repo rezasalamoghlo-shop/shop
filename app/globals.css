@@ -304,3 +304,5 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .club-welcome-ring{display:grid;place-items:center;width:58px;height:58px;margin:20px auto;border:1px solid #e5c56d;border-radius:50%;background:#e5c56d18;color:#e5c56d;font-size:29px;box-shadow:0 0 0 8px #e5c56d0c}
 @keyframes club-welcome-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}@keyframes club-spark{50%{transform:rotate(15deg) scale(1.12)}}
 @media(max-width:560px){.member-admin-row{display:grid;grid-template-columns:1fr}.member-admin-row>.special-delete{width:100%}.club-welcome-card{padding:30px 18px}.club-welcome-card h2{font-size:19px}}
+
+.active-order-note{font-size:12px;line-height:1.9;color:#cbbd96;border:1px solid #d8b85b33;border-radius:10px;background:#d8b85b0a;padding:11px 13px;margin-top:14px}
