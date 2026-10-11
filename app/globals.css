@@ -250,3 +250,40 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @media(max-width:480px){.support-modal{padding:28px 17px 18px;border-radius:20px}.support-modal h2{font-size:19px}.support-option{padding:12px}.support-option-icon{flex-basis:38px;height:38px}}
 
 .payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 18px}.payment-method-active,.payment-method-disabled{display:flex;flex-direction:column;gap:6px;text-align:right;padding:13px;border-radius:12px;border:1px solid #b18b3e;background:#211a20;color:#f3d783}.payment-method-active small,.payment-method-disabled small{font-size:11px;color:#aaa2b0}.payment-method-disabled{border-color:#39313e;color:#9991a3;background:#15121a;cursor:not-allowed;opacity:.8}@media(max-width:560px){.payment-methods{grid-template-columns:1fr}}
+
+
+/* Fixed card-to-card payment panel */
+.payment-card{position:relative;overflow:hidden;background:radial-gradient(circle at 100% 0,#513d6b 0,#21172f 42%,#120f1b 100%);border:1px solid #d8b85b88;box-shadow:inset 0 1px #ffffff14,0 16px 38px #0004;padding:22px}
+.payment-card:before{content:"";position:absolute;width:230px;height:230px;left:-85px;top:-95px;border:1px solid #e6c76f33;border-radius:50%;box-shadow:0 0 0 18px #e6c76f08,0 0 0 38px #e6c76f05;pointer-events:none}
+.payment-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:22px}
+.payment-card-chip{display:grid;place-items:center;width:42px;height:31px;border:1px solid #f1d991;border-radius:7px;color:#f1d991;background:linear-gradient(135deg,#b9944d55,#f3dfa055);font-size:22px}
+.payment-bank{color:#e8d7a6;font-size:12px;font-weight:700}
+.payment-card-mark{font-size:26px;color:#e4c46a}
+.payment-card-divider{height:1px;background:linear-gradient(90deg,transparent,#d8b85b99,transparent);margin:16px 0}
+.payment-card .payment-card-holder{display:block;color:#f8efd7;font-size:16px;margin:5px 0 16px}
+.payment-card .payment-card-number{direction:ltr;text-align:left;letter-spacing:2px;font-size:clamp(16px,3vw,22px);font-weight:700;color:#f5d985;background:#08070d55;border:1px solid #d8b85b55;border-radius:11px;padding:13px 12px;user-select:all;overflow-wrap:anywhere}
+.payment-card .payment-grand-total{font-size:clamp(24px,4vw,30px);text-shadow:0 0 18px #d8b85b22}
+.copy-card-button{margin:10px 0 17px;border:1px solid #d8b85b66;border-radius:9px;background:#ffffff0a;color:#f4d98b;padding:9px 13px;font-size:12px}
+.copy-card-button:disabled{opacity:.45;cursor:not-allowed}
+.waiting-character{height:150px;display:flex;align-items:flex-end;justify-content:center;gap:17px;position:relative;margin:12px auto 20px;max-width:290px}
+.waiting-character-body{position:relative;width:56px;height:74px;border-radius:26px 26px 14px 14px;background:linear-gradient(135deg,#e7c56b,#9b6a26);box-shadow:inset -8px -3px #5b3c2133;animation:character-breathe 2.2s ease-in-out infinite}
+.waiting-character-body:before{content:"";position:absolute;left:7px;top:-27px;width:42px;height:42px;border-radius:50%;background:#d8a777;border:3px solid #6b4a30}
+.waiting-eye{position:absolute;z-index:1;top:-10px;left:18px;width:4px;height:5px;border-radius:50%;background:#261c26}
+.waiting-eye:nth-child(2){left:32px}
+.waiting-arm{position:absolute;right:-16px;top:18px;width:23px;height:9px;border-radius:9px;background:#d8a777;transform:rotate(-16deg);transform-origin:left center;animation:character-wait 1.6s ease-in-out infinite}
+.waiting-box{position:relative;width:92px;height:54px;border:2px solid #caa34d;border-radius:5px 5px 9px 9px;background:linear-gradient(135deg,#513a27,#261a18);box-shadow:0 7px 0 #100b0b,0 0 20px #d8b85b18;animation:box-wait 2.6s ease-in-out infinite}
+.waiting-box:before{content:"";position:absolute;left:-5px;right:-5px;top:-9px;height:13px;border:2px solid #d9b65b;border-radius:4px;background:linear-gradient(90deg,#73512d,#c69b46,#73512d)}
+.waiting-box span{position:absolute;inset:0;display:grid;place-items:center;color:#e3c46f;font-size:19px}
+.waiting-dots{position:absolute;bottom:-20px;left:calc(50% + 30px);display:flex;gap:5px}
+.waiting-dots i{width:5px;height:5px;border-radius:50%;background:#d8b85b;animation:dot-wait 1.2s infinite}
+.waiting-dots i:nth-child(2){animation-delay:.2s}.waiting-dots i:nth-child(3){animation-delay:.4s}
+@keyframes character-breathe{50%{transform:translateY(-4px)}}@keyframes character-wait{50%{transform:rotate(7deg)}}@keyframes box-wait{50%{transform:translateY(-2px)}}@keyframes dot-wait{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+.account-wait{padding-top:8px}
+.account-wait h2{margin-top:4px}
+.account-wait .status-pulse{border:1px solid #d8b85b44;background:#d8b85b0c;padding:12px;border-radius:10px;color:#e8cf91}
+.active-order-box{margin:16px 0 20px;padding:17px;border:1px solid #d8b85b66;border-radius:16px;background:linear-gradient(145deg,#21182b,#110f17);box-shadow:0 12px 28px #0003}
+.active-order-box>span{font-size:10px;letter-spacing:2px;color:#d8b85b}
+.active-order-box h3{margin:8px 0;color:#f2d98d}
+.active-order-meta{display:grid;gap:5px;color:#b9afc3;font-size:12px;line-height:1.8}
+.active-order-meta strong{color:#f0d17a}
+@media(prefers-reduced-motion:reduce){.waiting-character-body,.waiting-arm,.waiting-box,.waiting-dots i{animation:none!important}}
