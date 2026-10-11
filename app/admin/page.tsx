@@ -499,6 +499,7 @@ async function updateOrder(id: string, status: string) {
           <h1>پنل مدیریت عطر کهکشان</h1>
         </div>
         <div>
+          <a className="outline" href="#shipping-settings">مدیریت روش‌های ارسال</a>
           <a className="outline" href="/">فروشگاه</a>
           <button
             className="logout"
@@ -674,8 +675,9 @@ async function updateOrder(id: string, status: string) {
           </button>
         </div>
 
-        <div className="panel">
+        <div className="panel" id="shipping-settings">
           <h2>روش‌های ارسال</h2>
+          <p><strong>تنظیم هزینه و زمان تحویل سفارش‌ها</strong></p>
           <p>هزینه و زمان تحویل هر روش در همین بخش تنظیم می‌شود و مشتری هنگام خرید آن را انتخاب می‌کند.</p>
           <label>نام روش ارسال<input value={shippingDraft.name} onChange={e=>setShippingDraft((x:any)=>({...x,name:e.target.value}))} placeholder="مثلاً پست پیشتاز"/></label>
           <label>هزینه ارسال (تومان)<input inputMode="numeric" value={faPrice(shippingDraft.cost)} onChange={e=>setShippingDraft((x:any)=>({...x,cost:e.target.value}))}/></label>
