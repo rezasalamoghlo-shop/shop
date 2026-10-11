@@ -105,6 +105,8 @@ export default function Admin() {
         const response = await fetch("/api/admin/data", { cache: "no-store" });
         if (!response.ok) return;
         const result = await response.json();
+        const memberResponse = await fetch("/api/admin/members", { cache: "no-store" });
+        if (memberResponse.ok) { const memberResult = await memberResponse.json(); setMembers(memberResult.members || []); }
         setData((current: any) => {
           if (!current) return current;
           const signature = (orders: any[]) => JSON.stringify((orders || []).map((o: any) => ({
