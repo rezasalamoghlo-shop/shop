@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 const db=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
 const normalizeDigits=(value:string)=>value.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[^0-9]/g,"");
-const orderSummary=(o:any)=>({id:o.id,total_price:o.total_price,subtotal_price:o.subtotal_price,discount_percent:o.discount_percent||0,discount_amount:o.discount_amount||0,shipping_cost:o.shipping_cost||0,estimated_delivery:o.estimated_delivery||null,public_token:o.public_token});
+const orderSummary=(o:any)=>({id:o.id,order_number:o.order_number,total_price:o.total_price,subtotal_price:o.subtotal_price,discount_percent:o.discount_percent||0,discount_amount:o.discount_amount||0,shipping_cost:o.shipping_cost||0,estimated_delivery:o.estimated_delivery||null,public_token:o.public_token});
 export async function POST(r:Request){
   try{
     const b=await r.json();
@@ -14,7 +14,7 @@ export async function POST(r:Request){
     const checkoutSessionId=String(b.checkout_session_id||"");
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(checkoutSessionId))return NextResponse.json({error:"شناسه ادامه سفارش معتبر نیست. صفحه خرید را تازه کنید."},{status:400});
     const s=db();
-    const {data:existingOrder,error:existingError}=await s.from("orders").select("id,public_token,total_price,subtotal_price,discount_percent,discount_amount,shipping_cost,estimated_delivery").eq("checkout_session_id",checkoutSessionId).maybeSingle();
+    const {data:existingOrder,error:existingError}=await s.from("orders").select("id,order_number,public_token,total_price,subtotal_price,discount_percent,discount_amount,shipping_cost,estimated_delivery").eq("checkout_session_id",checkoutSessionId).maybeSingle();
     if(existingError)return NextResponse.json({error:"بررسی سفارش قبلی انجام نشد."},{status:500});
     if(existingOrder)return NextResponse.json(orderSummary(existingOrder));
     const normalizedItems:any[]=Array.from(b.items.reduce((map:Map<string,any>,item:any)=>{
@@ -76,7 +76,7 @@ export async function POST(r:Request){
       subtotal_price:subtotal,total_price:total,discount_percent:memberDiscount,discount_amount:discountAmount,status:"pending",payment_method:"card_to_card",
       payer_full_name:String(b.payer_full_name).trim(),payment_tracking_code:String(b.payment_tracking_code).trim(),
       shipping_method_id:shipping.id,shipping_method_name:shipping.name,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery
-    }).select("id,public_token").single();
+    }).select("id,order_number,public_token").single();
     if(error){
       if(error.code==="23505"){
         const {data:duplicate}=await s.from("orders").select("id,public_token,total_price,subtotal_price,discount_percent,discount_amount,shipping_cost,estimated_delivery").eq("checkout_session_id",checkoutSessionId).maybeSingle();
