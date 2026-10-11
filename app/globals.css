@@ -225,3 +225,26 @@
 .hero-contact-links{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;margin:0 auto 26px;max-width:760px}.hero-contact-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;border:1px solid #d5ae4b44;border-radius:999px;background:#110d1bbd;color:#e7d9b7;font-size:12px;transition:transform .2s,border-color .2s,background .2s}.hero-contact-link:hover{transform:translateY(-2px);border-color:#e4c46a;background:#21182d}.hero-contact-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;color:#e4c46a;font-size:18px;line-height:1}.hero-social-instagram .hero-contact-icon{color:#e8b5d7}.hero-copy>.gold{margin-top:0}@media(max-width:560px){.hero-contact-links{gap:8px;margin-bottom:22px}.hero-contact-link{font-size:11px;padding:8px 10px}}
 
 .hero-contact-pending{opacity:.72;cursor:default}.hero-social-telegram .hero-contact-icon{color:#80d4f4;border-color:#80d4f466;background:#80d4f412}.hero-social-rubika .hero-contact-icon{color:#e8a0ff;border-color:#e8a0ff66;background:#e8a0ff12}
+
+
+/* Editable Telegram/Rubika support popup */
+.support-overlay{z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,3,12,.78);backdrop-filter:blur(8px)}
+.support-modal{position:relative;width:min(100%,430px);padding:30px 24px 22px;border:1px solid #d8b85b55;border-radius:24px;background:radial-gradient(ellipse at top,#30203d 0%,#17111f 55%,#100d17 100%);box-shadow:0 24px 90px #0009;color:#f8f1df;text-align:center}
+.support-modal-close{position:absolute;top:12px;left:12px}
+.support-modal-eyebrow{display:block;color:#e5c56c;font-size:10px;letter-spacing:2px;margin-bottom:10px}
+.support-modal h2{margin:0 0 10px;font-size:21px;color:#f5e8c7}
+.support-modal>p{margin:0 auto 22px;max-width:320px;color:#c7bdcf;font-size:13px;line-height:1.9}
+.support-modal-options{display:grid;gap:10px;text-align:right}
+.support-option{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #ffffff18;border-radius:16px;background:#ffffff06;color:#f8f1df;text-decoration:none;transition:transform .18s,border-color .18s,background .18s}
+a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-color:#d8b85b88}
+.support-option>span:nth-child(2){display:grid;gap:4px;flex:1}
+.support-option b{font-size:14px;font-weight:700}
+.support-option small{font-size:11px;color:#bdb1c8}
+.support-option-icon{display:flex;align-items:center;justify-content:center;flex:0 0 42px;height:42px;border-radius:13px;font-size:22px;background:#ffffff0a}
+.telegram-option .support-option-icon{color:#82d7f7;background:#4aa9dc18}
+.rubika-option .support-option-icon{color:#e6a0ff;background:#b75be51a}
+.support-option-arrow{color:#d9c58e;font-size:18px}
+.support-option-disabled{opacity:.55;cursor:not-allowed}
+.support-modal-note{display:block;margin-top:17px;color:#9e93a9;font-size:10px;line-height:1.8}
+.support button.gold{cursor:pointer}
+@media(max-width:480px){.support-modal{padding:28px 17px 18px;border-radius:20px}.support-modal h2{font-size:19px}.support-option{padding:12px}.support-option-icon{flex-basis:38px;height:38px}}
