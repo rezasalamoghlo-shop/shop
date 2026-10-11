@@ -287,3 +287,20 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .active-order-meta{display:grid;gap:5px;color:#b9afc3;font-size:12px;line-height:1.8}
 .active-order-meta strong{color:#f0d17a}
 @media(prefers-reduced-motion:reduce){.waiting-character-body,.waiting-arm,.waiting-box,.waiting-dots i{animation:none!important}}
+
+
+/* Customer club controls and timed welcome */
+.member-admin-row{align-items:flex-start;gap:14px}
+.member-admin-details{display:grid!important;grid-template-columns:1fr;gap:7px!important;flex:1;min-width:0}
+.member-admin-details label{margin:4px 0!important;max-width:220px}
+.member-admin-details .gold{justify-self:start;padding:8px 13px}
+.member-admin-row>.special-delete{align-self:flex-start;background:#321721!important;border-color:#b95a68!important;color:#ffe1e5!important}
+.club-welcome-backdrop{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:20px;background:#05030cd9;backdrop-filter:blur(12px)}
+.club-welcome-card{position:relative;width:min(100%,420px);padding:35px 24px;border:1px solid #e2c36c88;border-radius:24px;background:radial-gradient(ellipse at top,#3b2b4c,#17111f 60%,#0d0a12);box-shadow:0 30px 100px #0009;text-align:center;animation:club-welcome-in .4s ease-out}
+.club-welcome-card>small{display:block;color:#d8b85b;font-size:10px;letter-spacing:2px}
+.club-welcome-card h2{font-size:22px;line-height:1.8;color:#f5e6bc;margin:16px 0 8px}
+.club-welcome-card p{font-size:13px;line-height:1.9;color:#c7bbd1}
+.club-welcome-spark{display:block;color:#e7c96e;font-size:38px;animation:club-spark 1.5s ease-in-out infinite}
+.club-welcome-ring{display:grid;place-items:center;width:58px;height:58px;margin:20px auto;border:1px solid #e5c56d;border-radius:50%;background:#e5c56d18;color:#e5c56d;font-size:29px;box-shadow:0 0 0 8px #e5c56d0c}
+@keyframes club-welcome-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}@keyframes club-spark{50%{transform:rotate(15deg) scale(1.12)}}
+@media(max-width:560px){.member-admin-row{display:grid;grid-template-columns:1fr}.member-admin-row>.special-delete{width:100%}.club-welcome-card{padding:30px 18px}.club-welcome-card h2{font-size:19px}}
