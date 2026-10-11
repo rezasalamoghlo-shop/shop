@@ -5,9 +5,11 @@ function normalizePhone(value:string){const digits=normalizeDigits(value);return
 export async function POST(r:Request){
   try{
     const b=await r.json(),token=String(b.token||""),rawPhone=String(b.phone||""),password=String(b.password||""),fullName=String(b.full_name||"").trim();
-    if(!token||!rawPhone||password.length<8)return NextResponse.json({error:"اطلاعات ثبت‌نام کامل نیست."},{status:400});
-    const phone=normalizePhone(rawPhone);
-    if(!/^\+[1-9][0-9]{7,14}$/.test(phone))return NextResponse.json({error:"شماره تماس معتبر نیست."},{status:400});
+    if(!token||!rawPhone)return NextResponse.json({error:"اطلاعات ثبت‌نام کامل نیست."},{status:400});
+    const phoneDigits=normalizeDigits(rawPhone);
+    if(!new RegExp("^09"+slash+"d{9}$").test(phoneDigits))return NextResponse.json({error:"شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود."},{status:400});
+    if(password.length<8||!/[A-Z]/.test(password)||!/[a-z]/.test(password)||!/[^A-Za-z0-9]/.test(password))return NextResponse.json({error:"رمز عبور باید حداقل ۸ کاراکتر و شامل حروف انگلیسی بزرگ و کوچک و یک علامت باشد."},{status:400});
+    const phone=normalizePhone(phoneDigits);
     const s=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
     const {data:order,error:oe}=await s.from("orders").select("id,status,payment_status,phone,customer_full_name,user_id").eq("public_token",token).maybeSingle();
     if(oe||!order)return NextResponse.json({error:"سفارش پیدا نشد."},{status:404});
