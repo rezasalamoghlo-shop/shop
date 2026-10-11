@@ -65,6 +65,10 @@ export default function Admin() {
   const [shippingEditId, setShippingEditId] = useState("");
   const [shippingBusy, setShippingBusy] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [bulkDiscount, setBulkDiscount] = useState("0");
+  const [orderSearch, setOrderSearch] = useState("");
 
   async function load() {
     const response = await fetch("/api/admin/data");
@@ -479,6 +483,31 @@ async function updateOrder(id: string, status: string) {
     finally{setAction("");}
   }
 
+  async function deleteOrder(id:string) {
+    if(orderBusy||action)return;
+    if(!window.confirm("این سفارش و تمام اقلام آن از پایگاه داده حذف می‌شوند. این عملیات قابل بازگشت نیست. ادامه می‌دهید؟"))return;
+    setOrderBusy(id);
+    try{const response=await fetch("/api/admin/orders",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});const result=await response.json();if(!response.ok){setMessage(result.error||"حذف سفارش انجام نشد.");return;}setMessage("سفارش و اقلام وابسته از پایگاه داده حذف شدند.");await load();}
+    catch{setMessage("ارتباط با سرور برقرار نشد.");}
+    finally{setOrderBusy("");}
+  }
+
+  async function bulkMemberAction(kind:"discount"|"delete") {
+    const ids=[...selectedMemberIds];if(!ids.length||action)return;
+    if(kind==="delete"&&!window.confirm("حذف "+ids.length+" عضو انتخاب‌شده؟ حساب‌ها و اطلاعات وابسته حذف می‌شوند؛ سوابق سفارش حفظ و از حساب جدا خواهند شد."))return;
+    if(kind==="discount"&&(!Number.isFinite(Number(bulkDiscount))||Number(bulkDiscount)<0||Number(bulkDiscount)>100)){setMessage("درصد تخفیف باید بین صفر تا صد باشد.");return;}
+    setAction(kind==="delete"?"members-bulk-delete":"members-bulk-discount");
+    try{const response=await fetch("/api/admin/members",{method:kind==="delete"?"DELETE":"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(kind==="delete"?{ids}:{ids,discount_percent:Number(bulkDiscount)})});const result=await response.json();
+      if(kind==="delete"){const deleted=new Set<string>(result.deleted_ids||[]);setMembers(current=>current.filter((m:any)=>!deleted.has(m.id)));setSelectedMemberIds(current=>current.filter(id=>!deleted.has(id)));}
+      else if(response.ok&&result.ok){setMembers(current=>current.map((m:any)=>ids.includes(m.id)?{...m,discount_percent:Number(result.discount_percent)}:m));setSelectedMemberIds([]);}
+      if(result.failed?.length){setMessage("عملیات روی "+(result.deleted_ids||result.updated_ids||[]).length+" عضو انجام شد؛ "+result.failed.length+" مورد ناموفق بود.");}
+      else if(!response.ok||!result.ok){setMessage(result.error||"عملیات گروهی انجام نشد.");}
+      else{setMessage(kind==="delete"?"اعضای انتخاب‌شده حذف شدند؛ سوابق سفارش حفظ شدند.":"تخفیف برای اعضای انتخاب‌شده ذخیره شد.");}
+      if(kind==="delete")await load();
+    }catch{setMessage("ارتباط با سرور برقرار نشد.");}
+    finally{setAction("");}
+  }
+
   function editProduct(product: any) {
     setForm({
       ...product,
@@ -716,12 +745,13 @@ async function updateOrder(id: string, status: string) {
         </div>
 
         <div className="panel" id="club-members">
-          <h2>باشگاه مشتریان عطر کهکشان</h2>
-          <p>تخفیف هر عضو هنگام ورود به حساب و ثبت سفارش بعدی، در سمت سرور محاسبه و اعمال می‌شود.</p>
-          {members.length ? members.map((member:any)=><div className="admin-row member-admin-row" key={member.id}>
-            <div className="member-admin-details"><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small><label>تخفیف اختصاصی (%)<input type="number" min="0" max="100" step="1" value={member.discount_percent??0} onChange={e=>setMembers(current=>current.map((m:any)=>m.id===member.id?{...m,discount_percent:e.target.value}:m))}/></label><button className="gold" disabled={Boolean(action)||Number(member.discount_percent)<0||Number(member.discount_percent)>100} onClick={()=>void memberAction(member.id,"discount",member.discount_percent)}>{action==="member-"+member.id?"در حال ذخیره...":"ذخیره تخفیف"}</button></div>
-            <button className="special-delete" disabled={Boolean(action)} onClick={()=>{if(window.confirm("حذف حساب این عضو از باشگاه مشتریان؟ سفارش‌های قبلی حفظ می‌شوند."))void memberAction(member.id,"delete")}}>{action==="member-delete-"+member.id?"در حال حذف...":"حذف عضو"}</button>
-          </div>) : <div className="empty">هنوز عضوی در باشگاه ثبت نشده است.</div>}
+          <div className="club-admin-heading"><div><span className="admin-kicker">GALAXY CUSTOMER CLUB</span><h2>باشگاه مشتریان عطر کهکشان</h2><p>مدیریت اعضا، حذف گروهی و تخفیف اختصاصی در پایگاه داده.</p></div><strong className="club-count">{members.length.toLocaleString("fa-IR")} عضو</strong></div>
+          <label className="admin-search-label">جست‌وجوی اعضا<input value={memberSearch} onChange={e=>setMemberSearch(e.target.value)} placeholder="نام، شماره تماس یا ایمیل"/></label>
+          <div className="club-bulk-toolbar"><label className="category-check"><input type="checkbox" checked={members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length>0&&members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).every((m:any)=>selectedMemberIds.includes(m.id))} onChange={e=>{const visible=members.filter((m:any)=>(String(m.full_name||"")+" "+String(m.phone||"")+" "+String(m.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((m:any)=>m.id);setSelectedMemberIds(current=>e.target.checked?Array.from(new Set([...current,...visible])):current.filter(id=>!visible.includes(id)))}}/>انتخاب اعضای نمایش‌داده‌شده</label><span>{selectedMemberIds.length.toLocaleString("fa-IR")} انتخاب</span></div>
+          <div className="club-bulk-actions"><label>تخفیف برای اعضای انتخاب‌شده (%)<input type="number" min="0" max="100" value={bulkDiscount} onChange={e=>setBulkDiscount(e.target.value)}/></label><button className="gold" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("discount")}>{action==="members-bulk-discount"?"در حال اعمال...":"اعمال تخفیف گروهی"}</button><button className="special-delete" disabled={!selectedMemberIds.length||Boolean(action)} onClick={()=>void bulkMemberAction("delete")}>{action==="members-bulk-delete"?"در حال حذف...":"حذف اعضای انتخاب‌شده"}</button></div>
+          {members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")+" "+String(member.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).length ? members.filter((member:any)=>(String(member.full_name||"")+" "+String(member.phone||"")+" "+String(member.email||"")).toLowerCase().includes(memberSearch.trim().toLowerCase())).map((member:any)=><div className="admin-row member-admin-row" key={member.id}>
+            <label className="member-select"><input type="checkbox" checked={selectedMemberIds.includes(member.id)} onChange={e=>setSelectedMemberIds(current=>e.target.checked?[...current,member.id]:current.filter(id=>id!==member.id))}/></label><div className="member-admin-details"><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small><label>تخفیف اختصاصی (%)<input type="number" min="0" max="100" step="1" value={member.discount_percent??0} onChange={e=>setMembers(current=>current.map((m:any)=>m.id===member.id?{...m,discount_percent:e.target.value}:m))}/></label><button className="gold" disabled={Boolean(action)||Number(member.discount_percent)<0||Number(member.discount_percent)>100} onClick={()=>void memberAction(member.id,"discount",member.discount_percent)}>{action==="member-"+member.id?"در حال ذخیره...":"ذخیره تخفیف"}</button></div><button className="special-delete" disabled={Boolean(action)} onClick={()=>{if(window.confirm("حذف حساب این عضو؟ سوابق سفارش برای حفظ سابقه خرید باقی می‌مانند."))void memberAction(member.id,"delete")}}>{action==="member-delete-"+member.id?"در حال حذف...":"حذف عضو"}</button>
+          </div>) : <div className="empty">عضوی با این مشخصات پیدا نشد.</div>}
         </div>
 
         <div className="panel">
@@ -986,12 +1016,14 @@ async function updateOrder(id: string, status: string) {
       </section>
 
       <section className="panel">
-        <h2>سفارش‌ها</h2>
-        {data.orders.length ? (
-          data.orders.map((order: any) => (
+        <div className="orders-admin-heading"><div><h2>سفارش‌ها</h2><p>جست‌وجو با شماره سفارش، کد پیگیری یا شماره تماس.</p></div><strong>{data.orders.length.toLocaleString("fa-IR")} سفارش</strong></div>
+        <label className="admin-search-label">جست‌وجوی سفارش<input value={orderSearch} onChange={e=>setOrderSearch(e.target.value)} placeholder="شماره سفارش، کد پیگیری یا شماره تماس"/></label>
+        {data.orders.filter((order:any)=>{const raw=orderSearch.trim().toLowerCase();if(!raw)return true;const digits=(v:any)=>String(v??"").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));const qd=digits(raw);return String(order.public_token||"").toLowerCase().includes(raw)||String(order.public_token||"").slice(-8).toLowerCase().includes(raw)||(qd.length>0&&(digits(order.order_number).includes(qd)||digits(order.phone).includes(qd)));}).length ? (
+          data.orders.filter((order:any)=>{const raw=orderSearch.trim().toLowerCase();if(!raw)return true;const digits=(v:any)=>String(v??"").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));const qd=digits(raw);return String(order.public_token||"").toLowerCase().includes(raw)||String(order.public_token||"").slice(-8).toLowerCase().includes(raw)||(qd.length>0&&(digits(order.order_number).includes(qd)||digits(order.phone).includes(qd)));}).map((order: any) => (
             <div className="order" key={order.id}>
               <div>
                 <b>{order.customer_full_name}</b>
+                <small className="order-number-admin">شماره سفارش: <strong>#{String(order.order_number??"").padStart(6,"0")}</strong> · کد پیگیری: <strong dir="ltr">{String(order.public_token||"").slice(-8).toUpperCase()}</strong></small>
                 <small>
                   {order.phone} | {order.province}، {order.city} | کدپستی{" "}
                   {order.postal_code}
@@ -1021,10 +1053,11 @@ async function updateOrder(id: string, status: string) {
                 <option value="shipped">ارسال شد</option>
                 <option value="cancelled">لغو</option>
               </select>
+              <button className="special-delete" disabled={Boolean(orderBusy)||Boolean(action)} onClick={()=>void deleteOrder(order.id)}>{orderBusy===order.id?"در حال حذف...":"حذف سفارش"}</button>
             </div>
           ))
         ) : (
-          <div className="empty">سفارشی ثبت نشده است.</div>
+          <div className="empty">{orderSearch.trim()?"سفارشی با این مشخصات پیدا نشد.":"سفارشی ثبت نشده است."}</div>
         )}
       </section>
     </main>
