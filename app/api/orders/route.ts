@@ -29,10 +29,16 @@ export async function POST(r:Request){
     let memberUser:any=null,memberDiscount=0;
     if(accessToken){
       const {data:authResult,error:authError}=await s.auth.getUser(accessToken);
-      if(!authError&&authResult.user){
-        memberUser=authResult.user;
-        const {data:profile}=await s.from("profiles").select("discount_percent,discount_active").eq("id",memberUser.id).maybeSingle();
-        memberDiscount=profile?.discount_active?Math.max(0,Math.min(100,Number(profile?.discount_percent)||0)):0;
+      if(!authError&&authResult.user) memberUser=authResult.user;
+    }
+    const campaignNow=new Date();
+    const {error:expiredCampaignError}=await s.from("club_discount_campaigns").delete().lte("ends_at",campaignNow.toISOString());
+    if(expiredCampaignError) throw expiredCampaignError;
+    if(memberUser){
+      const {data:campaign,error:campaignError}=await s.from("club_discount_campaigns").select("discount_percent,starts_at,ends_at").eq("id",1).maybeSingle();
+      if(campaignError) throw campaignError;
+      if(campaign&&new Date(campaign.starts_at).getTime()<=campaignNow.getTime()&&new Date(campaign.ends_at).getTime()>campaignNow.getTime()){
+        memberDiscount=Math.max(0,Math.min(100,Number(campaign.discount_percent)||0));
       }
     }
     const {data:shipping,error:shippingError}=await s.from("shipping_methods").select("id,name,cost,estimated_delivery").eq("id",b.shipping_method_id).eq("is_active",true).maybeSingle();
