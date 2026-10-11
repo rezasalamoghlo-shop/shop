@@ -79,7 +79,7 @@ export async function POST(r:Request){
     }).select("id,order_number,public_token").single();
     if(error){
       if(error.code==="23505"){
-        const {data:duplicate}=await s.from("orders").select("id,public_token,total_price,subtotal_price,discount_percent,discount_amount,shipping_cost,estimated_delivery").eq("checkout_session_id",checkoutSessionId).maybeSingle();
+        const {data:duplicate}=await s.from("orders").select("id,order_number,public_token,total_price,subtotal_price,discount_percent,discount_amount,shipping_cost,estimated_delivery").eq("checkout_session_id",checkoutSessionId).maybeSingle();
         if(duplicate)return NextResponse.json(orderSummary(duplicate));
       }
       throw error;
