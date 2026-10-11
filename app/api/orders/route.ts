@@ -10,7 +10,7 @@ export async function POST(r:Request){
     if(required.some(k=>!String(b[k]??"").trim())||!Array.isArray(b.items)||!b.items.length)return NextResponse.json({error:"اطلاعات سفارش کامل نیست."},{status:400});
     if(b.items.length>50)return NextResponse.json({error:"تعداد اقلام سفارش بیش از حد مجاز است."},{status:400});
     const phoneDigits=normalizeDigits(String(b.phone||""));
-    if(!/^09\\d{9}$/.test(phoneDigits))return NextResponse.json({error:"شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود."},{status:400});
+    if(!/^09\d{9}$/.test(phoneDigits))return NextResponse.json({error:"شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود."},{status:400});
     const checkoutSessionId=String(b.checkout_session_id||"");
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(checkoutSessionId))return NextResponse.json({error:"شناسه ادامه سفارش معتبر نیست. صفحه خرید را تازه کنید."},{status:400});
     const s=db();
@@ -37,7 +37,7 @@ export async function POST(r:Request){
     }
     const {data:shipping,error:shippingError}=await s.from("shipping_methods").select("id,name,cost,estimated_delivery").eq("id",b.shipping_method_id).eq("is_active",true).maybeSingle();
     if(shippingError||!shipping)return NextResponse.json({error:"روش ارسال انتخاب‌شده معتبر نیست. روش دیگری انتخاب کنید."},{status:400});
-    const ids:string[]=Array.from(new Set<string>(b.items.map((x:any)=>String(x.product_id||""))));
+    const ids:string[]=Array.from(new Set<string>(normalizedItems.map((x:any)=>String(x.product_id||""))));
     if(ids.some((id:string)=>!id))return NextResponse.json({error:"محصول نامعتبر است."},{status:400});
     const [{data:ps,error:pe},{data:sizeRows,error:se}]=await Promise.all([
       s.from("products").select("id,price,stock,discount_percent,discount_start,discount_end,full_size_ml,price_per_ml,per_ml_discount_percent").in("id",ids),
