@@ -476,7 +476,7 @@ async function updateOrder(id: string, status: string) {
         body:kind==="delete"?undefined:JSON.stringify({id,discount_percent:Number(discountPercent)})
       });
       const result=await response.json();
-      if(!response.ok){setMessage(result.error||"عملیات عضو انجام نشد.");return;}
+      if(!response.ok){if(kind==="delete"&&(result.deleted_ids||[]).includes(id)){setMembers(current=>current.filter((m:any)=>m.id!==id));setMessage("حساب حذف شد، اما بعضی مراحل تکمیلی ناموفق بودند؛ وضعیت سرور را بررسی کنید.");return;}setMessage(result.error||"عملیات عضو انجام نشد.");return;}
       if(kind==="delete"){setMembers(current=>current.filter((m:any)=>m.id!==id));setMessage("حساب عضو حذف شد؛ سفارش‌های قبلی حفظ شدند.");}
       else {setMembers(current=>current.map((m:any)=>m.id===id?{...m,discount_percent:Number(result.discount_percent)}:m));setMessage("تخفیف اختصاصی عضو ذخیره شد.");}
     }catch{setMessage("ارتباط با سرور برقرار نشد.");}
