@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {createSupabaseBrowserClient} from "@/lib/supabase-browser";
-function normalizePhone(value:string){let d=value.replace(/[^0-9]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith("0")&&d.length===11)d="98"+d.slice(1);else if(d.length===10&&d.startsWith("9"))d="98"+d;return "+"+d}
+function normalizePhone(value:string){let d=value.replace(/[۰-۹]/g,x=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(x))).replace(/[٠-٩]/g,x=>String("٠١٢٣٤٥٦٧٨٩".indexOf(x))).replace(/[^0-9]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith("0")&&d.length===11)d="98"+d.slice(1);else if(d.length===10&&d.startsWith("9"))d="98"+d;return "+"+d}
 export default function Login(){
  const supabase=createSupabaseBrowserClient(); const[phone,setPhone]=useState(""),[password,setPassword]=useState(""),[msg,setMsg]=useState(""),[busy,setBusy]=useState(false);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{if(data.user)location.href="/account"})},[]);
