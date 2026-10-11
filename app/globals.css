@@ -248,3 +248,5 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .support-modal-note{display:block;margin-top:17px;color:#9e93a9;font-size:10px;line-height:1.8}
 .support button.gold{cursor:pointer}
 @media(max-width:480px){.support-modal{padding:28px 17px 18px;border-radius:20px}.support-modal h2{font-size:19px}.support-option{padding:12px}.support-option-icon{flex-basis:38px;height:38px}}
+
+.payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 18px}.payment-method-active,.payment-method-disabled{display:flex;flex-direction:column;gap:6px;text-align:right;padding:13px;border-radius:12px;border:1px solid #b18b3e;background:#211a20;color:#f3d783}.payment-method-active small,.payment-method-disabled small{font-size:11px;color:#aaa2b0}.payment-method-disabled{border-color:#39313e;color:#9991a3;background:#15121a;cursor:not-allowed;opacity:.8}@media(max-width:560px){.payment-methods{grid-template-columns:1fr}}
