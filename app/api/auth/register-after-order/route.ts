@@ -10,13 +10,14 @@ export async function POST(r:Request){
     if(!/^09[0-9]{9}$/.test(phoneDigits))return NextResponse.json({error:"شماره تماس باید ۱۱ رقم و با ۰۹ شروع شود."},{status:400});
     if(password.length<8||!/[A-Z]/.test(password)||!/[a-z]/.test(password)||!/[!@#$%^&*()_+=.,?\-]/.test(password))return NextResponse.json({error:"رمز عبور باید حداقل ۸ کاراکتر و شامل حروف انگلیسی بزرگ و کوچک و یک علامت باشد."},{status:400});
     const phone=normalizePhone(phoneDigits);
+    const loginEmail="member-"+phoneDigits+"@login.galaxy.invalid";
     const s=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
     const {data:order,error:oe}=await s.from("orders").select("id,status,payment_status,phone,customer_full_name,user_id").eq("public_token",token).maybeSingle();
     if(oe||!order)return NextResponse.json({error:"سفارش پیدا نشد."},{status:404});
     if(order.payment_status!=="paid"&&order.status!=="paid")return NextResponse.json({error:"ساخت حساب فقط پس از تأیید پرداخت توسط مدیر امکان‌پذیر است."},{status:403});
     if(order.user_id)return NextResponse.json({error:"این سفارش قبلاً به یک حساب متصل شده است. از صفحه ورود استفاده کنید."},{status:409});
     if(normalizePhone(String(order.phone||""))!==phone)return NextResponse.json({error:"شماره تماس باید با شماره ثبت‌شده در سفارش یکسان باشد."},{status:403});
-    const {data:created,error:ce}=await s.auth.admin.createUser({phone,password,phone_confirm:true,user_metadata:{full_name:fullName||order.customer_full_name||""}});
+    const {data:created,error:ce}=await s.auth.admin.createUser({phone,email:loginEmail,email_confirm:true,password,phone_confirm:true,user_metadata:{full_name:fullName||order.customer_full_name||""}});
     if(ce||!created.user){
       const msg=String(ce?.message||"");
       if(/already|registered|exists/i.test(msg))return NextResponse.json({error:"این شماره قبلاً حساب دارد؛ از بخش ورود استفاده کنید."},{status:409});
@@ -24,6 +25,6 @@ export async function POST(r:Request){
     }
     const {error:linkError}=await s.from("orders").update({user_id:created.user.id}).eq("id",order.id).is("user_id",null);
     if(linkError){await s.auth.admin.deleteUser(created.user.id);return NextResponse.json({error:"اتصال سفارش به حساب انجام نشد."},{status:500})}
-    return NextResponse.json({ok:true,phone});
+    return NextResponse.json({ok:true,phone,login_email:loginEmail});
   }catch{return NextResponse.json({error:"خطا در ساخت حساب کاربری."},{status:500})}
 }
