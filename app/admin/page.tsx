@@ -462,6 +462,23 @@ async function updateOrder(id: string, status: string) {
     }
   }
 
+  async function memberAction(id:string,kind:"discount"|"delete",discountPercent?:unknown) {
+    if(action)return;
+    setAction(kind==="delete"?"member-delete-"+id:"member-"+id);
+    try {
+      const response=await fetch("/api/admin/members"+(kind==="delete"?"?id="+encodeURIComponent(id):""),{
+        method:kind==="delete"?"DELETE":"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:kind==="delete"?undefined:JSON.stringify({id,discount_percent:Number(discountPercent)})
+      });
+      const result=await response.json();
+      if(!response.ok){setMessage(result.error||"عملیات عضو انجام نشد.");return;}
+      if(kind==="delete"){setMembers(current=>current.filter((m:any)=>m.id!==id));setMessage("حساب عضو حذف شد؛ سفارش‌های قبلی حفظ شدند.");}
+      else {setMembers(current=>current.map((m:any)=>m.id===id?{...m,discount_percent:Number(result.discount_percent)}:m));setMessage("تخفیف اختصاصی عضو ذخیره شد.");}
+    }catch{setMessage("ارتباط با سرور برقرار نشد.");}
+    finally{setAction("");}
+  }
+
   function editProduct(product: any) {
     setForm({
       ...product,
@@ -698,12 +715,12 @@ async function updateOrder(id: string, status: string) {
           </div>
         </div>
 
-        <div className="panel">
+        <div className="panel" id="club-members">
           <h2>باشگاه مشتریان عطر کهکشان</h2>
-          <p>فهرست مشتریانی که حساب کاربری ساخته‌اند. امکانات حق عضویت و تخفیف‌های دوره‌ای در مرحله بعد قابل توسعه است.</p>
-          {members.length ? members.map((member:any)=><div className="admin-row" key={member.id}>
-            <div><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small></div>
-            <span>عضو</span>
+          <p>تخفیف هر عضو هنگام ورود به حساب و ثبت سفارش بعدی، در سمت سرور محاسبه و اعمال می‌شود.</p>
+          {members.length ? members.map((member:any)=><div className="admin-row member-admin-row" key={member.id}>
+            <div className="member-admin-details"><b>{member.full_name||"عضو باشگاه"}</b><small dir="ltr">{member.phone||member.email||"اطلاعات تماس ثبت نشده"}</small><small>عضویت از: {member.member_since?new Date(member.member_since).toLocaleDateString("fa-IR"):"ثبت نشده"}</small><label>تخفیف اختصاصی (%)<input type="number" min="0" max="100" step="1" value={member.discount_percent??0} onChange={e=>setMembers(current=>current.map((m:any)=>m.id===member.id?{...m,discount_percent:e.target.value}:m))}/></label><button className="gold" disabled={Boolean(action)||Number(member.discount_percent)<0||Number(member.discount_percent)>100} onClick={()=>void memberAction(member.id,"discount",member.discount_percent)}>{action==="member-"+member.id?"در حال ذخیره...":"ذخیره تخفیف"}</button></div>
+            <button className="special-delete" disabled={Boolean(action)} onClick={()=>{if(window.confirm("حذف حساب این عضو از باشگاه مشتریان؟ سفارش‌های قبلی حفظ می‌شوند."))void memberAction(member.id,"delete")}}>{action==="member-delete-"+member.id?"در حال حذف...":"حذف عضو"}</button>
           </div>) : <div className="empty">هنوز عضوی در باشگاه ثبت نشده است.</div>}
         </div>
 
