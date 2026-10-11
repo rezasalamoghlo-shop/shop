@@ -23,21 +23,16 @@ export async function POST(request:Request){
     const user=list.users.find((u:any)=>localPhone(String(u.phone||""))===phone||u.email===loginEmail(phone));
     if(!user)return NextResponse.json({error:"شماره تماس یا رمز عبور صحیح نیست."},{status:401});
 
-    // Prefer the phone identity where it is enabled; this keeps older accounts working.
-    let phoneProviderUnavailable=false;
-    for(const candidate of phoneVariants(phone)){
-      const attempt=await auth.auth.signInWithPassword({phone:candidate,password});
-      if(!attempt.error&&attempt.data.session){
-        return NextResponse.json({ok:true,session:attempt.data.session});
-      }
-      if(attempt.error&&/provider.*disabled|phone.*disabled|unsupported.*provider/i.test(attempt.error.message||"")){
-        phoneProviderUnavailable=true;
-        break;
-      }
+    // Use the exact phone identifier stored for this account first.
+    const storedPhone=String(user.phone||"");
+    const phoneAttempt=storedPhone?await auth.auth.signInWithPassword({phone:storedPhone,password}):{data:{session:null},error:null};
+    if(!phoneAttempt.error&&phoneAttempt.data.session){
+      return NextResponse.json({ok:true,session:phoneAttempt.data.session});
     }
+    const phoneProviderUnavailable=!!phoneAttempt.error&&/provider.*disabled|phone.*disabled|unsupported.*provider/i.test(phoneAttempt.error.message||"");
 
-    // Phone sign-in may be disabled in the Supabase project. A private, confirmed
-    // email alias lets the customer keep using their phone number as the username.
+    // If phone auth is disabled, a private, confirmed email alias allows
+    // customers to keep entering their phone number as the username.
     let email=String(user.email||"");
     if(email===loginEmail(phone)||(!email&&phoneProviderUnavailable)){
       email=loginEmail(phone);
