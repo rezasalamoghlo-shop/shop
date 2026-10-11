@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
-function normalizePhone(value:string){let d=value.replace(/[^0-9]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith("0")&&d.length===11)d="98"+d.slice(1);else if(d.length===10&&d.startsWith("9"))d="98"+d;return "+"+d}
+function normalizePhone(value:string){let d=value.replace(/[۰-۹]/g,x=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(x))).replace(/[٠-٩]/g,x=>String("٠١٢٣٤٥٦٧٨٩".indexOf(x))).replace(/[^0-9]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith("0")&&d.length===11)d="98"+d.slice(1);else if(d.length===10&&d.startsWith("9"))d="98"+d;return "+"+d}
 export async function POST(r:Request){
   try{
     const b=await r.json(),token=String(b.token||"");
