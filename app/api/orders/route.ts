@@ -10,7 +10,7 @@ export async function POST(r:Request){
     const s=db();
     const {data:shipping,error:shippingError}=await s.from("shipping_methods").select("id,name,cost,estimated_delivery").eq("id",b.shipping_method_id).eq("is_active",true).maybeSingle();
     if(shippingError||!shipping)return NextResponse.json({error:"روش ارسال انتخاب‌شده معتبر نیست. روش دیگری انتخاب کنید."},{status:400});
-    const ids=[...new Set(b.items.map((x:any)=>String(x.product_id||"")))];
+    const ids:string[]=Array.from(new Set<string>(b.items.map((x:any)=>String(x.product_id||""))));
     if(ids.some((id:string)=>!id))return NextResponse.json({error:"محصول نامعتبر است."},{status:400});
     const [{data:ps,error:pe},{data:sizeRows,error:se}]=await Promise.all([
       s.from("products").select("id,price,stock,discount_percent,discount_start,discount_end,full_size_ml,price_per_ml,per_ml_discount_percent").in("id",ids),
