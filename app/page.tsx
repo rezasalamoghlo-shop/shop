@@ -75,12 +75,16 @@ function Checkout({s,cart,total,close,onSubmitted}:{s:S;cart:C[];total:number;cl
 
 function ActiveOrder({order,done}:{order:any;done:()=>void}) {
   const [status,setStatus]=useState("pending");
+  const [orderStatus,setOrderStatus]=useState("pending");
+  useEffect(()=>{if(!order.token)return;let live=true;const check=async()=>{try{const r=await fetch("/api/orders/status?token="+encodeURIComponent(order.token),{cache:"no-store"});if(!r.ok)return;const d=await r.json();if(live){setOrderStatus(String(d.status||"pending"));setStatus(String(d.payment_status||d.status||"pending"))}}catch{}};void check();const timer=window.setInterval(()=>void check(),4000);return()=>{live=false;window.clearInterval(timer)}},[order.token]);
+  const labels:Record<string,string>={pending:"در انتظار پرداخت",paid:"پرداخت تأیید شد",processing:"در حال آماده‌سازی",shipped:"ارسال شد",cancelled:"لغو شده"};
   return <section className="active-order-box" aria-live="polite">
     <span>GALAXY ACTIVE ORDER</span>
     <h3>پیگیری سفارش فعال</h3>
     <div className="active-order-meta">
       <div>شماره پیگیری: <strong dir="ltr">{String(order.token||"").slice(-8).toUpperCase()}</strong></div>
       <div>مبلغ ثبت‌شده: <strong>{money(Number(order.total)||0)}</strong></div>
+      <div>وضعیت فعلی: <strong>{labels[orderStatus]||"در حال بررسی"}</strong></div>
       <div>تاریخ ثبت: {order.createdAt?new Date(order.createdAt).toLocaleString("fa-IR"):"همین حالا"}</div>
     </div>
     <AccountAfterPayment token={order.token} phone={order.phone} fullName={order.fullName} status={status} setStatus={setStatus} done={done}/>
