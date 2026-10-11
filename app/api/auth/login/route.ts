@@ -4,7 +4,6 @@ import {createClient} from "@supabase/supabase-js";
 const digits=(value:string)=>value.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[^0-9]/g,"");
 const localPhone=(value:string)=>{let d=digits(value);if(d.startsWith("00"))d=d.slice(2);if(d.startsWith("98")&&d.length===12)d="0"+d.slice(2);else if(d.length===10&&d.startsWith("9"))d="0"+d;return d};
 const loginEmail=(phone:string)=>"member-"+digits(phone)+"@login.galaxy.invalid";
-const phoneVariants=(phone:string)=>{const local=localPhone(phone);const intl=local.startsWith("0")&&local.length===11?"98"+local.slice(1):digits(phone);return Array.from(new Set(["+"+intl,intl,local,local.startsWith("0")?"98"+local.slice(1):""] .filter(Boolean)))};
 
 export async function POST(request:Request){
   try{
