@@ -8,6 +8,17 @@ export async function POST(r:Request){
     if(required.some(k=>!String(b[k]??"").trim())||!Array.isArray(b.items)||!b.items.length)return NextResponse.json({error:"اطلاعات سفارش کامل نیست."},{status:400});
     if(b.items.length>50)return NextResponse.json({error:"تعداد اقلام سفارش بیش از حد مجاز است."},{status:400});
     const s=db();
+    const authHeader=r.headers.get("authorization")||"";
+    const accessToken=authHeader.startsWith("Bearer ")?authHeader.slice(7):"";
+    let memberUser:any=null,memberDiscount=0;
+    if(accessToken){
+      const {data:authResult,error:authError}=await s.auth.getUser(accessToken);
+      if(!authError&&authResult.user){
+        memberUser=authResult.user;
+        const {data:profile}=await s.from("profiles").select("discount_percent").eq("id",memberUser.id).maybeSingle();
+        memberDiscount=Math.max(0,Math.min(100,Number(profile?.discount_percent)||0));
+      }
+    }
     const {data:shipping,error:shippingError}=await s.from("shipping_methods").select("id,name,cost,estimated_delivery").eq("id",b.shipping_method_id).eq("is_active",true).maybeSingle();
     if(shippingError||!shipping)return NextResponse.json({error:"روش ارسال انتخاب‌شده معتبر نیست. روش دیگری انتخاب کنید."},{status:400});
     const ids:string[]=Array.from(new Set<string>(b.items.map((x:any)=>String(x.product_id||""))));
@@ -39,18 +50,20 @@ export async function POST(r:Request){
       return {product_id:p.id,quantity:q,price,size_ml:requestedMl,pricing_type:pricingType};
     });
     const shippingCost=Number(shipping.cost)||0;
-    const total=subtotal+shippingCost;
+    const discountAmount=Math.round(subtotal*memberDiscount/100);
+    const total=Math.max(0,subtotal-discountAmount)+shippingCost;
     const {data:o,error}=await s.from("orders").insert({
+      user_id:memberUser?.id||null,
       customer_full_name:String(b.customer_full_name).trim(),phone:String(b.phone).trim(),
       province:String(b.province).trim(),city:String(b.city).trim(),address:String(b.address).trim(),postal_code:String(b.postal_code).trim(),
-      subtotal_price:subtotal,total_price:total,status:"pending",payment_method:"card_to_card",
+      subtotal_price:subtotal,total_price:total,discount_percent:memberDiscount,discount_amount:discountAmount,status:"pending",payment_method:"card_to_card",
       payer_full_name:String(b.payer_full_name).trim(),payment_tracking_code:String(b.payment_tracking_code).trim(),
       shipping_method_id:shipping.id,shipping_method_name:shipping.name,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery
     }).select("id,public_token").single();
     if(error)throw error;
     const {error:itemError}=await s.from("order_items").insert(items.map((x:any)=>({...x,order_id:o.id})));
     if(itemError){await s.from("orders").delete().eq("id",o.id);throw itemError;}
-    return NextResponse.json({id:o.id,total_price:total,subtotal_price:subtotal,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery,public_token:o.public_token});
+    return NextResponse.json({id:o.id,total_price:total,subtotal_price:subtotal,discount_percent:memberDiscount,discount_amount:discountAmount,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery,public_token:o.public_token});
   }catch(e){
     const message=String((e as any)?.message||"");
     if(["quantity","size","stock","size_stock"].includes(message))return NextResponse.json({error:"موجودی یا اندازه یکی از محصولات تغییر کرده است. سبد خرید را بررسی کنید."},{status:400});
