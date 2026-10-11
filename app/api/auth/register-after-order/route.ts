@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 function normalizePhone(value:string){
-  let digits=value.replace(/[^0-9]/g,"");
+  let digits=value.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[^0-9]/g,"");
   if(digits.startsWith("00"))digits=digits.slice(2);
   if(digits.startsWith("0")&&digits.length===11)digits="98"+digits.slice(1);
   else if(digits.length===10&&digits.startsWith("9"))digits="98"+digits;
