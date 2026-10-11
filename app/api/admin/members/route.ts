@@ -13,6 +13,16 @@ export async function PATCH(r:Request){
   const b=await r.json();
   const ids=Array.from(new Set<string>((Array.isArray(b.ids)?b.ids:[b.id]).map((x:any)=>String(x||""))));
   if(!ids.length||ids.length>500||ids.some(id=>!validId(id)))return NextResponse.json({error:"فهرست اعضا معتبر نیست."},{status:400});
+  if(Object.prototype.hasOwnProperty.call(b,"new_password")){
+   const password=String(b.new_password||"");
+   if(ids.length!==1)return NextResponse.json({error:"رمز عبور فقط برای یک عضو در هر بار تغییر داده می‌شود."},{status:400});
+   if(password.length<8)return NextResponse.json({error:"رمز جدید باید حداقل ۸ نویسه داشته باشد."},{status:400});
+   const s=db();const {data:target,error:targetError}=await s.auth.admin.getUserById(ids[0]);
+   if(targetError||!target?.user)return NextResponse.json({error:"عضو پیدا نشد."},{status:404});
+   const {error:passwordError}=await s.auth.admin.updateUserById(ids[0],{password});
+   if(passwordError)return NextResponse.json({error:"تغییر رمز عضو انجام نشد."},{status:500});
+   return NextResponse.json({ok:true,message:"رمز عبور عضو تغییر کرد."});
+  }
   const update:any={};
   if(Object.prototype.hasOwnProperty.call(b,"discount_percent")){
    const discount=Number(b.discount_percent);
