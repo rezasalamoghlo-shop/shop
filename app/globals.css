@@ -368,3 +368,18 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
  .member-admin-row>.member-admin-details{grid-column:2;grid-row:1}
  .member-admin-row>.member-delete-button{grid-column:2;width:100%;margin-top:8px!important}
 }
+
+
+/* Keep the exact cart contents visible throughout checkout and order tracking. */
+.checkout-order-summary{margin:16px 0 22px;padding:14px 16px;border:1px solid #4a3a55;border-radius:14px;background:#17121e}
+.checkout-order-summary>h3{margin:0 0 8px;color:#e8cc78;font-size:15px}
+.checkout-order-item{gap:12px;align-items:center;padding:12px 0}
+.checkout-order-item>div:first-child,.active-order-item>div:first-child{display:grid;gap:5px;min-width:0}
+.checkout-order-item small,.active-order-item small{display:block;color:#aaa0b2;font-size:11px}
+.checkout-order-item b,.active-order-item b{color:#f4e8d4;font-size:13px}
+.checkout-order-item-total,.active-order-item>div:last-child{display:grid;gap:5px;text-align:left;white-space:nowrap}
+.checkout-order-subtotal{display:flex;justify-content:space-between;align-items:center;padding-top:12px;color:#c6bacd;font-size:13px}
+.checkout-order-subtotal strong{color:#e8cc78}
+.active-order-items{margin-top:16px;padding-top:12px;border-top:1px solid #ffffff18}
+.active-order-items h4{margin:0 0 4px;color:#e8cc78;font-size:13px}
+.checkout-submitted-order{margin-top:12px}
