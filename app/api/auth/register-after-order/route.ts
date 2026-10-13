@@ -25,6 +25,15 @@ export async function POST(r:Request){
     }
     const {error:linkError}=await s.from("orders").update({user_id:created.user.id}).eq("id",order.id).is("user_id",null);
     if(linkError){await s.auth.admin.deleteUser(created.user.id);return NextResponse.json({error:"اتصال سفارش به حساب انجام نشد."},{status:500})}
-    return NextResponse.json({ok:true,phone,login_email:loginEmail});
+    // Establish the customer session immediately using the confirmed private email alias.
+    // This avoids a second user lookup and the phone-provider fallback during auto-login.
+    let session:any=null;
+    const publicKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if(publicKey){
+      const auth=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,publicKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+      const {data:loginData}=await auth.auth.signInWithPassword({email:loginEmail,password});
+      session=loginData.session||null;
+    }
+    return NextResponse.json({ok:true,phone,login_email:loginEmail,session});
   }catch{return NextResponse.json({error:"خطا در ساخت حساب کاربری."},{status:500})}
 }
