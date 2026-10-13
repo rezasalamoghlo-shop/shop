@@ -431,3 +431,19 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .rubika-brand-icon{display:grid;place-items:center;color:#b85de8}
 @media(max-width:650px){.active-order-pill{padding:9px 10px;font-size:11px}.cart-added-toast{left:12px;bottom:14px}}
 @media(prefers-reduced-motion:reduce){.header-cart-bump,.active-order-pill,.active-order-pill span,.cart-added-toast{animation:none!important}}
+
+
+/* Final mobile usability and reduced-motion safeguards */
+@media(max-width:560px){
+  header{height:auto;min-height:76px;flex-wrap:wrap;row-gap:8px;padding-top:10px;padding-bottom:10px}
+  .actions{gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}
+  .actions a,.actions button{min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:8px 9px}
+  .category-tabs button{min-height:40px}
+  .row button,.gold,.full,.outline{min-height:44px}
+  .card{min-width:0}
+  .product-description{overflow-wrap:anywhere}
+  .hero-copy{padding-top:54px;padding-bottom:54px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
