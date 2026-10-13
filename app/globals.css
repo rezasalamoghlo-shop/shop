@@ -411,3 +411,23 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
  .member-admin-row>.outline{grid-row:2}
  .member-admin-row>.member-delete-button{grid-row:3;margin-top:0!important}
 }
+
+
+/* Product card line breaks, cart add animation, active order badge, Rubika mark */
+.product-description{white-space:pre-line;line-height:1.9;overflow-wrap:anywhere}
+.header-cart{transform-origin:center;transition:transform .18s,box-shadow .18s}
+.header-cart-bump{animation:galaxy-cart-bump .65s ease}
+@keyframes galaxy-cart-bump{0%,100%{transform:scale(1)}35%{transform:scale(1.12);box-shadow:0 0 0 5px #d9a6ff22,0 0 22px #d878ff88}65%{transform:scale(.96)}}
+.active-order-pill{position:relative;display:inline-flex;align-items:center;gap:7px;border:1px solid #e17cff;border-radius:999px;padding:10px 13px;background:linear-gradient(120deg,#5e1d86,#b02e91);color:#fff!important;font-weight:700;box-shadow:0 0 0 1px #e17cff22,0 0 18px #d34dff66;animation:active-order-glow 1.25s ease-in-out infinite}
+.active-order-pill span{font-size:9px;color:#ffd6ff;animation:active-order-dot .9s ease-in-out infinite}
+@keyframes active-order-glow{0%,100%{box-shadow:0 0 0 1px #e17cff22,0 0 9px #d34dff44;filter:saturate(1)}50%{box-shadow:0 0 0 3px #e17cff33,0 0 23px #d34dffbb;filter:saturate(1.25)}}
+@keyframes active-order-dot{0%,100%{opacity:.45}50%{opacity:1}}
+.cart-added-toast{position:fixed;z-index:350;left:22px;bottom:24px;display:flex;align-items:center;gap:12px;max-width:min(390px,calc(100vw - 32px));padding:14px 18px;border:1px solid #d8b85b88;border-radius:16px;background:linear-gradient(135deg,#261a32,#121019);color:#fff4d6;box-shadow:0 18px 55px #0008;animation:cart-toast-in .28s cubic-bezier(.2,.8,.2,1) both}
+.cart-added-toast>span{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:#2c9b6840;border:1px solid #6fe0a3;color:#9ff2bd;font-weight:900}
+.cart-added-toast>div{display:grid;gap:3px;min-width:0}
+.cart-added-toast b{font-size:13px}
+.cart-added-toast small{font-size:11px;line-height:1.7;color:#c9bdcf;overflow-wrap:anywhere}
+@keyframes cart-toast-in{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.rubika-brand-icon{display:grid;place-items:center;color:#b85de8}
+@media(max-width:650px){.active-order-pill{padding:9px 10px;font-size:11px}.cart-added-toast{left:12px;bottom:14px}}
+@media(prefers-reduced-motion:reduce){.header-cart-bump,.active-order-pill,.active-order-pill span,.cart-added-toast{animation:none!important}}
