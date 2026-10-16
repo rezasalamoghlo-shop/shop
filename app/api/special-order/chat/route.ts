@@ -4,15 +4,15 @@ const db=()=>createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPA
 type Prefs={product_type?:string;gender?:string;target?:string;occasion?:string;gift_occasion?:string;time?:string;season?:string;longevity?:string;sillage?:string;scent?:string[];birth_month?:string;budget?:number|null;first_name?:string;last_name?:string;phone?:string;_deferred?:string[];_skipped?:string[];_active_followup?:string};
 const months=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
 const scentMap:[string,string[]][]=[["شیرین",["شیرین","وانیلی","کاراملی","میوه‌ای"]],["تند",["تند","ادویه‌ای","فلفلی"]],["خنک",["خنک","تازه","fresh"]],["ملایم",["ملایم","نرم","لطیف"]],["گرم",["گرم","عنبر","کهربا"]],["تلخ",["تلخ","bitter"]],["چوبی",["چوبی","wood","عود"]],["مرکباتی",["مرکبات","مرکباتی","citrus"]],["دریایی",["دریایی","آبی","aquatic","marine"]],["شرقی",["شرقی","oriental"]],["گلدار",["گل","گلدار","رز","یاس"]],["پودری",["پودری","پودر"]]];
-const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك]/g,"ک").replace(/[ۀة]/g,"ه").replace(/[\u200c\u200f]/g," ").replace(/[،؛]/g,",").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[؟?!]+/g," ").replace(/\s+/g," ").trim();
+const normalize=(s:string)=>s.toLowerCase().replace(/[يى]/g,"ی").replace(/[ك]/g,"ک").replace(/[ۀة]/g,"ه").replace(/[ًٌٍَُِّْ]/g,"").replace(/[\u200c\u200f]/g," ").replace(/[،؛]/g,",").replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[؟?!]+/g," ").replace(/\s+/g," ").trim();
 const has=(s:string,words:string[])=>words.some(w=>normalize(s).includes(normalize(w))); const anyExact=(s:string,words:string[])=>words.some(w=>normalize(s)===normalize(w));
 function extract(message:string,p:Prefs,current?:keyof Prefs){const n=normalize(message);const out:{key:keyof Prefs;value:any}[]=[];
 if(has(n,["ادکلن","کولون","cologne"]))out.push({key:"product_type",value:"ادکلن"});else if(has(n,["عطر","پرفیوم","perfume"]))out.push({key:"product_type",value:"عطر"});
-if(has(n,["اسپرت","مشترک","یونیسکس","unisex","برای هر دو جنس","زن و مرد"]))out.push({key:"gender",value:"اسپرت"});else if(has(n,["مرد","مردانه","پسر","آقا","آقای","آقایون","شوهر","پدر","برای آقا","مخصوص آقایان","male"]))out.push({key:"gender",value:"مردانه"});else if(has(n,["زن","زنانه","دختر","خانم","خانمم","بانوان","برای خانم","مخصوص خانم‌ها","همسرم","همسرم خانم","مادر","female"]))out.push({key:"gender",value:"زنانه"});
+if(has(n,["اسپرت","مشترک","یونیسکس","unisex","برای هر دو جنس","زن و مرد","هردو","جنسیت مهم نیست"]))out.push({key:"gender",value:"اسپرت"});else if(has(n,["مرد","مردانه","مردونه","پسرونه","پسر","آقا","آقای","آقایون","شوهر","پدر","برای آقا","مخصوص آقایان","male","مذکر"]))out.push({key:"gender",value:"مردانه"});else if(has(n,["زن","زنانه","زنونه","دخترونه","دختر","خانم","خانمم","خانوم","خانومونه","بانوان","برای خانم","مخصوص خانم‌ها","همسرم","همسرم خانم","مادر","female","مونث"]))out.push({key:"gender",value:"زنانه"});
 if(has(n,["خودم","برای خود","برای من","خودم میخوام","خودم میخوام","میخوام خودم استفاده کنم","مصرف خودم","برای خودم"]))out.push({key:"target",value:"خودم"});else if(has(n,["هدیه","کادو","برای هدیه","برای کادو","همسرم","همسر","شوهرم","شوهر","دوستم","دوست من","مادرم","پدرم","خواهرم","برادرم","برای همسر","برای شوهر","برای مادر","برای پدر","برای دوست","برای دیگری","برای شخص دیگر","برای یکی دیگه","برای یکی دیگر"]))out.push({key:"target",value:"هدیه/شخص دیگر"});
 // Separate the perfume's intended use from the occasion for giving the gift.
 const useCases:[string,string[]][]=[
-["روزمره",["روزمره","روزانه","مصرف روزانه","استفاده روزانه","مصرف روزمره","هر روز","روزهای عادی","برای هر روز","همه جا","همه‌جا","استفاده عمومی","روزانه استفاده","روز"]],
+["روزمره",["روزمره","روزونه","روزانه","مصرف روزانه","استفاده روزانه","مصرف روزمره","هر روز","روزهای عادی","برای هر روز","همه جا","همه‌جا","استفاده عمومی","روزانه استفاده","روز"]],
 ["محل کار",["محل کار","سر کار","محیط کار","اداری","محل اداره","دفتر کار","کار روزانه"]],
 ["دانشگاه",["دانشگاه","مدرسه","کلاس","دانشجویی"]],
 ["مهمانی",["مهمانی","مهمونی","دورهمی","جشن","مراسم"]],
@@ -31,13 +31,13 @@ for(const x of ["بهار","تابستان","پاییز","زمستان"])if(n.in
 const longevityText=(n.includes("ماندگاری")||current==="longevity")?n:"";if(has(longevityText,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(has(longevityText,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(has(longevityText,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(has(longevityText,["کم"]))out.push({key:"longevity",value:"کم"});if(current==="longevity"&&!out.some(x=>x.key==="longevity")){if(anyExact(n,["خیلی زیاد","خیلی بالا","بسیار زیاد"]))out.push({key:"longevity",value:"خیلی زیاد"});else if(anyExact(n,["زیاد","بالا","ماندگار"]))out.push({key:"longevity",value:"زیاد"});else if(anyExact(n,["متوسط"]))out.push({key:"longevity",value:"متوسط"});else if(anyExact(n,["کم","ضعیف"]))out.push({key:"longevity",value:"کم"});}
 const sillageText=(n.includes("پخش بو")||n.includes("خط بو")||current==="sillage")?n:"";if(has(sillageText,["خیلی قوی","پخش بالا","بمب","خیلی خوب","بسیار خوب"]))out.push({key:"sillage",value:"خیلی قوی"});else if(has(sillageText,["قوی","زیاد","خوب"]))out.push({key:"sillage",value:"قوی"});else if(has(sillageText,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(has(sillageText,["ملایم","کم"]))out.push({key:"sillage",value:"ملایم"});
 if(current==="sillage"&&!out.some(x=>x.key==="sillage")){if(has(n,["خیلی قوی","خیلی زیاد","بسیار قوی"]))out.push({key:"sillage",value:"خیلی قوی"});else if(anyExact(n,["قوی","زیاد","بالا"]))out.push({key:"sillage",value:"قوی"});else if(anyExact(n,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(anyExact(n,["ملایم","کم","ضعیف"]))out.push({key:"sillage",value:"ملایم"});}
-const scents=scentMap.filter(([,words])=>has(n,words)).map(([name])=>name);if(scents.length)out.push({key:"scent",value:Array.from(new Set([...(p.scent||[]),...scents]))});
+const extraScentMap:[string,string[]][]=[["تمیز",["تمیز","صابونی","تازه از حمام","بوی حمام","لباس تمیز"]],["خاص",["خاص","خفن","جذاب","شیک","لوکس"]],["میوه‌ای",["میوه ای","میوه‌ای","میوه جات","میوه‌جات"]],["دودی",["دودی","تنباکویی","چرمی","چرم"]],["سبز",["سبز","گیاهی","علفی"]]];const scents=Array.from(new Set([...scentMap.filter(([,words])=>has(n,words)).map(([name])=>name),...extraScentMap.filter(([,words])=>has(n,words)).map(([name])=>name)]));if(scents.length)out.push({key:"scent",value:Array.from(new Set([...(p.scent||[]),...scents]))});
 for(const m of months)if(n.includes(m)){out.push({key:"birth_month",value:m});break}
 {const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
 return out}
-const order=["product_type","gender","target","occasion","gift_occasion","time","season","longevity","sillage","scent","birth_month","budget"] as (keyof Prefs)[];
+const order=["product_type","gender","scent","budget"] as (keyof Prefs)[];
 const questions:Record<string,string>={product_type:"اول مشخص کنیم: عطر می‌خواهید یا ادکلن؟",gender:"برای چه جنسیتی می‌خواهید؟ مردانه، زنانه یا اسپرت (مشترک برای زن و مرد)؟",target:"برای خودتان می‌خواهید یا برای شخص دیگری/هدیه؟",occasion:"بیشتر در چه موقعیتی از عطر استفاده می‌شود؟ روزمره، محل کار، دانشگاه، مهمانی، قرار یا موقعیت رسمی؟",gift_occasion:"اگر هدیه است، مناسبت هدیه چیست؟ مثلاً تولد، سالگرد یا ولنتاین.",time:"بیشتر برای روز می‌خواهید یا شب؟",season:"برای کدام فصل یا آب‌وهوا می‌خواهید؟",longevity:"ماندگاری را چطور می‌پسندید؟ کم، متوسط، زیاد یا خیلی زیاد؟",sillage:"پخش بو را چطور می‌پسندید؟ ملایم، متوسط، قوی یا خیلی قوی؟",scent:"چه رایحه‌ای دوست دارید؟ شیرین، تند، خنک، ملایم، گرم، تلخ، چوبی، مرکباتی، دریایی، شرقی، گلدار یا پودری.",birth_month:"ماه تولد شما یا شخصی که برای او می‌خواهید چیست؟",budget:"بودجه حدودی دارید؟ اگر محدودیتی ندارید فقط بگویید «فرقی ندارد»."};
-const nextKey=(p:Prefs)=>order.find(k=>(k!=="gift_occasion"||p.target==="هدیه/شخص دیگر")&&(p[k]===undefined||p[k]==="")&&!(p._deferred||[]).includes(String(k))&&!(p._skipped||[]).includes(String(k)))||null;
+const nextKey=(p:Prefs)=>order.find(k=>(p[k]===undefined||p[k]==="")&&!(p._skipped||[]).includes(String(k)))||null;
 const canDefer=(m:string)=>has(normalize(m),["فرقی ندارد","فرقی نداره","فرقی نمی‌کند","تفاوتی ندارد","مهم نیست","هرچی","هر کدام","هرکدوم","نمی‌دونم","نمیدونم","هنوز نمی‌دانم","مطمئن نیستم","بعداً","بعدا","نمی‌دانم","اختیاری"]);
 const followupQuestions:Record<string,string>={
  product_type:"راستی درباره نوع عطر هنوز انتخاب مشخصی نداریم. عطر می‌خواهید یا ادکلن؟ اگر تفاوتی برایتان ندارد، بگویید «فرقی ندارد» تا همین‌طور ثبت کنم.",
@@ -53,7 +53,7 @@ const followupQuestions:Record<string,string>={
  birth_month:"اگر دوست دارید، ماه تولدتان را هم برای پیشنهاد دقیق‌تر بگویید؛ اگر مایل نیستید یا مهم نیست، بگویید «فرقی ندارد».",
  budget:"برای بودجه محدودیتی دارید؟ می‌توانید مبلغ حدودی بگویید یا اگر محدودیتی ندارید بگویید «فرقی ندارد»."
 };
-const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","موجود دارید","قیمت"]))return"catalog";if(has(n,["سلام","درود"]))return"greeting";return"other"};
+const intent=(m:string)=>{const n=normalize(m);if(has(n,["آدرس","نشانی","کجا هستید","لوکیشن","کجایید","موقعیت فروشگاه"]))return"address";if(has(n,["اینستا","اینستاگرام","پیج","تلگرام","واتساپ","روبیکا","آپارات","شبکه اجتماعی"]))return"social";if(has(n,["شماره تماس","پشتیبانی","تماس","با شما حرف بزنم","ارتباط با کارشناس"]))return"support";if(has(n,["محصولات","چه عطرهایی","چه ادکلن‌هایی","چی دارید","چه چیزایی دارید","چه چیزهایی دارید","موجود دارید","قیمت","لیست عطر","کاتالوگ"]))return"catalog";if(has(n,["سلام","درود","وقت بخیر","خسته نباشید"]))return"greeting";return"other"};
 async function info(s:any){const {data}=await s.from("store_settings").select("address,support_phone,social_links").limit(1).maybeSingle();return data||{}}
 function recommend(products:any[],p:Prefs){return products.filter(x=>Number(x.stock)>0).map(x=>{const text=normalize([x.name,x.description,...Object.values(x.fragrance_profile||{})].filter(Boolean).join(" "));let score=0;const add=(v:string|undefined,w:number)=>{if(v&&text.includes(normalize(v)))score+=w};add(p.product_type,10);add(p.gender,10);add(p.season,7);add(p.occasion,5);add(p.longevity,6);add(p.sillage,6);add(p.birth_month,4);for(const z of p.scent||[])add(z,12);if(typeof p.budget==="number"){const price=Number(x.price);if(price<=p.budget)score+=7;else if(price<=p.budget*1.1)score+=2;else score-=5}return {...x,score}}).sort((a,b)=>b.score-a.score).slice(0,3)}
 const money=(n:number)=>new Intl.NumberFormat("fa-IR").format(Math.round(n))+" تومان";
@@ -125,8 +125,9 @@ export async function POST(request:Request){try{
    }
    delete prefs._active_followup;
   }else if(!currentAnswer){
-   // Defer any unanswered or ambiguous field and continue through the rest of the profile.
-   prefs._deferred=Array.from(new Set([...deferred,String(current)]));
+   // Skip unclear answers once instead of asking the same question again later.
+   prefs._deferred=deferred.filter(k=>k!==String(current));
+   prefs._skipped=Array.from(new Set([...skipped,String(current)]));
   }
  }
  for(const x of extracted){if(x.key==="scent")prefs.scent=x.value;else prefs[x.key]=x.value}
@@ -138,11 +139,8 @@ export async function POST(request:Request){try{
  }
  const next=nextKey(prefs);
  if(next)return NextResponse.json({order_id:String(b.order_id||""),reply:questions[next],done:false,intent:it,preferences:prefs});
- const followup=order.find(k=>(prefs._deferred||[]).includes(String(k))&&!(prefs._skipped||[]).includes(String(k))&&prefs[k]===undefined);
- if(followup){
-  prefs._active_followup=String(followup);
-  return NextResponse.json({order_id:String(b.order_id||""),reply:followupQuestions[String(followup)]||questions[String(followup)],done:false,intent:it,preferences:prefs});
- }
+ // Do not revisit unanswered fields from this or older sessions.
+ prefs._deferred=[];delete prefs._active_followup;
  const s=db();
  const {data:products}=await s.from("products").select("id,name,description,price,stock,image_url,fragrance_profile,discount_percent,full_size_ml,price_per_ml,per_ml_discount_percent,product_sizes(size_ml,price,discount_percent,stock,is_active)").gt("stock",0).limit(100);
  let picks=recommend(products||[],prefs);if(picks.length&&picks[0].score<25)picks=[];
