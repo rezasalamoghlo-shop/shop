@@ -33,7 +33,22 @@ const sillageText=(n.includes("پخش بو")||n.includes("خط بو")||current==
 if(current==="sillage"&&!out.some(x=>x.key==="sillage")){if(has(n,["خیلی قوی","خیلی زیاد","بسیار قوی"]))out.push({key:"sillage",value:"خیلی قوی"});else if(anyExact(n,["قوی","زیاد","بالا"]))out.push({key:"sillage",value:"قوی"});else if(anyExact(n,["متوسط"]))out.push({key:"sillage",value:"متوسط"});else if(anyExact(n,["ملایم","کم","ضعیف"]))out.push({key:"sillage",value:"ملایم"});}
 const extraScentMap:[string,string[]][]=[["تمیز",["تمیز","صابونی","تازه از حمام","بوی حمام","لباس تمیز"]],["خاص",["خاص","خفن","جذاب","شیک","لوکس"]],["میوه‌ای",["میوه ای","میوه‌ای","میوه جات","میوه‌جات"]],["دودی",["دودی","تنباکویی","چرمی","چرم"]],["سبز",["سبز","گیاهی","علفی"]]];const scents=Array.from(new Set([...scentMap.filter(([,words])=>has(n,words)).map(([name])=>name),...extraScentMap.filter(([,words])=>has(n,words)).map(([name])=>name)]));if(scents.length)out.push({key:"scent",value:Array.from(new Set([...(p.scent||[]),...scents]))});
 for(const m of months)if(n.includes(m)){out.push({key:"birth_month",value:m});break}
-{const nums=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/\d{4,}/g);if(nums?.length)out.push({key:"budget",value:Number(nums[nums.length-1])})}
+{
+ const budgetContext=has(n,["بودجه","قیمت","هزینه","تومن","تومان","میلیون","هزار","سقف","ارزون","ارزان","گرون","گران","قیمتش"]);
+ const normalizedDigits=message.replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+ const unitMatch=normalizedDigits.match(/(\d+(?:[.,]\d+)?)\s*(میلیون|ملیون|میلیارد)/);
+ const thousandMatch=normalizedDigits.match(/(\d+(?:[.,]\d+)?)\s*(هزار|کا|k\b)/i);
+ const nums=normalizedDigits.match(/\d{4,}/g);
+ let budget:number|undefined;
+ if(unitMatch)budget=Math.round(Number(unitMatch[1].replace(",","."))*(unitMatch[2]==="میلیارد"?1_000_000_000:1_000_000));
+ else if(thousandMatch)budget=Math.round(Number(thousandMatch[1].replace(",","."))*1000);
+ else if(nums?.length)budget=Number(nums[nums.length-1]);
+ else if(budgetContext){
+  const words:[string,number][]=[["پنجاه میلیون",50000000],["سی میلیون",30000000],["بیست میلیون",20000000],["ده میلیون",10000000],["پنج میلیون",5000000],["چهار میلیون",4000000],["سه میلیون",3000000],["دو میلیون",2000000],["یک میلیون",1000000],["یه میلیون",1000000],["نیم میلیون",500000],["پانصد هزار",500000],["سیصد هزار",300000],["دویست هزار",200000],["صد هزار",100000]];
+  const found=words.find(([phrase])=>n.includes(phrase));if(found)budget=found[1];
+ }
+ if(budget!==undefined&&Number.isFinite(budget)&&budget>0&&(budgetContext||current==="budget"))out.push({key:"budget",value:budget});
+}
 return out}
 const order=["product_type","gender","scent","budget"] as (keyof Prefs)[];
 const questions:Record<string,string>={product_type:"اول مشخص کنیم: عطر می‌خواهید یا ادکلن؟",gender:"برای چه جنسیتی می‌خواهید؟ مردانه، زنانه یا اسپرت (مشترک برای زن و مرد)؟",target:"برای خودتان می‌خواهید یا برای شخص دیگری/هدیه؟",occasion:"بیشتر در چه موقعیتی از عطر استفاده می‌شود؟ روزمره، محل کار، دانشگاه، مهمانی، قرار یا موقعیت رسمی؟",gift_occasion:"اگر هدیه است، مناسبت هدیه چیست؟ مثلاً تولد، سالگرد یا ولنتاین.",time:"بیشتر برای روز می‌خواهید یا شب؟",season:"برای کدام فصل یا آب‌وهوا می‌خواهید؟",longevity:"ماندگاری را چطور می‌پسندید؟ کم، متوسط، زیاد یا خیلی زیاد؟",sillage:"پخش بو را چطور می‌پسندید؟ ملایم، متوسط، قوی یا خیلی قوی؟",scent:"چه رایحه‌ای دوست دارید؟ شیرین، تند، خنک، ملایم، گرم، تلخ، چوبی، مرکباتی، دریایی، شرقی، گلدار یا پودری.",birth_month:"ماه تولد شما یا شخصی که برای او می‌خواهید چیست؟",budget:"بودجه حدودی دارید؟ اگر محدودیتی ندارید فقط بگویید «فرقی ندارد»."};
