@@ -252,6 +252,8 @@ export default function Admin() {
     try {
       const body = new FormData();
       Object.entries(form).forEach(([key, value]) => {
+        // These structured fields are serialized exactly once below as JSON.
+        if (key === "category_ids" || key === "sizes") return;
         body.append(
           key,
           ["price","full_size_ml","price_per_ml","stock","discount_percent","per_ml_discount_percent"].includes(key) ? String(priceNumber(value)) : String(value ?? "")
@@ -268,8 +270,13 @@ export default function Admin() {
       });
       const result = await response.json().catch(() => null);
 
+      if (response.status === 401) {
+        setMessage("نشست مدیریت معتبر نیست؛ دوباره وارد پنل شوید.");
+        window.location.href = "/admin/login";
+        return;
+      }
       if (!response.ok) {
-        setMessage(result?.error || "خطا در ذخیره محصول");
+        setMessage(result?.error || "ذخیره محصول ناموفق بود. ورودی‌ها و تصویر را بررسی کنید.");
         return;
       }
 
