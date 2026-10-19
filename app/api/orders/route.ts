@@ -99,6 +99,19 @@ export async function POST(r:Request){
     }
     const {error:itemError}=await s.from("order_items").insert(items.map((x:any)=>({...x,order_id:o.id})));
     if(itemError){await s.from("orders").delete().eq("id",o.id);throw itemError;}
+    // Reserve the milliliters in the single source-of-truth product stock only after
+    // the order and its items have been created. The database function applies all
+    // product deductions atomically and prevents concurrent orders overselling stock.
+    const {error:reserveError}=await s.rpc("reserve_perfume_milliliters",{
+      p_items:items.map((x:any)=>({product_id:x.product_id,size_ml:x.size_ml,quantity:x.quantity}))
+    });
+    if(reserveError){
+      await s.from("orders").delete().eq("id",o.id);
+      if(String(reserveError.message||"").toLowerCase().includes("stock")){
+        return NextResponse.json({error:"موجودی واقعی عطر تغییر کرده است؛ سبد خرید را تازه کنید و دوباره تلاش کنید."},{status:409});
+      }
+      throw reserveError;
+    }
     return NextResponse.json(orderSummary({...o,total_price:total,subtotal_price:subtotal,discount_percent:memberDiscount,discount_amount:discountAmount,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery}));
   }catch(e){
     const message=String((e as any)?.message||"");
