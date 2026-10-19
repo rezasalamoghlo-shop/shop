@@ -61,6 +61,8 @@ export async function POST(r:Request){
       const requestedMl=Number(x.size_ml)||Number(p.full_size_ml)||100;
       const fullMl=Number(p.full_size_ml)||100;
       if(requestedMl<=0||requestedMl>fullMl)throw new Error("size");
+      if(pricingType==="full"&&requestedMl!==fullMl)throw new Error("size");
+      if(pricingType==="ml"&&![10,20,30,40,50].includes(requestedMl))throw new Error("size");
       const fullMarker=(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===fullMl);
       const fullDiscountPercent=Number(fullMarker?.discount_percent??p.discount_percent)||0;
       const fullActive=fullDiscountPercent>0&&now>=st&&now<=en;
