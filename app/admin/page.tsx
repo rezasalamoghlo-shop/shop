@@ -37,6 +37,7 @@ export default function Admin() {
     stock: "0",
     discount_percent: "0",
     full_size_ml: "100",
+    full_size_active: true,
     price_per_ml: "",
     per_ml_discount_percent: "0",
     discount_start: "",
@@ -211,12 +212,8 @@ export default function Admin() {
     const required = [
       ["name", "نام عطر"],
       ["description", "توضیحات"],
-      ["price", "قیمت"],
-      ["stock", "موجودی"],
-      ["discount_percent", "درصد تخفیف بطری کامل"],
-      ["full_size_ml", "حجم بطری کامل"],
+      ["stock", "موجودی کلی بر اساس میل"],
       ["price_per_ml", "قیمت هر میل"],
-      ["per_ml_discount_percent", "درصد تخفیف فروش میلی"],
     ];
     const missing = required.find(
       ([key]) => !String(form[key] ?? "").trim()
@@ -226,19 +223,23 @@ export default function Admin() {
       setMessage("لطفاً فیلد «" + missing[1] + "» را کامل کنید.");
       return;
     }
-    if (priceNumber(form.price) <= 0) {
-      setMessage("قیمت محصول باید بیشتر از صفر باشد.");
-      return;
+    const fullMl = priceNumber(form.full_size_ml) || 100;
+    const perMl = priceNumber(form.price_per_ml);
+    const fullPrice = perMl * fullMl;
+    if (fullMl <= 0 || perMl <= 0 || fullPrice <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
+    for (const z of form.sizes || []) {
+      const size = priceNumber(z.size_ml);
+      if (![10, 20, 30, 40, 50].includes(size) || size >= fullMl || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100) {
+        setMessage("اندازه‌های قابل فروش یا درصد تخفیف معتبر نیستند.");
+        return;
+      }
     }
-    if (priceNumber(form.full_size_ml) <= 0 || priceNumber(form.price_per_ml) <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
-    if (Number(form.per_ml_discount_percent) < 0 || Number(form.per_ml_discount_percent) > 100) { setMessage("درصد تخفیف فروش میلی باید بین صفر تا صد باشد."); return; }
-    for (const z of form.sizes || []) { if (priceNumber(z.size_ml) <= 0 || priceNumber(z.size_ml) >= priceNumber(form.full_size_ml) || priceNumber(z.price) <= 0 || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100 || priceNumber(z.stock) < 0) { setMessage("اطلاعات یکی از اندازه‌ها نامعتبر است؛ میل، قیمت، تخفیف و موجودی را بررسی کنید."); return; } }
     if (priceNumber(form.stock) < 0) {
       setMessage("موجودی نمی‌تواند منفی باشد.");
       return;
     }
     if (Number(form.discount_percent) < 0 || Number(form.discount_percent) > 100) {
-      setMessage("درصد تخفیف باید بین صفر تا صد باشد.");
+      setMessage("درصد تخفیف ادکلن کامل باید بین صفر تا صد باشد.");
       return;
     }
     if (!form.id && !image) {
@@ -251,8 +252,13 @@ export default function Admin() {
 
     try {
       const body = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        // These structured fields are serialized exactly once below as JSON.
+      const fullMl = priceNumber(form.full_size_ml) || 100;
+      const totalMl = priceNumber(form.stock);
+      const perMl = priceNumber(form.price_per_ml);
+      const fullPrice = perMl * fullMl;
+      const values = { ...form, price: String(fullPrice), per_ml_discount_percent: "0", discount_start: "", discount_end: "" };
+      Object.entries(values).forEach(([key, value]) => {
+        // Category and size choices are serialized exactly once below.
         if (key === "category_ids" || key === "sizes") return;
         body.append(
           key,
@@ -262,7 +268,12 @@ export default function Admin() {
       if (form.id) body.append("id", form.id);
       if (image) { const cropped = await cropImageFile(image, cropZoom, cropX, cropY); body.append("image", cropped, cropped.name); }
       body.append("category_ids", JSON.stringify(form.category_ids || []));
-      body.append("sizes_json", JSON.stringify((form.sizes||[]).map((z:any)=>({size_ml:priceNumber(z.size_ml),price:priceNumber(z.price),discount_percent:Number(z.discount_percent)||0,stock:priceNumber(z.stock),is_active:z.is_active!==false}))));
+      const savedSizes = (form.sizes || []).map((z:any) => {
+        const size = priceNumber(z.size_ml);
+        return { size_ml: size, price: perMl * size, discount_percent: Number(z.discount_percent) || 0, stock: Math.floor(totalMl / Math.max(1, size)), is_active: true };
+      });
+      savedSizes.push({ size_ml: fullMl, price: fullPrice, discount_percent: Number(form.discount_percent) || 0, stock: Math.floor(totalMl / Math.max(1, fullMl)), is_active: form.full_size_active !== false });
+      body.append("sizes_json", JSON.stringify(savedSizes));
 
       const response = await fetch("/api/admin/products", {
         method,
@@ -292,11 +303,12 @@ export default function Admin() {
         stock: "0",
         discount_percent: "0",
         full_size_ml: "100",
+        full_size_active: true,
         price_per_ml: "",
         per_ml_discount_percent: "0",
         discount_start: "",
         discount_end: "",
-            category_ids: [],
+        category_ids: [],
         sizes: [],
       });
       setImage(null);
@@ -576,16 +588,15 @@ async function updateOrder(id: string, status: string) {
       ...product,
       price: faPrice(product.price),
       full_size_ml: String(product.full_size_ml ?? 100),
-      price_per_ml: faPrice(product.price_per_ml ?? 0),
-      per_ml_discount_percent: String(product.per_ml_discount_percent ?? 0),
+      price_per_ml: faPrice(product.price_per_ml ?? (Number(product.price || 0) / Math.max(1, Number(product.full_size_ml || 100)))),
+      per_ml_discount_percent: "0",
       stock: String(product.stock ?? 0),
       discount_percent: String(product.discount_percent ?? 0),
-      discount_start: product.discount_start || "",
-      discount_end: product.discount_end || "",
-        category_ids: (product.category_ids || []).map((item: any) =>
-        item.category_id || item
-      ),
-      sizes: (product.sizes || []).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
+      full_size_active: (() => { const full = (product.sizes || []).find((z:any)=>Number(z.size_ml)===Number(product.full_size_ml ?? 100)); return full ? full.is_active !== false : true; })(),
+      discount_start: "",
+      discount_end: "",
+      category_ids: (product.category_ids || []).map((item: any) => item.category_id || item),
+      sizes: (product.sizes || []).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml ?? 100)&&[10,20,30,40,50].includes(Number(z.size_ml))).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
     });
     setImage(null);
     if (cropSource) URL.revokeObjectURL(cropSource);
@@ -850,75 +861,37 @@ async function updateOrder(id: string, status: string) {
             />
           </label>
           <label>
-            قیمت
-            <input
-              inputMode="numeric"
-              value={faPrice(form.price)}
-              onChange={(event) => updateForm("price", event.target.value)}
-            />
+            موجودی کل (میلی‌لیتر)
+            <input inputMode="numeric" value={form.stock} onChange={event=>updateForm("stock",event.target.value)} placeholder="مثلاً ۱۰۰۰" />
           </label>
           <label>
-            موجودی
-            <input
-              inputMode="numeric"
-              value={form.stock}
-              onChange={(event) => updateForm("stock", event.target.value)}
-            />
+            قیمت هر میل (تومان)
+            <input inputMode="numeric" value={faPrice(form.price_per_ml)} onChange={event=>updateForm("price_per_ml",event.target.value)} placeholder="قیمت پایه هر میلی‌لیتر" />
           </label>
-          <label>
-            درصد تخفیف
-            <input
-              inputMode="numeric"
-              value={form.discount_percent}
-              onChange={(event) =>
-                updateForm("discount_percent", event.target.value)
-              }
-            />
-          </label>
-          <label>
-            حجم بطری کامل (میل)
-            <input inputMode="numeric" value={form.full_size_ml} onChange={event=>updateForm("full_size_ml",event.target.value)} />
-          </label>
-          <label>
-            قیمت هر میل
-            <input inputMode="numeric" value={faPrice(form.price_per_ml)} onChange={event=>updateForm("price_per_ml",event.target.value)} />
-          </label>
-          <label>
-            درصد تخفیف فروش میلی
-            <input inputMode="numeric" value={form.per_ml_discount_percent} onChange={event=>updateForm("per_ml_discount_percent",event.target.value)} />
-          </label>
-          <label>
-            شروع تخفیف
-            <input
-              type="datetime-local"
-              value={form.discount_start || ""}
-              onChange={(event) =>
-                updateForm("discount_start", event.target.value)
-              }
-            />
-          </label>
-          <label>
-            پایان تخفیف
-            <input
-              type="datetime-local"
-              value={form.discount_end || ""}
-              onChange={(event) =>
-                updateForm("discount_end", event.target.value)
-              }
-            />
-          </label>
-
-          <div className="size-admin">
-            <div className="size-admin-head"><div><b>اندازه‌های قابل فروش</b><small>برای هر میل قیمت، تخفیف و موجودی مستقل تعیین کنید.</small></div><button type="button" className="outline" onClick={()=>updateForm("sizes",[...(form.sizes||[]),{size_ml:"10",price:"",discount_percent:"0",stock:"0",is_active:true}])}>+ افزودن اندازه</button></div>
-            {(form.sizes||[]).map((z:any,i:number)=><div className="size-admin-row" key={i}>
-              <label>میل<input inputMode="numeric" value={z.size_ml} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,size_ml:e.target.value};updateForm("sizes",a)}}/></label>
-              <label>قیمت<input inputMode="numeric" value={faPrice(z.price)} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,price:e.target.value};updateForm("sizes",a)}}/></label>
-              <label>تخفیف ٪<input inputMode="numeric" value={z.discount_percent} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,discount_percent:e.target.value};updateForm("sizes",a)}}/></label>
-              <label>موجودی<input inputMode="numeric" value={z.stock} onChange={e=>{const a=[...(form.sizes||[])];a[i]={...z,stock:e.target.value};updateForm("sizes",a)}}/></label>
-              <button type="button" className="remove-size" onClick={()=>updateForm("sizes",(form.sizes||[]).filter((_:any,j:number)=>j!==i))}>حذف</button>
-            </div>)}
-            {!(form.sizes||[]).length&&<small className="upload-hint">هنوز اندازه‌ای تعریف نشده است. بطری کامل از اطلاعات اصلی محصول استفاده می‌کند.</small>}
-          </div>
+          <fieldset className="category-picker">
+            <legend>اندازه‌های قابل فروش</legend>
+            <label className="category-check">
+              <input type="checkbox" checked={form.full_size_active !== false} onChange={event=>updateForm("full_size_active",event.target.checked)} />
+              <span>ادکلن کامل ({Number(form.full_size_ml)||100} میل)</span>
+            </label>
+            {form.full_size_active !== false && <label>
+              تخفیف ادکلن کامل (%)
+              <input inputMode="numeric" value={form.discount_percent} onChange={event=>updateForm("discount_percent",event.target.value)} placeholder="۰ تا ۱۰۰" />
+            </label>}
+            <div className="size-admin">
+              <div className="size-admin-head"><div><b>فروش میلی</b><small>فقط اندازه‌های تیک‌خورده در سایت نمایش داده می‌شوند. قیمت هر اندازه از قیمت هر میل محاسبه می‌شود.</small></div></div>
+              {[10,20,30,40,50].filter(size=>size<(Number(form.full_size_ml)||100)).map(size=>{
+                const chosen=(form.sizes||[]).find((z:any)=>Number(z.size_ml)===size);
+                return <div className="size-admin-row" key={size}>
+                  <label className="category-check"><input type="checkbox" checked={Boolean(chosen)} onChange={event=>{
+                    const current=(form.sizes||[]).filter((z:any)=>Number(z.size_ml)!==size);
+                    updateForm("sizes",event.target.checked?[...current,{size_ml:String(size),discount_percent:"0",is_active:true}]:current);
+                  }}/><span>{size} میل</span></label>
+                  {chosen&&<><span>قیمت پایه: {faPrice(priceNumber(form.price_per_ml)*size)} تومان</span><label>تخفیف (%)<input inputMode="numeric" value={chosen.discount_percent??"0"} onChange={event=>updateForm("sizes",(form.sizes||[]).map((z:any)=>Number(z.size_ml)===size?{...z,discount_percent:event.target.value}:z))}/></label></>}
+                </div>;
+              })}
+            </div>
+          </fieldset>
 
           <fieldset className="category-picker">
             <legend>دسته‌بندی محصول</legend>
@@ -999,7 +972,7 @@ async function updateOrder(id: string, status: string) {
             <div>
               {product.image_url && <img src={product.image_url} alt="" />}
               <b>{product.name}</b>
-              <small>بطری کامل: {faPrice(product.price)} تومان | {product.full_size_ml} میل</small><small>هر میل: {faPrice(product.price_per_ml)} تومان</small><small>تخفیف بطری: {product.discount_percent || 0}٪ | تخفیف پایه میلی: {product.per_ml_discount_percent || 0}٪</small><small>اندازه‌ها: {(product.sizes||[]).map((z:any)=>`${z.size_ml} میل · ${faPrice(Number(z.price)*(1-Number(z.discount_percent||0)/100))} تومان · ${z.discount_percent||0}٪ · موجودی ${z.stock}`).join(" | ") || "تعریف نشده"}</small>
+              <small>موجودی کل: {faPrice(product.stock)} میل</small><small>قیمت هر میل: {faPrice(product.price_per_ml)} تومان · بطری کامل ({product.full_size_ml} میل): {faPrice(product.price)} تومان</small><small>تخفیف ادکلن کامل: {product.discount_percent || 0}٪</small><small>اندازه‌های میلی: {(product.sizes||[]).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml)).map((z:any)=>`${z.size_ml} میل · ${faPrice(Number(z.price)*(1-Number(z.discount_percent||0)/100))} تومان · تخفیف ${z.discount_percent||0}٪ · موجودی تقریبی ${Math.floor(Number(product.stock||0)/Math.max(1,Number(z.size_ml)))} عدد`).join(" | ") || "تعریف نشده"}</small>
               <small>
                 {(product.categories || [])
                   .map((category: any) => category.name)
