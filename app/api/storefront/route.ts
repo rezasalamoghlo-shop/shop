@@ -11,10 +11,10 @@ async function getStorefront(){
       db.from("store_settings").select("*").limit(1).maybeSingle(),
       db.from("categories").select("id,name,slug,description,sort_order").eq("is_active",true).order("sort_order").order("name"),
       db.from("product_categories").select("product_id,category_id"),
-      db.from("product_sizes").select("id,product_id,size_ml,price,discount_percent,stock,is_active").eq("is_active",true).order("size_ml")
+      db.from("product_sizes").select("id,product_id,size_ml,price,discount_percent,stock,is_active").order("size_ml")
     ]);
     if(productsError) throw productsError;
-    if(settingsError) throw settingsError;if(categoriesError) throw categoriesError;if(linksError) throw linksError;if(sizesError) throw sizesError;const cats=categories??[];const productList=(products??[]).map((p:any)=>({...p,category_ids:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>z.category_id),categories:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>cats.find((k:any)=>k.id===z.category_id)).filter(Boolean),sizes:(sizes??[]).filter((z:any)=>z.product_id===p.id)}));return {products:productList,settings:settings??null,categories:cats};
+    if(settingsError) throw settingsError;if(categoriesError) throw categoriesError;if(linksError) throw linksError;if(sizesError) throw sizesError;const cats=categories??[];const productList=(products??[]).map((p:any)=>({...p,category_ids:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>z.category_id),categories:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>cats.find((k:any)=>k.id===z.category_id)).filter(Boolean),sizes:(sizes??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>({...z,stock:Math.floor(Number(p.stock||0)/Math.max(1,Number(z.size_ml)||1))}))}));return {products:productList,settings:settings??null,categories:cats};
 }
 
 export async function GET(){
