@@ -447,3 +447,12 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Perfume bottle flies from the selected product card into the cart. */
+.cart-flight-bottle{position:fixed;z-index:1000;pointer-events:none;width:46px;height:46px;display:grid;place-items:center;border:1px solid #e9c86b;border-radius:50%;background:radial-gradient(circle,#392449,#17101f);box-shadow:0 0 24px #dba4ff99,0 8px 24px #0008;transform:translate(-50%,-50%);animation:galaxy-bottle-to-cart .78s cubic-bezier(.22,.8,.25,1) forwards}
+.cart-flight-bottle span{font-size:27px;line-height:1;filter:drop-shadow(0 0 5px #e8c86b88)}
+.cart-flight-bottle i{position:absolute;right:-3px;top:-5px;color:#f6d978;font-size:12px;font-style:normal;animation:galaxy-flight-spark .45s ease-in-out infinite alternate}
+@keyframes galaxy-bottle-to-cart{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-18deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(12deg)}65%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--flight-x)),calc(-50% + var(--flight-y))) scale(.2) rotate(360deg)}}
+@keyframes galaxy-flight-spark{from{opacity:.35;transform:scale(.7) rotate(-15deg)}to{opacity:1;transform:scale(1.2) rotate(20deg)}}
+@media(prefers-reduced-motion:reduce){.cart-flight-bottle,.cart-flight-bottle i{animation:none!important;opacity:0!important}}
