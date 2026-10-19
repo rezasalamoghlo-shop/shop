@@ -61,17 +61,18 @@ export async function POST(r:Request){
       const requestedMl=Number(x.size_ml)||Number(p.full_size_ml)||100;
       const fullMl=Number(p.full_size_ml)||100;
       if(requestedMl<=0||requestedMl>fullMl)throw new Error("size");
-      const fullActive=Number(p.discount_percent)>0&&now>=st&&now<=en;
+      const fullMarker=(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===fullMl);
+      const fullDiscountPercent=Number(fullMarker?.discount_percent??p.discount_percent)||0;
+      const fullActive=fullDiscountPercent>0&&now>=st&&now<=en;
       const chosenSize=pricingType==="ml"?(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===requestedMl&&z.is_active!==false):null;
       if(pricingType==="full"){
-        const fullMarker=(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===fullMl);
         if(fullMarker&&fullMarker.is_active===false)throw new Error("size_disabled");
         if(Number(p.stock)<fullMl*q)throw new Error("stock");
       }
       if(pricingType==="ml"&&(!chosenSize||Number(p.stock)<requestedMl*q))throw new Error("size_stock");
       const base=chosenSize?Number(chosenSize.price):(Number(p.price_per_ml)>0?Number(p.price_per_ml):Number(p.price)/fullMl);
       const discount=chosenSize?Number(chosenSize.discount_percent||0):Number(p.per_ml_discount_percent||0);
-      const price=pricingType==="ml"?base*(1-discount/100):(fullActive?Number(p.price)*(1-Number(p.discount_percent)/100):Number(p.price));
+      const price=pricingType==="ml"?base*(1-discount/100):(fullActive?Number(p.price)*(1-fullDiscountPercent/100):Number(p.price));
       subtotal+=price*q;
       return {product_id:p.id,quantity:q,price,size_ml:requestedMl,pricing_type:pricingType};
     });
