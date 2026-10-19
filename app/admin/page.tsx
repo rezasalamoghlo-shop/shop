@@ -879,7 +879,7 @@ async function updateOrder(id: string, status: string) {
               <input inputMode="numeric" value={form.discount_percent} onChange={event=>updateForm("discount_percent",event.target.value)} placeholder="۰ تا ۱۰۰" />
             </label>}
             <div className="size-admin">
-              <div className="size-admin-head"><div><b>فروش میلی</b><small>فقط اندازه‌های تیک‌خورده در سایت نمایش داده می‌شوند. قیمت هر اندازه از قیمت هر میل محاسبه می‌شود.</small></div></div>
+              <div className="size-admin-head"><div style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:8}}><b>فروش میلی</b><small style={{display:"block",lineHeight:1.9}}>فقط اندازه‌های تیک‌خورده در سایت نمایش داده می‌شوند. قیمت هر اندازه از قیمت هر میل محاسبه می‌شود.</small></div></div>
               {[10,20,30,40,50].filter(size=>size<(Number(form.full_size_ml)||100)).map(size=>{
                 const chosen=(form.sizes||[]).find((z:any)=>Number(z.size_ml)===size);
                 return <div className="size-admin-row" key={size}>
