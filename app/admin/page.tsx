@@ -591,7 +591,7 @@ async function updateOrder(id: string, status: string) {
       price_per_ml: faPrice(product.price_per_ml ?? (Number(product.price || 0) / Math.max(1, Number(product.full_size_ml || 100)))),
       per_ml_discount_percent: "0",
       stock: String(product.stock ?? 0),
-      discount_percent: String(product.discount_percent ?? 0),
+      discount_percent: String((product.sizes || []).find((z:any)=>Number(z.size_ml)===Number(product.full_size_ml ?? 100))?.discount_percent ?? product.discount_percent ?? 0),
       full_size_active: (() => { const full = (product.sizes || []).find((z:any)=>Number(z.size_ml)===Number(product.full_size_ml ?? 100)); return full ? full.is_active !== false : true; })(),
       discount_start: "",
       discount_end: "",
@@ -972,7 +972,7 @@ async function updateOrder(id: string, status: string) {
             <div>
               {product.image_url && <img src={product.image_url} alt="" />}
               <b>{product.name}</b>
-              <small>موجودی کل: {faPrice(product.stock)} میل</small><small>قیمت هر میل: {faPrice(product.price_per_ml)} تومان · بطری کامل ({product.full_size_ml} میل): {faPrice(product.price)} تومان</small><small>تخفیف ادکلن کامل: {product.discount_percent || 0}٪</small><small>اندازه‌های میلی: {(product.sizes||[]).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml)).map((z:any)=>`${z.size_ml} میل · ${faPrice(Number(z.price)*(1-Number(z.discount_percent||0)/100))} تومان · تخفیف ${z.discount_percent||0}٪ · موجودی تقریبی ${Math.floor(Number(product.stock||0)/Math.max(1,Number(z.size_ml)))} عدد`).join(" | ") || "تعریف نشده"}</small>
+              <small>موجودی کل: {faPrice(product.stock)} میل</small><small>قیمت هر میل: {faPrice(product.price_per_ml)} تومان · بطری کامل ({product.full_size_ml} میل): {faPrice(product.price)} تومان</small><small>تخفیف ادکلن کامل: {(product.sizes||[]).find((z:any)=>Number(z.size_ml)===Number(product.full_size_ml))?.discount_percent ?? product.discount_percent ?? 0}٪</small><small>اندازه‌های میلی: {(product.sizes||[]).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml)).map((z:any)=>`${z.size_ml} میل · ${faPrice(Number(z.price)*(1-Number(z.discount_percent||0)/100))} تومان · تخفیف ${z.discount_percent||0}٪ · موجودی تقریبی ${Math.floor(Number(product.stock||0)/Math.max(1,Number(z.size_ml)))} عدد`).join(" | ") || "تعریف نشده"}</small>
               <small>
                 {(product.categories || [])
                   .map((category: any) => category.name)
