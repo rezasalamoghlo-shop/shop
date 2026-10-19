@@ -72,9 +72,9 @@ export async function POST(r:Request){
         if(Number(p.stock)<fullMl*q)throw new Error("stock");
       }
       if(pricingType==="ml"&&(!chosenSize||Number(p.stock)<requestedMl*q))throw new Error("size_stock");
-      const base=chosenSize?Number(chosenSize.price):(Number(p.price_per_ml)>0?Number(p.price_per_ml):Number(p.price)/fullMl);
-      const discount=chosenSize?Number(chosenSize.discount_percent||0):Number(p.per_ml_discount_percent||0);
-      const price=pricingType==="ml"?base*(1-discount/100):(fullActive?Number(p.price)*(1-fullDiscountPercent/100):Number(p.price));
+      const base=pricingType==="ml"?(Number(p.price_per_ml)>0?Number(p.price_per_ml)*requestedMl:Number(chosenSize?.price||0)) : Number(p.price);
+      const discount=pricingType==="ml"?Math.max(0,Math.min(100,Number(chosenSize?.discount_percent)||0)):fullDiscountPercent;
+      const price=pricingType==="ml"?Math.round(base*(1-discount/100)):(fullActive?Math.round(Number(p.price)*(1-fullDiscountPercent/100)):Number(p.price));
       subtotal+=price*q;
       return {product_id:p.id,quantity:q,price,size_ml:requestedMl,pricing_type:pricingType};
     });
