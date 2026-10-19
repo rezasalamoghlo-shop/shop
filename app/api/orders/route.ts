@@ -47,7 +47,7 @@ export async function POST(r:Request){
     if(ids.some((id:string)=>!id))return NextResponse.json({error:"محصول نامعتبر است."},{status:400});
     const [{data:ps,error:pe},{data:sizeRows,error:se}]=await Promise.all([
       s.from("products").select("id,price,stock,discount_percent,discount_start,discount_end,full_size_ml,price_per_ml,per_ml_discount_percent").in("id",ids),
-      s.from("product_sizes").select("product_id,size_ml,price,discount_percent,stock,is_active").in("product_id",ids).eq("is_active",true)
+      s.from("product_sizes").select("product_id,size_ml,price,discount_percent,stock,is_active").in("product_id",ids)
     ]);
     if(pe||se||!ps||ps.length!==ids.length)return NextResponse.json({error:"برخی محصولات دیگر موجود نیستند."},{status:400});
     const now=Date.now();let subtotal=0;
@@ -62,9 +62,13 @@ export async function POST(r:Request){
       const fullMl=Number(p.full_size_ml)||100;
       if(requestedMl<=0||requestedMl>fullMl)throw new Error("size");
       const fullActive=Number(p.discount_percent)>0&&now>=st&&now<=en;
-      const chosenSize=pricingType==="ml"?(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===requestedMl):null;
-      if(pricingType==="full"&&Number(p.stock)<q)throw new Error("stock");
-      if(pricingType==="ml"&&(!chosenSize||Number(chosenSize.stock)<q))throw new Error("size_stock");
+      const chosenSize=pricingType==="ml"?(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===requestedMl&&z.is_active!==false):null;
+      if(pricingType==="full"){
+        const fullMarker=(sizeRows||[]).find((z:any)=>z.product_id===p.id&&Number(z.size_ml)===fullMl);
+        if(fullMarker&&fullMarker.is_active===false)throw new Error("size_disabled");
+        if(Number(p.stock)<fullMl*q)throw new Error("stock");
+      }
+      if(pricingType==="ml"&&(!chosenSize||Number(p.stock)<requestedMl*q))throw new Error("size_stock");
       const base=chosenSize?Number(chosenSize.price):(Number(p.price_per_ml)>0?Number(p.price_per_ml):Number(p.price)/fullMl);
       const discount=chosenSize?Number(chosenSize.discount_percent||0):Number(p.per_ml_discount_percent||0);
       const price=pricingType==="ml"?base*(1-discount/100):(fullActive?Number(p.price)*(1-Number(p.discount_percent)/100):Number(p.price));
@@ -95,7 +99,7 @@ export async function POST(r:Request){
     return NextResponse.json(orderSummary({...o,total_price:total,subtotal_price:subtotal,discount_percent:memberDiscount,discount_amount:discountAmount,shipping_cost:shippingCost,estimated_delivery:shipping.estimated_delivery}));
   }catch(e){
     const message=String((e as any)?.message||"");
-    if(["quantity","size","stock","size_stock"].includes(message))return NextResponse.json({error:"موجودی یا اندازه یکی از محصولات تغییر کرده است. سبد خرید را بررسی کنید."},{status:400});
+    if(["quantity","size","stock","size_stock","size_disabled"].includes(message))return NextResponse.json({error:"موجودی یا اندازه یکی از محصولات تغییر کرده است. سبد خرید را بررسی کنید."},{status:400});
     return NextResponse.json({error:"خطا در ثبت سفارش. اطلاعات را بررسی و دوباره تلاش کنید."},{status:500});
   }
 }
