@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 export default async function MagazineArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; const a = await getArticle(slug); if (!a) notFound();
-  return <main dir="rtl" style={{ minHeight: "100vh", background: "radial-gradient(circle at top,#2b1b3a,#0b0810 55%)", color: "#fff", padding: "26px max(16px,calc((100vw - 900px)/2)", fontFamily: "inherit" }}>
+  return <main dir="rtl" style={{ minHeight: "100vh", background: "radial-gradient(circle at top,#2b1b3a,#0b0810 55%)", color: "#fff", padding: "26px max(16px,calc((100vw - 900px)/2))", fontFamily: "inherit" }}>
     <a href="/magazine" style={{ color: "#d1aaff", textDecoration: "none" }}>← بازگشت به مجله</a>
     <article style={{ marginTop: 24, background: "#171120", border: "1px solid #392b46", borderRadius: 22, overflow: "hidden" }}>
       <img src={a.image_url} alt={a.title} style={{ width: "100%", maxHeight: 520, objectFit: "cover", display: "block" }} />
