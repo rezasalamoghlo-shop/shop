@@ -54,8 +54,8 @@ export default function AdminMagazine() {
   }
   return <main dir="rtl" style={{ minHeight: "100vh", padding: "24px max(16px,calc((100vw - 1100px)/2))", background: "radial-gradient(circle at top,#302044,#0b0811 55%)", color: "#fff", fontFamily: "inherit" }}>
     <header style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14, marginBottom: 24 }}>
-      <div><small style={{ color: "#c4a4ff", letterSpacing: 2 }}>GALAXY EDITORIAL</small><h1 style={{ margin: "8px 0" }}>مدیریت مجلهٔ عطر کهکشان</h1><p style={{ color: "#c7bfce", margin: 0 }}>تصویر و مقاله اضافه کن؛ مطالب منتشرشده در اسلایدر مجله و صفحهٔ اختصاصی نمایش داده می‌شوند.</p></div>
-      <div style={{ display: "flex", gap: 8 }}><a href="/admin" style={{ color: "#fff", padding: 10, border: "1px solid #645675", borderRadius: 10, textDecoration: "none" }}>پنل مدیریت</a><a href="/magazine" style={{ color: "#fff", padding: 10, border: "1px solid #645675", borderRadius: 10, textDecoration: "none" }}>مشاهده مجله</a></div>
+      <div><small style={{ color: "#c4a4ff", letterSpacing: 2 }}>GALAXY EDITORIAL</small><h1 style={{ margin: "8px 0" }}>مدیریت مجلهٔ عطر کهکشان</h1><p style={{ color: "#c7bfce", margin: 0 }}>برای هر صفحه یک تصویر و متن ثبت کن. صفحه‌های منتشرشده در مجلهٔ صفحهٔ اصلی نمایش داده می‌شوند و هر ۱۵ ثانیه ورق می‌خورند.</p></div>
+      <div style={{ display: "flex", gap: 8 }}><a href="/admin" style={{ color: "#fff", padding: 10, border: "1px solid #645675", borderRadius: 10, textDecoration: "none" }}>پنل مدیریت</a><a href="/#magazine" style={{ color: "#fff", padding: 10, border: "1px solid #645675", borderRadius: 10, textDecoration: "none" }}>مشاهده در صفحه اصلی</a></div>
     </header>
     {message && <p role="status" style={{ background: "#292037", padding: 12, borderRadius: 10 }}>{message}</p>}
     <section style={panel}>
@@ -66,7 +66,7 @@ export default function AdminMagazine() {
         <label>خلاصه کوتاه<textarea rows={2} style={field} value={form.excerpt} onChange={e => setForm(x => ({ ...x, excerpt: e.target.value }))} placeholder="خلاصه‌ای که روی کارت مجله دیده می‌شود" /></label>
         <label>متن کامل مطلب<textarea required rows={10} style={field} value={form.content} onChange={e => setForm(x => ({ ...x, content: e.target.value }))} placeholder="متن مقاله را بنویسید. فاصله‌ها و خط‌های جدید حفظ می‌شوند." /></label>
         <label>تصویر کاور (حداکثر ۸ مگابایت){currentImage && <img src={currentImage} alt="تصویر فعلی" style={{ display: "block", width: 180, height: 120, objectFit: "cover", borderRadius: 12, marginTop: 8 }} />}<input id="magazine-image" type="file" accept="image/*" style={{ ...field, padding: 8 }} onChange={e => setImage(e.target.files?.[0] || null)} />{editId && <small style={{ color: "#b9afc7" }}>اگر تصویر جدیدی انتخاب نکنی، تصویر فعلی باقی می‌ماند.</small>}</label>
-        <label style={{ display: "flex", gap: 10, alignItems: "center" }}><input type="checkbox" checked={form.is_published} onChange={e => setForm(x => ({ ...x, is_published: e.target.checked }))} /> انتشار در سایت (نمایش در اسلایدر و صفحهٔ مجله)</label>
+        <label style={{ display: "flex", gap: 10, alignItems: "center" }}><input type="checkbox" checked={form.is_published} onChange={e => setForm(x => ({ ...x, is_published: e.target.checked }))} /> انتشار در سایت (نمایش در مجلهٔ صفحهٔ اصلی)</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button disabled={busy} style={{ border: 0, borderRadius: 10, padding: "12px 20px", background: "#c8a5ff", color: "#160d22", fontWeight: 700, cursor: "pointer" }}>{busy ? "در حال ذخیره..." : "ذخیره مطلب"}</button>{editId && <button type="button" onClick={reset} style={{ borderRadius: 10, padding: "12px 20px", background: "transparent", color: "#fff", border: "1px solid #655777" }}>لغو ویرایش</button>}</div>
       </form>
     </section>
