@@ -618,11 +618,10 @@ async function updateOrder(id: string, status: string) {
           <span>GALAXY CONTROL</span>
           <h1>پنل مدیریت عطر کهکشان</h1>
         </div>
-        <div>
-          <a className="outline" href="/admin" aria-current="page">مدیریت فروشگاه</a>
-          <a className="outline" href="/admin/magazine">مدیریت مجله</a>
-          <a className="outline" href="/" target="_blank" rel="noreferrer">مشاهده فروشگاه ↗</a>
-          <a className="outline" href="#shipping-settings">تنظیمات ارسال</a>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
+          <a className="outline" href="/admin/magazine" style={{ whiteSpace: "nowrap" }}>مدیریت مجله</a>
+          <a className="outline" href="/" target="_blank" rel="noreferrer" style={{ whiteSpace: "nowrap" }}>مشاهده فروشگاه ↗</a>
+          <a className="outline" href="#shipping-settings" style={{ whiteSpace: "nowrap" }}>تنظیمات ارسال</a>
           <button
             className="logout"
             onClick={async () => {
