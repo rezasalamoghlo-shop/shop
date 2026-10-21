@@ -52,18 +52,18 @@ export default function AdminMagazine() {
     if (!r.ok) { setMessage(d.error || "تغییر وضعیت انجام نشد."); return; }
     setArticles(xs => xs.map(x => x.id === a.id ? d.article : x)); setMessage(a.is_published ? "مطلب از سایت پنهان شد." : "مطلب منتشر شد.");
   }
-  return <main dir="rtl" style={{ minHeight: "100vh", padding: "24px max(16px,calc((100vw - 1100px)/2))", background: "radial-gradient(circle at top,#302044,#0b0811 55%)", color: "#fff", fontFamily: "inherit" }}>
-    <header style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 18, marginBottom: 26, padding: "22px 24px", border: "1px solid #40314f", borderRadius: 20, background: "linear-gradient(135deg,#21152e,#130e1b 70%)", boxShadow: "0 16px 40px #0002" }}>
-      <div style={{ maxWidth: 650 }}><small style={{ color: "#c4a4ff", letterSpacing: 2 }}>GALAXY EDITORIAL · مدیریت محتوا</small><h1 style={{ margin: "10px 0", fontSize: "clamp(25px,4vw,34px)" }}>مدیریت مجلهٔ عطر کهکشان</h1><p style={{ color: "#c7bfce", margin: 0, lineHeight: 2 }}>هر مطلب یک صفحه از مجله است: تصویر، عنوان و متن را وارد کن و پس از انتشار، در مجلهٔ صفحهٔ اصلی نمایش داده می‌شود. صفحه‌ها هر ۱۵ ثانیه جابه‌جا می‌شوند.</p></div>
+  return <main className="galaxy-magazine-admin" dir="rtl" style={{ minHeight: "100vh", padding: "24px max(16px,calc((100vw - 1100px)/2))", background: "radial-gradient(circle at top,#302044,#0b0811 55%)", color: "#fff", fontFamily: "inherit" }}>
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 18, marginBottom: 26, padding: "22px 24px", border: "1px solid #40314f", borderRadius: 20, background: "linear-gradient(135deg,#21152e,#130e1b 70%)", boxShadow: "0 16px 40px #0002" }}>
+      <div style={{ maxWidth: 650 }}><small style={{ color: "#c4a4ff", letterSpacing: 2 }}>GALAXY EDITORIAL · مدیریت محتوا</small><h1 style={{ display: "block", position: "static", margin: "10px 0 12px", padding: 0, fontSize: "clamp(25px,4vw,34px)", lineHeight: 1.5, color: "#fff", textAlign: "right" }}>مدیریت مجلهٔ عطر کهکشان</h1><p style={{ display: "block", position: "static", color: "#c7bfce", margin: 0, padding: 0, lineHeight: 2, fontSize: 14, textAlign: "right" }}>هر مطلب یک صفحه از مجله است: تصویر، عنوان و متن را وارد کن و پس از انتشار، در مجلهٔ صفحهٔ اصلی نمایش داده می‌شود. صفحه‌ها هر ۱۵ ثانیه جابه‌جا می‌شوند.</p></div>
       <nav aria-label="دسترسی سریع" style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
         <a href="/admin" style={{ color: "#fff", padding: "11px 14px", border: "1px solid #645675", borderRadius: 11, textDecoration: "none", background: "#ffffff08" }}>← مدیریت فروشگاه</a>
         <a href="/#magazine" style={{ color: "#1b1023", padding: "11px 14px", border: "1px solid #d0adf5", borderRadius: 11, textDecoration: "none", background: "#d0adf5", fontWeight: 700 }}>پیش‌نمایش مجله ↗</a>
       </nav>
-    </header>
+    </div>
     {message && <p role="status" style={{ background: "#292037", padding: 12, borderRadius: 10 }}>{message}</p>}
-    <section style={{ ...panel, maxWidth: 900, margin: "0 auto", boxShadow: "0 14px 36px #0002" }}>
+    <section style={{ ...panel, maxWidth: 900, margin: "0 auto", boxShadow: "0 14px 36px #0002", overflow: "hidden" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 18 }}>
-        <div><h2 style={{ margin: "0 0 6px" }}>{editId ? "ویرایش صفحهٔ مجله" : "افزودن صفحهٔ جدید"}</h2><p style={{ color: "#bdb1ca", margin: 0, fontSize: 14 }}>عنوان و متن را بنویس، تصویر را انتخاب کن و در پایان منتشر کن.</p></div>
+        <div><h2 style={{ display: "block", margin: "0 0 8px", lineHeight: 1.6, fontSize: 22, color: "#fff" }}>{editId ? "ویرایش صفحهٔ مجله" : "افزودن صفحهٔ جدید"}</h2><p style={{ display: "block", color: "#bdb1ca", margin: 0, fontSize: 14, lineHeight: 1.9 }}>عنوان و متن را بنویس، تصویر را انتخاب کن و در پایان منتشر کن.</p></div>
         <span style={{ border: "1px solid #5c4770", color: "#d9c2f4", borderRadius: 99, padding: "6px 11px", fontSize: 13 }}>{editId ? "حالت ویرایش" : "صفحهٔ تازه"}</span>
       </div>
       <form onSubmit={save} style={{ display: "grid", gap: 14 }}>
@@ -85,10 +85,10 @@ export default function AdminMagazine() {
           <span style={{ border: "1px solid #645675", color: "#e6d9f4", borderRadius: 10, padding: "8px 11px" }}>مجموع: {articles.length.toLocaleString("fa-IR")}</span>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 14 }}>
-        {articles.map(a => <article key={a.id} style={{ ...panel, padding: 14, display: "flex", flexDirection: "column", gap: 5, boxShadow: "0 10px 28px #0002" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,280px),1fr))", gap: 18, alignItems: "stretch" }}>
+        {articles.map(a => <article key={a.id} style={{ ...panel, padding: 14, display: "flex", flexDirection: "column", gap: 10, minWidth: 0, overflow: "hidden", boxShadow: "0 10px 28px #0002" }}>
           <img src={a.image_url} alt={a.title} style={{ width: "100%", height: 170, objectFit: "cover", borderRadius: 12 }} />
-          <h3 style={{ margin: "10px 0 4px", lineHeight: 1.8 }}>{a.title}</h3><p style={{ color: "#c8bfd3", whiteSpace: "pre-wrap", lineHeight: 1.9, margin: "0 0 6px" }}>{a.excerpt || a.content.slice(0, 150)}</p>
+          <h3 style={{ display: "block", margin: "6px 0 0", lineHeight: 1.8, fontSize: 18, overflowWrap: "anywhere", color: "#fff" }}>{a.title}</h3><p style={{ display: "block", color: "#c8bfd3", whiteSpace: "pre-wrap", overflowWrap: "anywhere", lineHeight: 2, margin: 0, fontSize: 14 }}>{a.excerpt || a.content.slice(0, 150)}</p>
           <p><span style={{ color: a.is_published ? "#83e4b2" : "#edc77c" }}>{a.is_published ? "منتشرشده" : "پیش‌نویس"}</span></p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}><button onClick={() => edit(a)} style={{ padding: 8, borderRadius: 8 }}>ویرایش</button><button onClick={() => void toggle(a)} style={{ padding: 8, borderRadius: 8 }}>{a.is_published ? "پنهان‌کردن" : "انتشار"}</button><button onClick={() => void remove(a)} style={{ padding: 8, borderRadius: 8, color: "#a11" }}>حذف</button>{a.is_published && <a href={"/magazine/" + encodeURIComponent(a.slug)} style={{ padding: 8, color: "#d7baff" }}>نمایش مطلب</a>}</div>
         </article>)}
