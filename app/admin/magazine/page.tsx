@@ -23,6 +23,7 @@ export default function AdminMagazine() {
   function reset() { setForm(empty); setEditId(""); setImage(null); setCurrentImage(""); const input = document.getElementById("magazine-image") as HTMLInputElement | null; if (input) input.value = ""; }
   async function save(e: FormEvent) {
     e.preventDefault(); if (busy) return;
+    if (!editId && articles.length >= 5) { setMessage("حداکثر ۵ مطلب برای مجله مجاز است. ابتدا یکی از مطالب قبلی را حذف کنید."); return; }
     if (!editId && !image) { setMessage("برای مطلب جدید یک تصویر انتخاب کنید."); return; }
     setBusy(true); setMessage("");
     try {
@@ -73,16 +74,16 @@ export default function AdminMagazine() {
         <label>متن کامل مطلب<textarea required rows={10} style={field} value={form.content} onChange={e => setForm(x => ({ ...x, content: e.target.value }))} placeholder="متن مقاله را بنویسید. فاصله‌ها و خط‌های جدید حفظ می‌شوند." /></label>
         <label>تصویر کاور (حداکثر ۸ مگابایت){currentImage && <img src={currentImage} alt="تصویر فعلی" style={{ display: "block", width: 180, height: 120, objectFit: "cover", borderRadius: 12, marginTop: 8 }} />}<input id="magazine-image" type="file" accept="image/*" style={{ ...field, padding: 8 }} onChange={e => setImage(e.target.files?.[0] || null)} />{editId && <small style={{ color: "#b9afc7" }}>اگر تصویر جدیدی انتخاب نکنی، تصویر فعلی باقی می‌ماند.</small>}</label>
         <label style={{ display: "flex", gap: 10, alignItems: "center" }}><input type="checkbox" checked={form.is_published} onChange={e => setForm(x => ({ ...x, is_published: e.target.checked }))} /> انتشار در سایت (نمایش در مجلهٔ صفحهٔ اصلی)</label>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button disabled={busy} style={{ border: 0, borderRadius: 10, padding: "12px 20px", background: "#c8a5ff", color: "#160d22", fontWeight: 700, cursor: "pointer" }}>{busy ? "در حال ذخیره..." : "ذخیره مطلب"}</button>{editId && <button type="button" onClick={reset} style={{ borderRadius: 10, padding: "12px 20px", background: "transparent", color: "#fff", border: "1px solid #655777" }}>لغو ویرایش</button>}</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button disabled={busy || (!editId && articles.length >= 5)} style={{ border: 0, borderRadius: 10, padding: "12px 20px", background: "#c8a5ff", color: "#160d22", fontWeight: 700, cursor: "pointer" }}>{busy ? "در حال ذخیره..." : (!editId && articles.length >= 5 ? "ظرفیت ۵ مطلب تکمیل است" : "ذخیره مطلب")}</button>{editId && <button type="button" onClick={reset} style={{ borderRadius: 10, padding: "12px 20px", background: "transparent", color: "#fff", border: "1px solid #655777" }}>لغو ویرایش</button>}</div>
       </form>
     </section>
     <section style={{ marginTop: 30 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
-        <div><h2 style={{ margin: 0 }}>صفحه‌های مجله</h2><p style={{ color: "#bdb1ca", margin: "6px 0 0" }}>مطالب را ویرایش کن، موقتاً پنهان کن یا حذف کن.</p></div>
+        <div><h2 style={{ display: "block", margin: 0, fontSize: 23, lineHeight: 1.7, color: "#fff" }}>صفحه‌های مجله</h2><p style={{ display: "block", color: "#bdb1ca", margin: "6px 0 0", lineHeight: 1.9 }}>مطالب را ویرایش کن، موقتاً پنهان کن یا حذف کن. حداکثر ۵ مطلب قابل ثبت است.</p></div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span style={{ border: "1px solid #3b755e", color: "#9ae5bd", borderRadius: 10, padding: "8px 11px" }}>منتشرشده: {articles.filter(a=>a.is_published).length.toLocaleString("fa-IR")}</span>
           <span style={{ border: "1px solid #66543a", color: "#f0d28e", borderRadius: 10, padding: "8px 11px" }}>پیش‌نویس: {articles.filter(a=>!a.is_published).length.toLocaleString("fa-IR")}</span>
-          <span style={{ border: "1px solid #645675", color: "#e6d9f4", borderRadius: 10, padding: "8px 11px" }}>مجموع: {articles.length.toLocaleString("fa-IR")}</span>
+          <span style={{ border: "1px solid #645675", color: "#e6d9f4", borderRadius: 10, padding: "8px 11px" }}>مجموع: {articles.length.toLocaleString("fa-IR")} از ۵</span>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,280px),1fr))", gap: 18, alignItems: "stretch" }}>
