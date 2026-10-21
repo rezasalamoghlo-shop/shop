@@ -29,6 +29,12 @@ export async function POST(request: Request) {
   if (file instanceof File && file.size > 8 * 1024 * 1024) return NextResponse.json({ error: "حجم تصویر باید کمتر از ۸ مگابایت باشد." }, { status: 400 });
   if (file instanceof File && file.size && !file.type.startsWith("image/")) return NextResponse.json({ error: "فایل انتخاب‌شده باید تصویر باشد." }, { status: 400 });
   const s = db();
+  const s = db();
+  if (!id) {
+    const { count, error: countError } = await s.from("magazine_articles").select("id", { count: "exact", head: true });
+    if (countError) return NextResponse.json({ error: "بررسی تعداد مطالب انجام نشد؛ دوباره تلاش کنید." }, { status: 500 });
+    if ((count || 0) >= 5) return NextResponse.json({ error: "حداکثر ۵ مطلب برای مجله مجاز است. برای افزودن مطلب جدید، ابتدا یکی از مطالب قبلی را حذف کنید." }, { status: 400 });
+  }
   let previous: any = null;
   if (id) {
     const old = await s.from("magazine_articles").select("*").eq("id", id).maybeSingle();
