@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     if (!data) return NextResponse.json({ error: "مطلب پیدا نشد." }, { status: 404 });
     return NextResponse.json({ article: data });
   }
-  const { data, error } = await s.from("magazine_articles").select("id,title,slug,excerpt,image_url,created_at").eq("is_published", true).order("created_at", { ascending: false });
+  const { data, error } = await s.from("magazine_articles").select("id,title,slug,excerpt,content,image_url,created_at").eq("is_published", true).order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: "دریافت مجله انجام نشد." }, { status: 500 });
   return NextResponse.json({ articles: data || [] });
 }
