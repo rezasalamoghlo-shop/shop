@@ -619,9 +619,10 @@ async function updateOrder(id: string, status: string) {
           <h1>پنل مدیریت عطر کهکشان</h1>
         </div>
         <div>
-          <a className="outline" href="#shipping-settings">مدیریت روش‌های ارسال</a>
+          <a className="outline" href="/admin" aria-current="page">مدیریت فروشگاه</a>
           <a className="outline" href="/admin/magazine">مدیریت مجله</a>
-          <a className="outline" href="/">فروشگاه</a>
+          <a className="outline" href="/" target="_blank" rel="noreferrer">مشاهده فروشگاه ↗</a>
+          <a className="outline" href="#shipping-settings">تنظیمات ارسال</a>
           <button
             className="logout"
             onClick={async () => {
