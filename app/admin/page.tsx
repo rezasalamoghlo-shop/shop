@@ -620,6 +620,7 @@ async function updateOrder(id: string, status: string) {
         </div>
         <div>
           <a className="outline" href="#shipping-settings">مدیریت روش‌های ارسال</a>
+          <a className="outline" href="/admin/magazine">مدیریت مجله</a>
           <a className="outline" href="/">فروشگاه</a>
           <button
             className="logout"
