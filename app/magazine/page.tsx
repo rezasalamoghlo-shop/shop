@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import MagazineCarousel from "./magazine-carousel";
 export const metadata: Metadata = { title: "مجله عطر کهکشان | راهنمای عطر و ادکلن", description: "راهنماها و مقاله‌های عطر کهکشان درباره انتخاب رایحه، نت‌های بویایی، ماندگاری عطر و روش استفاده از عطر و ادکلن.", alternates: { canonical: "/magazine" } };
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 export default async function MagazinePage() {
   const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const { data } = await s.from("magazine_articles").select("id,title,slug,excerpt,image_url,created_at").eq("is_published", true).order("created_at", { ascending: false });
