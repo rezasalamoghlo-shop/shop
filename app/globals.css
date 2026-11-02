@@ -456,3 +456,68 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @keyframes galaxy-bottle-to-cart{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-18deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(12deg)}65%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--flight-x)),calc(-50% + var(--flight-y))) scale(.2) rotate(360deg)}}
 @keyframes galaxy-flight-spark{from{opacity:.35;transform:scale(.7) rotate(-15deg)}to{opacity:1;transform:scale(1.2) rotate(20deg)}}
 @media(prefers-reduced-motion:reduce){.cart-flight-bottle,.cart-flight-bottle i{animation:none!important;opacity:0!important}}
+
+
+/* Luxury editorial + layered 3D storefront refresh */
+:root{--galaxy-ink:#071629;--galaxy-blue:#102842;--galaxy-gold:#d7b66a;--galaxy-ice:#b8d5e9}
+body{background:#07111e;color:#f6f0e4}
+header{background:linear-gradient(180deg,#07111eef,#091a2be8);border-bottom:1px solid #d8b96b38;box-shadow:0 12px 38px #02071155}
+.brand{color:#e7cc8b}.brand small{color:#a9c2d7}
+.hero{min-height:min(790px,calc(100svh - 76px));display:flex;align-items:center;justify-content:flex-start;text-align:right;padding:54px max(6vw,24px);isolation:isolate;background:radial-gradient(ellipse at 36% 47%,#294c69 0,#142d46 28%,#091a2d 59%,#050d18 100%);perspective:1400px}
+.hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,#06101b88 0%,transparent 42%,#06101b99 100%),radial-gradient(ellipse at 75% 10%,#d3b46b17,transparent 34%);pointer-events:none}
+.hero:after{width:min(62vw,780px);height:min(62vw,780px);left:8%;top:5%;border-color:#d8bd7a22;box-shadow:0 0 100px #75a8d51b;animation:hero-orbit 28s linear infinite}
+.hero-copy{position:relative;z-index:4;width:min(48%,590px);margin-inline-start:auto;padding:58px 0;text-align:right}
+.hero-copy>span{color:#e4c77f;letter-spacing:5px;font-size:11px}
+.hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(48px,8.2vw,112px);line-height:1.05;letter-spacing:-2px;margin:18px 0 22px;background:linear-gradient(120deg,#fff8e8 5%,#e2c578 48%,#a9c6d9 90%);-webkit-background-clip:text;color:transparent;text-shadow:none}
+.hero p{max-width:490px;margin:0 0 28px;color:#c5d1db;line-height:2.2;font-size:14px}
+.hero .gold{border-radius:999px;min-width:170px;background:linear-gradient(115deg,#fff0c3,#d8b66a 48%,#9f7838);box-shadow:0 12px 35px #d0aa5938,inset 0 1px #fff9}
+.hero-address{color:#e2c77e;text-shadow:0 0 18px #d4b66a55}
+.hero-featured-bottle{position:absolute;z-index:3;left:9%;top:50%;width:min(42vw,520px);height:min(65vh,570px);transform:translateY(-50%);display:grid;place-items:center;perspective:1100px;pointer-events:none}
+.hero-bottle-halo{position:absolute;width:86%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#9ecbe955 0,#6b9cbd22 38%,transparent 70%);filter:blur(20px);animation:hero-halo 5s ease-in-out infinite}
+.hero-bottle-frame{position:relative;width:100%;height:100%;transform-style:preserve-3d;transform:rotateY(-17deg) rotateX(5deg);animation:hero-bottle-float 7s ease-in-out infinite;filter:drop-shadow(22px 38px 28px #020812aa) drop-shadow(0 0 28px #a8d8ef25)}
+.hero-bottle-frame:before{content:"";position:absolute;z-index:2;inset:8% 15%;border:1px solid #e6d19a3b;border-radius:45% 45% 34% 34%;box-shadow:inset 0 0 30px #d8e9ff16,0 0 45px #8eb8d522;transform:translateZ(28px);pointer-events:none}
+.hero-bottle-frame img{object-fit:contain;padding:5%;filter:saturate(.88) contrast(1.08);transform:translateZ(32px)}
+.hero-bottle-placeholder{position:absolute;inset:20%;display:grid;place-content:center;text-align:center;border:1px solid #d7bd7955;border-radius:42% 42% 30% 30%;background:linear-gradient(145deg,#8eb4ca88,#0c233c 42%,#020a13);box-shadow:inset 0 0 35px #fff2,0 30px 80px #0009;transform:rotateY(-18deg)}
+.hero-bottle-placeholder span{font-size:100px;color:#e5ca82}.hero-bottle-placeholder small{letter-spacing:5px;color:#f4e8c7}
+.hero-bottle-caption{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);font:600 10px "Cormorant Garamond";letter-spacing:4px;color:#d8c28d;text-shadow:0 2px 8px #000}
+.milky-galaxy{opacity:.56;mix-blend-mode:screen}
+.galaxy-core{background:radial-gradient(circle,#fff 0,#d8efff 5%,#7ba7c8 13%,#315b7d 27%,#16324d 43%,transparent 69%);box-shadow:0 0 35px #fff,0 0 90px #7eb5d8aa,0 0 170px #3977a855}
+.galaxy-star{box-shadow:0 0 6px #fff,0 0 14px #9ac9e8}
+.intro{position:relative;max-width:1100px;margin:44px auto 20px;padding:90px 30px 100px;text-align:center;border-top:1px solid #d8bd7a25;border-bottom:1px solid #d8bd7a25;background:radial-gradient(ellipse at 50% 50%,#15324d88,transparent 68%)}
+.intro:before,.intro:after{content:"✦";position:absolute;color:#d8bd7a88;font-size:24px;top:50%;text-shadow:0 0 25px #d8bd7a66}
+.intro:before{right:4%}.intro:after{left:4%}
+.intro h2,.section-head h2,.support h2{font-family:"Cormorant Garamond","Vazirmatn",serif;color:#e6cc8b;text-shadow:0 8px 32px #d3b46b1e}
+.intro p,.support p{color:#b5c3d0}
+.catalog{max-width:1320px;padding-top:90px;padding-bottom:110px}
+.section-head{align-items:center;border-bottom:1px solid #d8bd7a2a;padding-bottom:20px}
+.section-head>b{border:1px solid #d8bd7a44;border-radius:999px;padding:8px 14px;color:#e3ca8b}
+.section-head span,.support>div>span{color:#d9bd79}
+.card{background:linear-gradient(155deg,#142b41,#081725 75%);border:1px solid #9cb8ca24;border-radius:6px;box-shadow:0 22px 48px #02091488,inset 0 1px #fff1;transform-style:preserve-3d;perspective:900px}
+.card:hover{transform:translateY(-12px) rotateX(2deg) rotateY(-1deg);border-color:#d8bd7a88;box-shadow:0 34px 65px #020914aa,0 0 30px #8db9d51a}
+.photo{height:310px;background:radial-gradient(ellipse at 50% 38%,#31516a,#10283e 58%,#071523);transform:translateZ(18px);box-shadow:inset 0 -22px 35px #02091455}
+.photo:after{border-radius:48%;border-color:#d8bd7a2c;inset:12% 18%;box-shadow:0 0 35px #a9cde01a}
+.photo img{filter:drop-shadow(0 24px 25px #0009)}
+.card h3{color:#f1e3c2}.card p{color:#afbfcd}
+.size-picker select,.search-box,.category-tabs button{background:#0c1e30;color:#e8e0d1;border-color:#526d82}
+.category-tabs button.active,.row button{background:linear-gradient(120deg,#d7b66a,#9f7838);color:#111925;border-color:#ead18f}
+.price-area strong{color:#e5c77e}
+.support{background:linear-gradient(120deg,#17324b,#091a2b);border:1px solid #d8bd7a44;box-shadow:0 30px 80px #02091499,inset 0 1px #fff1;border-radius:5px}
+footer{color:#d8bd7a;border-color:#d8bd7a22}
+@keyframes hero-bottle-float{0%,100%{transform:translateY(0) rotateY(-17deg) rotateX(5deg)}50%{transform:translateY(-18px) rotateY(-10deg) rotateX(2deg)}}
+@keyframes hero-halo{50%{transform:scale(1.13);opacity:.72}}
+@keyframes hero-orbit{to{transform:rotate(360deg)}}
+@media(max-width:760px){
+ .hero{min-height:760px;align-items:flex-start;padding:28px 20px 44px;justify-content:center}
+ .hero-copy{width:100%;margin:0;padding:34px 6px 0;text-align:center}
+ .hero h1{font-size:clamp(44px,13vw,72px);margin:10px 0}
+ .hero p{font-size:12px;margin:0 auto 18px;max-width:420px}
+ .hero-featured-bottle{top:auto;bottom:2%;left:50%;width:min(78vw,390px);height:48%;transform:translateX(-50%);opacity:.92}
+ .hero-bottle-frame{transform:rotateY(-12deg) rotateX(4deg)}
+ .hero-bottle-caption{bottom:0;font-size:8px}
+ .hero-address{font-size:12px}
+ .intro{margin:24px 14px;padding:62px 22px}
+ .intro:before{right:3%}.intro:after{left:3%}
+ .catalog{padding:65px 14px}.photo{height:230px}
+}
+@media(max-width:420px){.hero{min-height:700px}.hero-featured-bottle{height:43%;width:82vw}.photo{height:190px}}
+@media(prefers-reduced-motion:reduce){.hero-bottle-frame,.hero-bottle-halo,.hero:after{animation:none!important}}
