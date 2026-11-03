@@ -456,3 +456,9 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @keyframes galaxy-bottle-to-cart{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-18deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(12deg)}65%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--flight-x)),calc(-50% + var(--flight-y))) scale(.2) rotate(360deg)}}
 @keyframes galaxy-flight-spark{from{opacity:.35;transform:scale(.7) rotate(-15deg)}to{opacity:1;transform:scale(1.2) rotate(20deg)}}
 @media(prefers-reduced-motion:reduce){.cart-flight-bottle,.cart-flight-bottle i{animation:none!important;opacity:0!important}}
+
+
+/* Decorative WebGL galaxy layer. Storefront content remains interactive above it. */
+.galaxy-webgl-background{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.38;mix-blend-mode:screen}
+.galaxy-content{position:relative;z-index:1;isolation:isolate}
+@media(prefers-reduced-motion:reduce){.galaxy-webgl-background{display:none}}
