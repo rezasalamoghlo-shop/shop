@@ -13,7 +13,7 @@ varying vec3 vColor;
 void main(){
   vec3 p=a.xyz;
   float seed=a.w;
-  float angle=uTime*0.018*(0.35+seed)+p.z*0.025;
+  float angle=uTime*0.018*(0.35+seed)+p.z*0.025+uScroll*2.4;
   p.xy=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*p.xy;
   p.z=mod(p.z+uScroll*42.0,110.0)-110.0;
   float depth=-p.z;
