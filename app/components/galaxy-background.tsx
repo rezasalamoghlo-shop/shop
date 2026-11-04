@@ -111,7 +111,9 @@ export default function GalaxyBackground(){
     };
     const start=()=>{if(disposed||!visible||!inViewport||reduced.matches||frame)return;frame=window.requestAnimationFrame(draw);};
     const stop=()=>{if(frame){window.cancelAnimationFrame(frame);frame=0;}};
-    const onVisibility=()=>{visible=!document.hidden;if(visible)start();else stop();};\n    const observer=new IntersectionObserver(entries=>{inViewport=Boolean(entries[0]?.isIntersecting);if(inViewport)start();else stop();},{threshold:0.01});\n    observer.observe(canvas);
+    const onVisibility=()=>{visible=!document.hidden;if(visible)start();else stop();};
+    const observer=new IntersectionObserver(entries=>{inViewport=Boolean(entries[0]?.isIntersecting);if(inViewport)start();else stop();},{threshold:0.01});
+    observer.observe(canvas);
     const onMotion=()=>{if(reduced.matches){stop();gl.clear(gl.COLOR_BUFFER_BIT);}else start();};
     const onContextLost=(event:Event)=>{event.preventDefault();stop();};
     resize();updateScroll();
@@ -127,7 +129,8 @@ export default function GalaxyBackground(){
       window.removeEventListener("scroll",updateScroll);
       document.removeEventListener("visibilitychange",onVisibility);
       reduced.removeEventListener?.("change",onMotion);
-      canvas.removeEventListener("webglcontextlost",onContextLost);\n      observer.disconnect();
+      canvas.removeEventListener("webglcontextlost",onContextLost);
+      observer.disconnect();
       gl.deleteBuffer(buffer);gl.deleteProgram(program);
     };
   },[]);
