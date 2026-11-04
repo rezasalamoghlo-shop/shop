@@ -597,7 +597,7 @@ async function updateOrder(id: string, status: string) {
       discount_start: "",
       discount_end: "",
       category_ids: (product.category_ids || []).map((item: any) => item.category_id || item),
-      sizes: (product.sizes || []).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml ?? 100)&&[10,20,30,40,50].includes(Number(z.size_ml))).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
+      sizes: (product.sizes || []).filter((z:any)=>Number(z.size_ml)>0&&Number(z.size_ml)<Number(product.full_size_ml ?? 100)).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
     });
     setImage(null);
     if (cropSource) URL.revokeObjectURL(cropSource);
