@@ -45,7 +45,8 @@ export default function Admin() {
     category_ids: [],
     sizes: [],
   });
-  const [image, setImage] = useState<File | null>(null);\n  const [sizeDraft, setSizeDraft] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [sizeDraft, setSizeDraft] = useState("");
   const [imageInputKey, setImageInputKey] = useState(0);
   const [message, setMessage] = useState("");
   const [action, setAction] = useState("");
