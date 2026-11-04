@@ -536,3 +536,9 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @media(max-width:900px){.hero-product-art{top:53%;opacity:.9}.galaxy-feature-card{min-height:280px}}
 @media(max-width:560px){.hero-product-art{top:43%;width:220px;height:300px;opacity:.86}.hero-copy p{margin-top:190px}.galaxy-feature-card{min-height:230px;padding:16px 9px}.galaxy-feature-card b{font-size:16px}.galaxy-feature-card small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.hero-bottle-fallback{animation:none!important}}
+
+/* Ensure card photography sits above the card surface and below its text. */
+.galaxy-feature-card>img{z-index:0!important}
+.galaxy-feature-card:before{z-index:1}
+.galaxy-feature-card:after{z-index:2}
+.galaxy-feature-card>*:not(img){z-index:3}
