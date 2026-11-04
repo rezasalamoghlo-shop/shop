@@ -542,3 +542,52 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .galaxy-feature-card:before{z-index:1}
 .galaxy-feature-card:after{z-index:2}
 .galaxy-feature-card>*:not(img){z-index:3}
+
+
+/* Galaxy assets: section backgrounds, dual hero bottles, and image-led support cards */
+.hero{isolation:isolate;min-height:min(880px,88svh)}
+.hero-copy{z-index:3;width:min(100%,920px)}
+.hero-perfume{position:absolute;z-index:2;top:51%;width:clamp(145px,18vw,250px);height:clamp(300px,55vh,560px);transform:translateY(-50%);pointer-events:none;filter:drop-shadow(0 24px 34px #8e42c477)}
+.hero-perfume img{object-fit:contain!important;object-position:center!important;mix-blend-mode:normal!important}
+.hero-perfume-left{left:clamp(12px,5vw,88px);animation:galaxy-bottle-float 7.2s ease-in-out infinite}
+.hero-perfume-right{right:clamp(12px,5vw,88px);animation:galaxy-bottle-float 8.1s ease-in-out -1.8s infinite}
+.galaxy-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.galaxy-feature-card{background-size:cover;background-position:center;background-repeat:no-repeat}
+.galaxy-feature-card.feature-store{background-image:linear-gradient(180deg,#09071135,#090711e8),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-store.webp")}
+.galaxy-feature-card.feature-special{background-image:linear-gradient(180deg,#09071125,#090711e8),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-signature.webp")}
+.galaxy-feature-card.feature-magazine{background-image:linear-gradient(180deg,#09071125,#090711e8),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-magazine.webp")}
+.intro{position:relative;isolation:isolate;max-width:980px;width:calc(100% - 36px);min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #b58be844;border-radius:28px;overflow:hidden;background:linear-gradient(180deg,#0a0710a8,#0a0710d9),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-signature.webp") center/cover no-repeat;box-shadow:0 22px 65px #0006}
+.catalog{position:relative;isolation:isolate;border:1px solid #9d7bce33;border-radius:28px;overflow:hidden;background:linear-gradient(180deg,#08070dd9,#08070df2),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-store.webp") center/cover no-repeat}
+.special-perfume{position:relative;isolation:isolate;max-width:1250px;margin:clamp(38px,6vw,76px) auto;padding:clamp(24px,4vw,48px);border:1px solid #b17ce955;border-radius:28px;overflow:hidden;background:linear-gradient(105deg,#090711e8,#10091ad9 55%,#090711e8),url("https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-robot.webp") center/cover no-repeat;box-shadow:0 22px 65px #0007}
+.galaxy-contact-section{padding:clamp(28px,4vw,48px);border:1px solid #9f78c944;border-radius:28px;background:radial-gradient(ellipse at 50% 0,#28173e88,transparent 60%),linear-gradient(180deg,#100c18,#09070e);box-shadow:0 22px 65px #0007}
+.galaxy-support-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,2vw,22px)}
+.galaxy-support-card{position:relative;display:block;min-width:0;min-height:235px;aspect-ratio:1.22/1;overflow:hidden;border:1px solid #b68bdb66;border-radius:22px;background:#100c18;box-shadow:inset 0 1px #fff2,0 16px 38px #0008;isolation:isolate;transition:transform .35s,border-color .35s,box-shadow .35s}
+.galaxy-support-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 32%;transform:scale(1.04);transition:transform .55s,filter .35s;filter:brightness(.8) saturate(.95)}
+.galaxy-support-card-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#08050b00 18%,#08050b1a 42%,#08050be8 100%)}
+.galaxy-support-card-copy{position:absolute;z-index:2;right:14px;left:14px;bottom:17px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;color:#fff}
+.galaxy-support-card-copy b{font-size:clamp(16px,1.5vw,21px);font-weight:800;color:#f4dca4;text-shadow:0 2px 12px #000}
+.galaxy-support-card-copy small{font-size:11px;line-height:1.7;color:#eee4f4;overflow-wrap:anywhere}
+.galaxy-support-card-arrow{position:absolute;z-index:2;top:12px;left:12px;width:32px;height:32px;display:grid;place-items:center;border:1px solid #f0d59b88;border-radius:50%;background:#0a0710a8;color:#f5d78d;font-size:18px}
+.galaxy-support-card:hover{transform:translateY(-7px);border-color:#e5c17b;box-shadow:0 24px 48px #000a,0 0 25px #a56bd455}
+.galaxy-support-card:hover img{transform:scale(1.1);filter:brightness(.96) saturate(1.08)}
+.galaxy-support-card.is-disabled{cursor:default;opacity:.78}
+.galaxy-support-card.is-disabled .galaxy-support-card-arrow{display:none}
+@media(max-width:900px){.galaxy-support-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-support-card{min-height:210px}.special-perfume{margin-left:18px;margin-right:18px}}
+@media(max-width:560px){
+  .hero{min-height:720px}
+  .hero-copy{padding:58px 16px 205px}
+  .hero-perfume{top:auto;bottom:8px;width:clamp(95px,25vw,132px);height:205px;transform:none;opacity:.94}
+  .hero-perfume-left{left:0}
+  .hero-perfume-right{right:0}
+  .galaxy-feature-grid{grid-template-columns:1fr;gap:13px}
+  .galaxy-feature-card{min-height:190px}
+  .intro{min-height:220px;padding:55px 18px}
+  .catalog{padding:68px 12px}
+  .special-perfume{padding:20px 14px;margin:34px 12px}
+  .galaxy-contact-section{width:calc(100% - 24px);padding:22px 12px}
+  .galaxy-support-grid{gap:10px}
+  .galaxy-support-card{min-height:170px;border-radius:16px}
+  .galaxy-support-card-copy{bottom:11px;right:8px;left:8px}
+  .galaxy-support-card-copy b{font-size:15px}
+  .galaxy-support-card-copy small{font-size:10px}
+}
