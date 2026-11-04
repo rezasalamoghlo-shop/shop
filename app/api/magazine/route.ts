@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 export const revalidate = 60;
 export async function GET(request: Request) {
-  const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
   const slug = new URL(request.url).searchParams.get("slug");
   if (slug) {
     const { data, error } = await s.from("magazine_articles").select("id,title,slug,excerpt,content,image_url,created_at,updated_at").eq("slug", slug).eq("is_published", true).maybeSingle();

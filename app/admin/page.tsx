@@ -46,6 +46,7 @@ export default function Admin() {
     sizes: [],
   });
   const [image, setImage] = useState<File | null>(null);
+  const [sizeDraft, setSizeDraft] = useState("");
   const [imageInputKey, setImageInputKey] = useState(0);
   const [message, setMessage] = useState("");
   const [action, setAction] = useState("");
@@ -229,7 +230,7 @@ export default function Admin() {
     if (fullMl <= 0 || perMl <= 0 || fullPrice <= 0) { setMessage("حجم بطری و قیمت هر میل باید بیشتر از صفر باشند."); return; }
     for (const z of form.sizes || []) {
       const size = priceNumber(z.size_ml);
-      if (![10, 20, 30, 40, 50].includes(size) || size >= fullMl || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100) {
+      if (!Number.isInteger(size) || size <= 0 || size >= fullMl || Number(z.discount_percent) < 0 || Number(z.discount_percent) > 100 || (form.sizes || []).filter((item:any)=>Number(item.size_ml)===size).length > 1) {
         setMessage("اندازه‌های قابل فروش یا درصد تخفیف معتبر نیستند.");
         return;
       }
@@ -270,7 +271,7 @@ export default function Admin() {
       body.append("category_ids", JSON.stringify(form.category_ids || []));
       const savedSizes = (form.sizes || []).map((z:any) => {
         const size = priceNumber(z.size_ml);
-        return { size_ml: size, price: perMl * size, discount_percent: Number(z.discount_percent) || 0, stock: Math.floor(totalMl / Math.max(1, size)), is_active: true };
+        return { size_ml: size, price: priceNumber(z.price) || perMl * size, discount_percent: Number(z.discount_percent) || 0, stock: Math.floor(totalMl / Math.max(1, size)), is_active: z.is_active !== false };
       });
       savedSizes.push({ size_ml: fullMl, price: fullPrice, discount_percent: Number(form.discount_percent) || 0, stock: Math.floor(totalMl / Math.max(1, fullMl)), is_active: form.full_size_active !== false });
       body.append("sizes_json", JSON.stringify(savedSizes));
@@ -596,7 +597,7 @@ async function updateOrder(id: string, status: string) {
       discount_start: "",
       discount_end: "",
       category_ids: (product.category_ids || []).map((item: any) => item.category_id || item),
-      sizes: (product.sizes || []).filter((z:any)=>Number(z.size_ml)<Number(product.full_size_ml ?? 100)&&[10,20,30,40,50].includes(Number(z.size_ml))).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
+      sizes: (product.sizes || []).filter((z:any)=>Number(z.size_ml)>0&&Number(z.size_ml)<Number(product.full_size_ml ?? 100)).map((z:any)=>({size_ml:String(z.size_ml),price:faPrice(z.price),discount_percent:String(z.discount_percent??0),stock:String(z.stock??0),is_active:z.is_active!==false})),
     });
     setImage(null);
     if (cropSource) URL.revokeObjectURL(cropSource);
@@ -881,14 +882,19 @@ async function updateOrder(id: string, status: string) {
             </label>}
             <div className="size-admin">
               <div className="size-admin-head"><div style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:8}}><b>فروش میلی</b><small style={{display:"block",lineHeight:1.9}}>فقط اندازه‌های تیک‌خورده در سایت نمایش داده می‌شوند. قیمت هر اندازه از قیمت هر میل محاسبه می‌شود.</small></div></div>
-              {[10,20,30,40,50].filter(size=>size<(Number(form.full_size_ml)||100)).map(size=>{
-                const chosen=(form.sizes||[]).find((z:any)=>Number(z.size_ml)===size);
+              <div className="size-admin-add">
+                <label>حجم جدید (میل)
+                  <input type="number" min="1" max={Math.max(1,(Number(form.full_size_ml)||100)-1)} step="1" value={sizeDraft} onChange={event=>setSizeDraft(event.target.value)} placeholder="مثلاً ۷۵"/>
+                </label>
+                <button type="button" className="outline" disabled={!Number.isInteger(Number(sizeDraft))||Number(sizeDraft)<=0||Number(sizeDraft)>=(Number(form.full_size_ml)||100)||(form.sizes||[]).some((z:any)=>Number(z.size_ml)===Number(sizeDraft))} onClick={()=>{const size=Number(sizeDraft);updateForm("sizes",[...(form.sizes||[]),{size_ml:String(size),price:String(priceNumber(form.price_per_ml)*size),discount_percent:"0",is_active:true}].sort((a:any,b:any)=>Number(a.size_ml)-Number(b.size_ml)));setSizeDraft("")}}>افزودن حجم</button>
+              </div>
+              {(form.sizes||[]).slice().sort((a:any,b:any)=>Number(a.size_ml)-Number(b.size_ml)).map((chosen:any)=>{
+                const size=Number(chosen.size_ml);
                 return <div className="size-admin-row" key={size}>
-                  <label className="category-check"><input type="checkbox" checked={Boolean(chosen)} onChange={event=>{
-                    const current=(form.sizes||[]).filter((z:any)=>Number(z.size_ml)!==size);
-                    updateForm("sizes",event.target.checked?[...current,{size_ml:String(size),discount_percent:"0",is_active:true}]:current);
-                  }}/><span>{size} میل</span></label>
-                  {chosen&&<><span>قیمت پایه: {faPrice(priceNumber(form.price_per_ml)*size)} تومان</span><label>تخفیف (%)<input inputMode="numeric" value={chosen.discount_percent??"0"} onChange={event=>updateForm("sizes",(form.sizes||[]).map((z:any)=>Number(z.size_ml)===size?{...z,discount_percent:event.target.value}:z))}/></label></>}
+                  <label className="category-check"><input type="checkbox" checked={chosen.is_active!==false} onChange={event=>updateForm("sizes",(form.sizes||[]).map((z:any)=>Number(z.size_ml)===size?{...z,is_active:event.target.checked}:z))}/><span>{size} میل</span></label>
+                  <label>قیمت این حجم (تومان)<input inputMode="numeric" value={faPrice(chosen.price||priceNumber(form.price_per_ml)*size)} onChange={event=>updateForm("sizes",(form.sizes||[]).map((z:any)=>Number(z.size_ml)===size?{...z,price:priceNumber(event.target.value)}:z))}/></label>
+                  <label>تخفیف (%)<input inputMode="numeric" value={chosen.discount_percent??"0"} onChange={event=>updateForm("sizes",(form.sizes||[]).map((z:any)=>Number(z.size_ml)===size?{...z,discount_percent:event.target.value}:z))}/></label>
+                  <button type="button" className="size-remove" aria-label={"حذف حجم "+size+" میل"} onClick={()=>updateForm("sizes",(form.sizes||[]).filter((z:any)=>Number(z.size_ml)!==size))}>حذف</button>
                 </div>;
               })}
             </div>

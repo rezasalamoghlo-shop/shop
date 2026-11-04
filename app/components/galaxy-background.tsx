@@ -86,7 +86,7 @@ export default function GalaxyBackground(){
     const scrollLocation=gl.getUniformLocation(program,"uScroll");
     const aspectLocation=gl.getUniformLocation(program,"uAspect");
     const pixelLocation=gl.getUniformLocation(program,"uPixelRatio");
-    let frame=0,started=0,scroll=0,visible=!document.hidden,disposed=false;
+    let frame=0,started=0,scroll=0,visible=!document.hidden,disposed=false,inViewport=true;
 
     const resize=()=>{
       const ratio=Math.min(window.devicePixelRatio||1,1.5);
@@ -101,7 +101,7 @@ export default function GalaxyBackground(){
       scroll=max>0?Math.max(0,Math.min(1,window.scrollY/max)):0;
     };
     const draw=(now:number)=>{
-      if(disposed||!visible||reduced.matches)return;
+      if(disposed||!visible||!inViewport||reduced.matches)return;
       if(!started) started=now;
       gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(timeLocation,(now-started)/1000);
@@ -109,9 +109,11 @@ export default function GalaxyBackground(){
       gl.drawArrays(gl.POINTS,0,count);
       frame=window.requestAnimationFrame(draw);
     };
-    const start=()=>{if(disposed||!visible||reduced.matches||frame)return;frame=window.requestAnimationFrame(draw);};
+    const start=()=>{if(disposed||!visible||!inViewport||reduced.matches||frame)return;frame=window.requestAnimationFrame(draw);};
     const stop=()=>{if(frame){window.cancelAnimationFrame(frame);frame=0;}};
     const onVisibility=()=>{visible=!document.hidden;if(visible)start();else stop();};
+    const observer=new IntersectionObserver(entries=>{inViewport=Boolean(entries[0]?.isIntersecting);if(inViewport)start();else stop();},{threshold:0.01});
+    observer.observe(canvas);
     const onMotion=()=>{if(reduced.matches){stop();gl.clear(gl.COLOR_BUFFER_BIT);}else start();};
     const onContextLost=(event:Event)=>{event.preventDefault();stop();};
     resize();updateScroll();
@@ -128,6 +130,7 @@ export default function GalaxyBackground(){
       document.removeEventListener("visibilitychange",onVisibility);
       reduced.removeEventListener?.("change",onMotion);
       canvas.removeEventListener("webglcontextlost",onContextLost);
+      observer.disconnect();
       gl.deleteBuffer(buffer);gl.deleteProgram(program);
     };
   },[]);
