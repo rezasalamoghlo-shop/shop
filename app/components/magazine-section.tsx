@@ -13,7 +13,7 @@ export default function MagazineSection() {
   const button:React.CSSProperties={border:"1px solid #8b6ca0",borderRadius:11,padding:"10px 15px",background:"#d0adf5",color:"#1b1023",fontWeight:700,cursor:"pointer"};
   function openArticle(a:Article){setSelected(a);setActive(articles.findIndex(x=>x.id===a.id));}
   function closeArticle(){setSelected(null);}
-  return <section id="magazine" dir="rtl" style={{padding:"clamp(30px,5vw,64px) max(16px,calc((100vw - 1180px)/2))",background:"linear-gradient(180deg,#110c19,#1b1126 52%,#100b16)",color:"#fff",scrollMarginTop:20}}>
+  return <section id="magazine" dir="rtl" style={{padding:"clamp(30px,5vw,64px) max(16px,calc((100vw - 1180px)/2))",background:"linear-gradient(180deg,#0c0818d9,#1b1126e8 52%,#100b16e8),url('https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/bg-magazine.webp') center/cover no-repeat",color:"#fff",scrollMarginTop:20}}>
     <div style={{marginBottom:22}}>
       <span style={{color:"#c6a0ef",letterSpacing:3,fontSize:12}}>GALAXY PERFUME JOURNAL</span>
       <h2 style={{fontSize:"clamp(26px,4vw,38px)",margin:"8px 0"}}>مجلهٔ عطر کهکشان</h2>
