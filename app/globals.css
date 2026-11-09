@@ -829,9 +829,9 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .galaxy-orbit-two{width:min(96vw,1300px);height:min(36vw,460px);border-color:#e5c07812;transform:translate(-50%,-50%) rotate(18deg) scaleY(.48);animation-duration:66s;animation-direction:reverse}
 .galaxy-orbit-two:after{left:78%;top:78%;width:3px;height:3px}
 .galaxy-star-layer,.galaxy-gold-drift{position:absolute;inset:0;overflow:hidden}
-.galaxy-star-layer i{position:absolute;left:calc(var(--star-index)*3%);top:calc(var(--star-index)*2.8%);width:2px;height:2px;border-radius:50%;background:#fff;opacity:.35;box-shadow:0 0 7px 2px #c6a4ff;animation:cinemaStarTwinkle 4.2s ease-in-out infinite;animation-delay:calc(var(--star-index)*-.31s)}
+.galaxy-star-layer i{position:absolute;left:0;top:0;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.35;box-shadow:0 0 7px 2px #c6a4ff;animation:cinemaStarTwinkle 4.2s ease-in-out infinite;}
 .galaxy-star-layer i:nth-child(5n){width:3px;height:3px;background:#ffe8b2;box-shadow:0 0 10px 3px #e9bf6a99}
-.galaxy-gold-drift i{position:absolute;left:calc(var(--dust-index)*6.2%);top:calc(var(--dust-index)*6.2%);width:3px;height:3px;border-radius:50%;background:#f0cf7e;box-shadow:0 0 9px 2px #f0cf7e99;opacity:0;animation:cinemaGoldDrift calc(11s + var(--dust-index)*.3s) ease-in-out infinite;animation-delay:calc(var(--dust-index)*-.9s)}
+.galaxy-gold-drift i{position:absolute;left:0;top:0;width:3px;height:3px;border-radius:50%;background:#f0cf7e;box-shadow:0 0 9px 2px #f0cf7e99;opacity:0;animation:cinemaGoldDrift 14s ease-in-out infinite;}
 .galaxy-gold-drift i:nth-child(3n){width:2px;height:2px}
 @keyframes cinemaNebulaBreath{0%{opacity:.55;transform:rotate(-5deg) scale(.98)}100%{opacity:1;transform:rotate(5deg) scale(1.1)}}
 @keyframes cinemaNebulaRotate{from{rotate:0deg}to{rotate:360deg}}
