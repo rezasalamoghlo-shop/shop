@@ -50,6 +50,7 @@ function compileShader(gl: WebGLRenderingContext, type: number, source: string) 
 
 export default function GalaxyBackground(){
   const canvasRef=useRef<HTMLCanvasElement>(null);
+  const sceneRef=useRef<HTMLDivElement>(null);
 
   useEffect(()=>{
     const canvas=canvasRef.current;
@@ -99,6 +100,18 @@ export default function GalaxyBackground(){
     const updateScroll=()=>{
       const max=document.documentElement.scrollHeight-window.innerHeight;
       scroll=max>0?Math.max(0,Math.min(1,window.scrollY/max)):0;
+      sceneRef.current?.style.setProperty("--galaxy-scroll",String(scroll));
+    };
+    const onPointerMove=(event:PointerEvent)=>{
+      if(event.pointerType!=="mouse"||!sceneRef.current)return;
+      const x=(event.clientX/window.innerWidth-.5)*2;
+      const y=(event.clientY/window.innerHeight-.5)*2;
+      sceneRef.current.style.setProperty("--galaxy-pointer-x",String(x));
+      sceneRef.current.style.setProperty("--galaxy-pointer-y",String(y));
+    };
+    const resetPointer=()=>{
+      sceneRef.current?.style.setProperty("--galaxy-pointer-x","0");
+      sceneRef.current?.style.setProperty("--galaxy-pointer-y","0");
     };
     const draw=(now:number)=>{
       if(disposed||!visible||!inViewport||reduced.matches)return;
@@ -119,6 +132,8 @@ export default function GalaxyBackground(){
     resize();updateScroll();
     window.addEventListener("resize",resize,{passive:true});
     window.addEventListener("scroll",updateScroll,{passive:true});
+    window.addEventListener("pointermove",onPointerMove,{passive:true});
+    window.addEventListener("blur",resetPointer);
     document.addEventListener("visibilitychange",onVisibility);
     reduced.addEventListener?.("change",onMotion);
     canvas.addEventListener("webglcontextlost",onContextLost);
@@ -127,6 +142,8 @@ export default function GalaxyBackground(){
       disposed=true;stop();
       window.removeEventListener("resize",resize);
       window.removeEventListener("scroll",updateScroll);
+      window.removeEventListener("pointermove",onPointerMove);
+      window.removeEventListener("blur",resetPointer);
       document.removeEventListener("visibilitychange",onVisibility);
       reduced.removeEventListener?.("change",onMotion);
       canvas.removeEventListener("webglcontextlost",onContextLost);
@@ -135,5 +152,5 @@ export default function GalaxyBackground(){
     };
   },[]);
 
-  return <canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" />;
+  return <><div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true"><div className="galaxy-nebula galaxy-nebula-one"/><div className="galaxy-nebula galaxy-nebula-two"/><div className="galaxy-lens-glow"/><div className="galaxy-orbit galaxy-orbit-one"/><div className="galaxy-orbit galaxy-orbit-two"/><div className="galaxy-star-layer">{Array.from({length:34},(_,i)=><i key={i} style={{"--star-index":i} as React.CSSProperties}/>)}</div><div className="galaxy-gold-drift">{Array.from({length:16},(_,i)=><i key={i} style={{"--dust-index":i} as React.CSSProperties}/>)}</div></div><canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" /></>;
 }
