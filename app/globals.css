@@ -816,3 +816,28 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
   .catalog .category-tabs{scroll-behavior:auto}
   .catalog .category-tabs button{transition:none}
 }
+
+
+/* Cinematic layered galaxy: restrained parallax, nebula depth and gold dust */
+.hero .galaxy-cinematic-scene{position:absolute;inset:-8%;z-index:0;overflow:hidden;pointer-events:none;isolation:isolate;--galaxy-pointer-x:0;--galaxy-pointer-y:0;--galaxy-scroll:0;transform:translate3d(calc(var(--galaxy-pointer-x)*-5px),calc(var(--galaxy-pointer-y)*-4px),0);will-change:transform}
+.galaxy-cinematic-scene:before{content:"";position:absolute;inset:-18%;background:radial-gradient(ellipse at 48% 43%,#f5d7ff16 0 3%,#a65eff25 10%,transparent 30%),radial-gradient(ellipse at 24% 48%,#6e2bbd32 0 8%,transparent 38%),radial-gradient(ellipse at 78% 32%,#b13cbd24 0 7%,transparent 36%),radial-gradient(ellipse at 52% 78%,#e4a94b12 0 5%,transparent 32%);filter:blur(25px);animation:cinemaNebulaBreath 15s ease-in-out infinite alternate;transform:rotate(calc(var(--galaxy-scroll)*8deg)) scale(1.06)}
+.galaxy-nebula{position:absolute;width:76vw;height:34vw;max-height:470px;min-height:220px;left:50%;top:48%;border-radius:50%;filter:blur(34px);mix-blend-mode:screen;opacity:.36;transform:translate(-50%,-50%) rotate(-23deg) scaleY(.42);background:conic-gradient(from 35deg,transparent 0 12%,#7f3bd033 18%,#dca8ff44 23%,#6c35c866 30%,transparent 38% 53%,#d946ef36 62%,#7c48d7aa 69%,transparent 78%);animation:cinemaNebulaRotate 72s linear infinite}
+.galaxy-nebula-two{width:92vw;height:27vw;top:54%;opacity:.22;filter:blur(48px);transform:translate(-50%,-50%) rotate(31deg) scaleY(.34);animation-duration:105s;animation-direction:reverse}
+.galaxy-lens-glow{position:absolute;left:50%;top:45%;width:min(46vw,620px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff4 0 1%,#d7b0ff24 7%,#923fe82a 18%,#54228b18 36%,transparent 69%);filter:blur(8px);transform:translate(-50%,-50%) scale(calc(1 + var(--galaxy-scroll)*.12));animation:cinemaCorePulse 8s ease-in-out infinite}
+.galaxy-orbit{position:absolute;left:50%;top:49%;width:min(82vw,1100px);height:min(28vw,360px);border:1px solid #d5a9ff20;border-radius:50%;transform:translate(-50%,-50%) rotate(-17deg) scaleY(.58);box-shadow:0 0 24px #9c61dc14,inset 0 0 24px #9c61dc0d;animation:cinemaOrbit 48s linear infinite}
+.galaxy-orbit:after{content:"";position:absolute;left:18%;top:13%;width:5px;height:5px;border-radius:50%;background:#ffe9b2;box-shadow:0 0 10px 3px #eac16d99,0 0 25px 8px #b67cff55}
+.galaxy-orbit-two{width:min(96vw,1300px);height:min(36vw,460px);border-color:#e5c07812;transform:translate(-50%,-50%) rotate(18deg) scaleY(.48);animation-duration:66s;animation-direction:reverse}
+.galaxy-orbit-two:after{left:78%;top:78%;width:3px;height:3px}
+.galaxy-star-layer,.galaxy-gold-drift{position:absolute;inset:0;overflow:hidden}
+.galaxy-star-layer i{position:absolute;left:calc((var(--star-index)*97 + 13)% 100);top:calc((var(--star-index)*53 + 7)% 100);width:2px;height:2px;border-radius:50%;background:#fff;opacity:.35;box-shadow:0 0 7px 2px #c6a4ff;animation:cinemaStarTwinkle calc(2.8s + (var(--star-index)%5)*.7s) ease-in-out infinite;animation-delay:calc(var(--star-index)*-.31s)}
+.galaxy-star-layer i:nth-child(5n){width:3px;height:3px;background:#ffe8b2;box-shadow:0 0 10px 3px #e9bf6a99}
+.galaxy-gold-drift i{position:absolute;left:calc((var(--dust-index)*137 + 9)% 100);top:calc((var(--dust-index)*71 + 14)% 100);width:3px;height:3px;border-radius:50%;background:#f0cf7e;box-shadow:0 0 9px 2px #f0cf7e99;opacity:0;animation:cinemaGoldDrift calc(11s + (var(--dust-index)%4)*3s) ease-in-out infinite;animation-delay:calc(var(--dust-index)*-.9s)}
+.galaxy-gold-drift i:nth-child(3n){width:2px;height:2px}
+@keyframes cinemaNebulaBreath{0%{opacity:.55;transform:rotate(-5deg) scale(.98)}100%{opacity:1;transform:rotate(5deg) scale(1.1)}}
+@keyframes cinemaNebulaRotate{from{rotate:0deg}to{rotate:360deg}}
+@keyframes cinemaCorePulse{0%,100%{opacity:.55;filter:blur(9px)}50%{opacity:1;filter:blur(3px)}}
+@keyframes cinemaOrbit{from{rotate:0deg}to{rotate:360deg}}
+@keyframes cinemaStarTwinkle{0%,100%{opacity:.15;transform:scale(.65)}50%{opacity:.9;transform:scale(1.7)}}
+@keyframes cinemaGoldDrift{0%{transform:translate3d(0,30px,0) scale(.5);opacity:0}15%{opacity:.8}75%{transform:translate3d(calc((var(--dust-index) - 8)*13px),-150px,0) scale(1.5);opacity:.3}100%{transform:translate3d(calc((var(--dust-index) - 8)*22px),-220px,0) scale(.3);opacity:0}}
+@media(max-width:700px){.hero .galaxy-cinematic-scene{inset:-4% -14%}.galaxy-nebula{width:125vw;height:65vw;filter:blur(23px);opacity:.26}.galaxy-nebula-two{width:145vw;height:58vw}.galaxy-lens-glow{width:75vw;top:43%}.galaxy-orbit{width:125vw;height:54vw}.galaxy-orbit-two{width:145vw;height:68vw}.galaxy-star-layer i{width:1.5px;height:1.5px}.galaxy-gold-drift i{width:2px;height:2px}}
+@media(prefers-reduced-motion:reduce){.hero .galaxy-cinematic-scene,.galaxy-cinematic-scene *{animation:none!important;transition:none!important}.hero .galaxy-cinematic-scene{transform:none}}
