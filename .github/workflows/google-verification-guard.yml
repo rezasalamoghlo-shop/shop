@@ -1,0 +1,16 @@
+name: Google Search Console verification guard
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  verify-google-token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Verify permanent Google token
+        run: node scripts/verify-google-token.mjs
