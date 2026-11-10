@@ -55,12 +55,15 @@ export default function GalaxyBackground(){
   useEffect(()=>{
     const canvas=canvasRef.current;
     if(!canvas) return;
+    const mobile=window.matchMedia("(max-width: 700px)").matches;
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lowPower=(navigator.hardwareConcurrency||8)<=4 || (navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData===true;
+    // Mobile and low-power devices use the CSS galaxy only. Avoid creating a WebGL context entirely.
+    if(mobile||reduced||lowPower){canvas.dataset.renderMode="static";return;}
     const gl=canvas.getContext("webgl",{alpha:true,antialias:false,powerPreference:"low-power"});
     if(!gl) return;
 
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
-    const mobile=window.matchMedia("(max-width: 700px)");
-    const count=mobile.matches?1800:3600;
+    const count=2400;
     const vertex=compileShader(gl,gl.VERTEX_SHADER,vertexShader);
     const fragment=compileShader(gl,gl.FRAGMENT_SHADER,fragmentShader);
     if(!vertex||!fragment) return;
@@ -87,10 +90,11 @@ export default function GalaxyBackground(){
     const scrollLocation=gl.getUniformLocation(program,"uScroll");
     const aspectLocation=gl.getUniformLocation(program,"uAspect");
     const pixelLocation=gl.getUniformLocation(program,"uPixelRatio");
-    let frame=0,started=0,scroll=0,visible=!document.hidden,disposed=false,inViewport=true;
+    let frame=0,started=0,lastFrame=0,scroll=0,visible=!document.hidden,disposed=false,inViewport=true;
+    const frameInterval=1000/30;
 
     const resize=()=>{
-      const ratio=Math.min(window.devicePixelRatio||1,1.5);
+      const ratio=Math.min(window.devicePixelRatio||1,1.25);
       const width=Math.max(1,Math.floor(window.innerWidth*ratio));
       const height=Math.max(1,Math.floor(window.innerHeight*ratio));
       if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}
@@ -115,6 +119,8 @@ export default function GalaxyBackground(){
     };
     const draw=(now:number)=>{
       if(disposed||!visible||!inViewport||reduced.matches)return;
+      if(now-lastFrame<frameInterval){frame=window.requestAnimationFrame(draw);return;}
+      lastFrame=now;
       if(!started) started=now;
       gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(timeLocation,(now-started)/1000);
