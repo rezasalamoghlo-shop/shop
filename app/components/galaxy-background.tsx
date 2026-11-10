@@ -50,16 +50,24 @@ function compileShader(gl: WebGLRenderingContext, type: number, source: string) 
 
 export default function GalaxyBackground(){
   const canvasRef=useRef<HTMLCanvasElement>(null);
+  const sceneRef=useRef<HTMLDivElement>(null);
 
   useEffect(()=>{
     const canvas=canvasRef.current;
     if(!canvas) return;
+    const mobile=window.matchMedia("(max-width: 700px)").matches;
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
+    const lowPower=(navigator.hardwareConcurrency||8)<=4 || (navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData===true;
+    // Mobile and low-power devices use the CSS galaxy only. Avoid creating a WebGL context entirely.
+    if(mobile||reduced.matches||lowPower){
+      canvas.dataset.renderMode="static";
+      if(lowPower&&!mobile&&!reduced.matches){canvas.parentElement?.classList.add("galaxy-static-scene");return()=>canvas.parentElement?.classList.remove("galaxy-static-scene");}
+      return;
+    }
     const gl=canvas.getContext("webgl",{alpha:true,antialias:false,powerPreference:"low-power"});
     if(!gl) return;
 
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
-    const mobile=window.matchMedia("(max-width: 700px)");
-    const count=mobile.matches?1800:3600;
+    const count=2400;
     const vertex=compileShader(gl,gl.VERTEX_SHADER,vertexShader);
     const fragment=compileShader(gl,gl.FRAGMENT_SHADER,fragmentShader);
     if(!vertex||!fragment) return;
@@ -86,10 +94,11 @@ export default function GalaxyBackground(){
     const scrollLocation=gl.getUniformLocation(program,"uScroll");
     const aspectLocation=gl.getUniformLocation(program,"uAspect");
     const pixelLocation=gl.getUniformLocation(program,"uPixelRatio");
-    let frame=0,started=0,scroll=0,visible=!document.hidden,disposed=false;
+    let frame=0,started=0,lastFrame=0,scroll=0,visible=!document.hidden,disposed=false,inViewport=true;
+    const frameInterval=1000/30;
 
     const resize=()=>{
-      const ratio=Math.min(window.devicePixelRatio||1,1.5);
+      const ratio=Math.min(window.devicePixelRatio||1,1.25);
       const width=Math.max(1,Math.floor(window.innerWidth*ratio));
       const height=Math.max(1,Math.floor(window.innerHeight*ratio));
       if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}
@@ -99,9 +108,23 @@ export default function GalaxyBackground(){
     const updateScroll=()=>{
       const max=document.documentElement.scrollHeight-window.innerHeight;
       scroll=max>0?Math.max(0,Math.min(1,window.scrollY/max)):0;
+      sceneRef.current?.style.setProperty("--galaxy-scroll",String(scroll));
+    };
+    const onPointerMove=(event:PointerEvent)=>{
+      if(event.pointerType!=="mouse"||!sceneRef.current)return;
+      const x=(event.clientX/window.innerWidth-.5)*2;
+      const y=(event.clientY/window.innerHeight-.5)*2;
+      sceneRef.current.style.setProperty("--galaxy-pointer-x",String(x));
+      sceneRef.current.style.setProperty("--galaxy-pointer-y",String(y));
+    };
+    const resetPointer=()=>{
+      sceneRef.current?.style.setProperty("--galaxy-pointer-x","0");
+      sceneRef.current?.style.setProperty("--galaxy-pointer-y","0");
     };
     const draw=(now:number)=>{
-      if(disposed||!visible||reduced.matches)return;
+      if(disposed||!visible||!inViewport||reduced.matches)return;
+      if(now-lastFrame<frameInterval){frame=window.requestAnimationFrame(draw);return;}
+      lastFrame=now;
       if(!started) started=now;
       gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(timeLocation,(now-started)/1000);
@@ -109,14 +132,18 @@ export default function GalaxyBackground(){
       gl.drawArrays(gl.POINTS,0,count);
       frame=window.requestAnimationFrame(draw);
     };
-    const start=()=>{if(disposed||!visible||reduced.matches||frame)return;frame=window.requestAnimationFrame(draw);};
+    const start=()=>{if(disposed||!visible||!inViewport||reduced.matches||frame)return;frame=window.requestAnimationFrame(draw);};
     const stop=()=>{if(frame){window.cancelAnimationFrame(frame);frame=0;}};
     const onVisibility=()=>{visible=!document.hidden;if(visible)start();else stop();};
+    const observer=new IntersectionObserver(entries=>{inViewport=Boolean(entries[0]?.isIntersecting);if(inViewport)start();else stop();},{threshold:0.01});
+    observer.observe(canvas);
     const onMotion=()=>{if(reduced.matches){stop();gl.clear(gl.COLOR_BUFFER_BIT);}else start();};
     const onContextLost=(event:Event)=>{event.preventDefault();stop();};
     resize();updateScroll();
     window.addEventListener("resize",resize,{passive:true});
     window.addEventListener("scroll",updateScroll,{passive:true});
+    window.addEventListener("pointermove",onPointerMove,{passive:true});
+    window.addEventListener("blur",resetPointer);
     document.addEventListener("visibilitychange",onVisibility);
     reduced.addEventListener?.("change",onMotion);
     canvas.addEventListener("webglcontextlost",onContextLost);
@@ -125,12 +152,15 @@ export default function GalaxyBackground(){
       disposed=true;stop();
       window.removeEventListener("resize",resize);
       window.removeEventListener("scroll",updateScroll);
+      window.removeEventListener("pointermove",onPointerMove);
+      window.removeEventListener("blur",resetPointer);
       document.removeEventListener("visibilitychange",onVisibility);
       reduced.removeEventListener?.("change",onMotion);
       canvas.removeEventListener("webglcontextlost",onContextLost);
+      observer.disconnect();
       gl.deleteBuffer(buffer);gl.deleteProgram(program);
     };
   },[]);
 
-  return <canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" />;
+  return <><div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true"><div className="galaxy-nebula galaxy-nebula-one"/><div className="galaxy-nebula galaxy-nebula-two"/><div className="galaxy-lens-glow"/><div className="galaxy-orbit galaxy-orbit-one"/><div className="galaxy-orbit galaxy-orbit-two"/><div className="galaxy-star-layer">{Array.from({length:34},(_,i)=><i key={i} style={{left:`${(i*97+13)%100}%`,top:`${(i*53+7)%100}%`,animationDelay:`${i*-.31}s`,animationDuration:`${2.8+(i%5)*.7}s`}}/>)}</div><div className="galaxy-gold-drift">{Array.from({length:16},(_,i)=><i key={i} style={{left:`${(i*137+9)%100}%`,top:`${(i*71+14)%100}%`,animationDelay:`${i*-.9}s`,animationDuration:`${11+(i%4)*3}s`}}/>)}</div></div><canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" /></>;
 }
