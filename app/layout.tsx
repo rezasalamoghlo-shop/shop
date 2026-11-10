@@ -5,7 +5,6 @@ import LiveAdminStats from "@/app/components/live-admin-stats";
 export const metadata:Metadata={
   title:{default:"عطر کهکشان | فروشگاه تخصصی عطر و ادکلن",template:"%s | عطر کهکشان"},
   description:"فروشگاه اینترنتی عطر کهکشان؛ خرید عطر و ادکلن، بررسی مشخصات و نت‌های بویایی، انتخاب رایحه و آشنایی با دنیای عطرها.",
-  keywords:["عطر کهکشان","خرید عطر","خرید ادکلن","فروشگاه عطر و ادکلن","مشخصات عطر","نت‌های بویایی","ماندگاری عطر","عطر مردانه","عطر زنانه"],
   metadataBase:new URL("https://shop-gamma-wheat.vercel.app"),
   alternates:{canonical:"/"},
   robots:{index:true,follow:true,googleBot:{index:true,follow:true}},
