@@ -56,10 +56,10 @@ export default function GalaxyBackground(){
     const canvas=canvasRef.current;
     if(!canvas) return;
     const mobile=window.matchMedia("(max-width: 700px)").matches;
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
     const lowPower=(navigator.hardwareConcurrency||8)<=4 || (navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData===true;
     // Mobile and low-power devices use the CSS galaxy only. Avoid creating a WebGL context entirely.
-    if(mobile||reduced||lowPower){canvas.dataset.renderMode="static";return;}
+    if(mobile||reduced.matches||lowPower){canvas.dataset.renderMode="static";return;}
     const gl=canvas.getContext("webgl",{alpha:true,antialias:false,powerPreference:"low-power"});
     if(!gl) return;
 
