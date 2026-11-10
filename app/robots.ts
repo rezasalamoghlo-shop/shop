@@ -1,1 +1,12 @@
-import type {MetadataRoute} from "next";export default function robots():MetadataRoute.Robots{return{rules:{userAgent:"*",allow:"/"},sitemap:"https://shop-gamma-wheat.vercel.app/sitemap.xml"}}
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/admin", "/account", "/login", "/register", "/api"],
+    },
+    sitemap: "https://shop-gamma-wheat.vercel.app/sitemap.xml",
+  };
+}
