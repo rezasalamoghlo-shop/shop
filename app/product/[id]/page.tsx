@@ -128,7 +128,6 @@ export async function generateMetadata({
   return {
     title,
     description,
-    keywords: [product.name, `خرید ${product.name}`, `قیمت ${product.name}`, "عطر کهکشان", "خرید عطر"],
     alternates: { canonical: `/product/${encodeURIComponent(product.id)}` },
     openGraph: {
       title,
