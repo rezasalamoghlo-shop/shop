@@ -841,3 +841,49 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @keyframes cinemaGoldDrift{0%{transform:translate3d(0,30px,0) scale(.5);opacity:0}15%{opacity:.8}75%{transform:translate3d(calc((var(--dust-index) - 8)*13px),-150px,0) scale(1.5);opacity:.3}100%{transform:translate3d(calc((var(--dust-index) - 8)*22px),-220px,0) scale(.3);opacity:0}}
 @media(max-width:700px){.hero .galaxy-cinematic-scene{inset:-4% -14%}.galaxy-nebula{width:125vw;height:65vw;filter:blur(23px);opacity:.26}.galaxy-nebula-two{width:145vw;height:58vw}.galaxy-lens-glow{width:75vw;top:43%}.galaxy-orbit{width:125vw;height:54vw}.galaxy-orbit-two{width:145vw;height:68vw}.galaxy-star-layer i{width:1.5px;height:1.5px}.galaxy-gold-drift i{width:2px;height:2px}}
 @media(prefers-reduced-motion:reduce){.hero .galaxy-cinematic-scene,.galaxy-cinematic-scene *{animation:none!important;transition:none!important}.hero .galaxy-cinematic-scene{transform:none}}
+
+
+/* Mobile-first performance profile: preserve the galaxy palette, remove continuous GPU work. */
+@media(max-width:700px){
+  .hero{
+    background-image:
+      radial-gradient(ellipse at 50% 38%,#40205f 0%,#211133 30%,transparent 63%),
+      radial-gradient(ellipse at 18% 68%,#55215d55 0%,transparent 48%),
+      linear-gradient(180deg,#090611 0%,#100817 72%,#100817 100%) !important;
+    background-color:#0a0614;
+  }
+  .hero .galaxy-webgl-background{display:none!important}
+  .hero .galaxy-cinematic-scene{inset:0;transform:none!important;will-change:auto}
+  .galaxy-cinematic-scene:before{inset:0;filter:none;animation:none!important;opacity:.72}
+  .galaxy-nebula{filter:none!important;mix-blend-mode:normal;opacity:.18;animation:none!important}
+  .galaxy-nebula-two{opacity:.12}
+  .galaxy-lens-glow{filter:none;animation:none!important;opacity:.55}
+  .galaxy-orbit{box-shadow:none;animation:none!important;opacity:.45}
+  .galaxy-orbit-two{opacity:.25}
+  .galaxy-star-layer i{animation:none!important;opacity:.32;box-shadow:0 0 3px #c6a4ff}
+  .galaxy-star-layer i:nth-child(5n){opacity:.55;box-shadow:0 0 4px #e9bf6a66}
+  .galaxy-gold-drift i{animation:none!important;opacity:.25;box-shadow:none}
+  .hero:before,.hero:after{animation:none!important;box-shadow:none}
+  .hero-copy{animation:none!important}
+  .perfume-side-puffs,.perfume-cloud{display:none!important}
+  .photo:after{animation:none!important}
+  .card,.galaxy-feature-card,.galaxy-support-card{box-shadow:0 5px 16px #0005;transition: border-color .18s ease}
+  .galaxy-feature-card{transform:none!important;transform-style:flat;will-change:auto}
+  .galaxy-feature-card:hover,.galaxy-feature-card:active{transform:none!important;box-shadow:0 5px 16px #0005}
+  .galaxy-content>.catalog .card{contain:layout paint}
+  .galaxy-content>.catalog .card .photo img{filter:none;box-shadow:none}
+  .galaxy-description-backdrop{backdrop-filter:none!important;background:#05030bf2}
+  .overlay{backdrop-filter:none!important}
+  header{backdrop-filter:none!important;box-shadow:0 3px 12px #0005}
+  .drawer,.checkout{box-shadow:0 10px 30px #0008}
+  .intro,.catalog,.support,.galaxy-feature-section,.galaxy-contact-section,.special-perfume{content-visibility:auto;contain-intrinsic-size:1px 560px}
+  .galaxy-content>.catalog .card,.galaxy-feature-card,.galaxy-support-card{content-visibility:auto;contain-intrinsic-size:1px 320px}
+}
+@media(max-width:380px){
+  .hero .galaxy-cinematic-scene{opacity:.78}
+  .galaxy-nebula{opacity:.13}
+  .galaxy-lens-glow{opacity:.38}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero .galaxy-cinematic-scene,.hero .galaxy-cinematic-scene *{animation:none!important;transition:none!important}
+}
