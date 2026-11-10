@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import {useEffect,useMemo,useRef,useState} from "react";
+import dynamic from "next/dynamic";
 import {createSupabaseBrowserClient} from "@/lib/supabase-browser";
-import SpecialPerfume from "@/app/components/special-perfume";
-import MagazineSection from "@/app/components/magazine-section";
+const SpecialPerfume=dynamic(()=>import("@/app/components/special-perfume"));
+const MagazineSection=dynamic(()=>import("@/app/components/magazine-section"));
 import GalaxyBackground from "@/app/components/galaxy-background";
 
 type Size={id:string;size_ml:number;price:number;discount_percent:number;stock:number;is_active:boolean};
@@ -30,6 +31,22 @@ function visitorId(){
   let id=localStorage.getItem(key);
   if(!id){id=crypto.randomUUID();localStorage.setItem(key,id)}
   return id;
+}
+
+function DeferredSection({children,minHeight}:{children:React.ReactNode;minHeight:number}){
+  const host=useRef<HTMLDivElement>(null);
+  const [ready,setReady]=useState(false);
+  useEffect(()=>{
+    const node=host.current;
+    if(!node)return;
+    if(!("IntersectionObserver" in window)){setReady(true);return;}
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){setReady(true);observer.disconnect();}
+    },{rootMargin:"700px 0px"});
+    observer.observe(node);
+    return()=>observer.disconnect();
+  },[]);
+  return <div ref={host} className="deferred-section" style={ready?undefined:{minHeight}}>{ready?children:null}</div>;
 }
 
 export default function Home(){
@@ -67,8 +84,8 @@ export default function Home(){
     {descriptionProduct&&<div className="galaxy-description-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setDescriptionProduct(null)}}><section ref={descriptionPanelRef} className="galaxy-description-modal" role="dialog" aria-modal="true" aria-labelledby="product-description-title" tabIndex={-1}><button type="button" className="galaxy-description-close" onClick={()=>setDescriptionProduct(null)} aria-label="بستن توضیحات">×</button><span className="description-kicker">GALAXY PERFUME NOTES</span><h2 id="product-description-title">{descriptionProduct.name}</h2><div className="galaxy-description-content">{descriptionProduct.description?.trim()||"توضیحی برای این عطر ثبت نشده است."}</div></section></div>}
     {cartFlight&&<div key={cartFlight.key} className="cart-flight-bottle" aria-hidden="true" style={{left:cartFlight.x,top:cartFlight.y,"--flight-x":`${cartFlight.dx}px`,"--flight-y":`${cartFlight.dy}px`} as React.CSSProperties}><span>🧴</span><i>✦</i></div>}
     {cartNotice&&<div key={cartNotice} className="cart-added-toast" role="status" aria-live="polite"><span>✓</span><div><b>به سبد خرید اضافه شد</b><small>{cartNotice}</small></div></div>}
-    <SpecialPerfume/>
-    <MagazineSection/>
+    <DeferredSection minHeight={650}><SpecialPerfume/></DeferredSection>
+    <DeferredSection minHeight={520}><MagazineSection/></DeferredSection>
     <section id="support" className="galaxy-contact-section"><div className="galaxy-feature-heading"><span>GALAXY SUPPORT</span><h2>در کنار شما هستیم</h2><p>برای مشاوره، پیگیری سفارش و ارتباط با فروشگاه از راه دلخواهتان استفاده کنید.</p></div><div className="galaxy-support-grid" dir="rtl">{([{key:"telegram",label:"تلگرام",hint:"ارتباط مستقیم",src:"https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/support-telegram.webp.jpg"},{key:"rubika",label:"روبیکا",hint:"ارتباط مستقیم",src:"https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/support-rubika.webp.jpg"},{key:"instagram",label:"اینستاگرام",hint:"صفحه رسمی فروشگاه",src:"https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/support-instagram.webp.jpg"},{key:"phone",label:"تماس تلفنی",hint:s.support_phone||"شماره تماس ثبت نشده",src:"https://ilkmxaiwczdwuvutkajq.supabase.co/storage/v1/object/public/galaxy-assets/support-phone.webp.jpg"}] as const).map(item=>{let href="";if(item.key==="phone"){if(s.support_phone)href="tel:"+normalizeDigits(String(s.support_phone))}else{const aliases:Record<string,string[]>={telegram:["تلگرام","telegram"],rubika:["روبیکا","rubika"],instagram:["اینستاگرام","اینستا","instagram"]};const found=(Array.isArray(s.social_links)?s.social_links:[]).find((x:any)=>aliases[item.key].includes(String(x?.name||"").toLowerCase().trim())&&String(x?.url||"").trim());if(found){const raw=String(found.url).trim();if(/^https?:\/\//i.test(raw))href=raw;else{const clean=raw.replace(/^@/,"").replace(/^\/+|\/+$/g,"").replace(/^(www\.)?(instagram\.com|t\.me|rubika\.ir)\//i,"");href=item.key==="telegram"?"https://t.me/"+clean:item.key==="rubika"?"https://rubika.ir/"+clean:"https://www.instagram.com/"+clean}}}const content=<><Image src={item.src} alt="" fill sizes="(max-width:560px) 46vw,25vw" unoptimized/><span className="galaxy-support-card-shade"/><span className="galaxy-support-card-copy"><b>{item.label}</b><small>{item.key==="phone"?item.hint:href?item.hint:"لینک در تنظیمات ثبت نشده"}</small></span><span className="galaxy-support-card-arrow" aria-hidden="true">↗</span></>;return href?<a className={"galaxy-support-card support-"+item.key} key={item.key} href={href} target={item.key==="phone"?undefined:"_blank"} rel={item.key==="phone"?undefined:"noreferrer"}>{content}</a>:<div className={"galaxy-support-card support-"+item.key+" is-disabled"} key={item.key} aria-disabled="true">{content}</div>})}</div></section><footer>تمام حقوق سایت مربوط به تیم همراه یار می باشد و شامل قوانین کپی رایت است. <span>ارتباط با تیم تخصصی همراه یار <a href="https://instagram.com/Hamrahyar" target="_blank" rel="noreferrer">@Hamrahyar</a> در اینستا</span></footer>
     {bag&&<div className="overlay"><aside className="drawer"><button className="x" onClick={()=>setBag(false)}>×</button><span>YOUR BAG</span><h2>سبد خرید</h2>{activeOrder&&<ActiveOrder order={activeOrder} done={()=>{localStorage.removeItem("galaxy_active_order");localStorage.removeItem("galaxy_checkout_session_id");setActiveOrder(null);setCart([]);setBag(false)}}/>}{cart.length?cart.map(x=><div className="cart" key={x.id+"-"+x.size_ml+"-"+x.pricing_type}><div><b>{x.name}</b><small>{x.pricing_type==="full"?"بطری کامل":"فروش میلی"} | {new Intl.NumberFormat("fa-IR").format(x.size_ml)} میل | {money(x.unit_price)}</small><small>موجودی: {new Intl.NumberFormat("fa-IR").format(x.stock)}</small></div><div className="cart-controls"><button disabled={Boolean(activeOrder)} onClick={()=>changeQty(x.id,x.size_ml,x.pricing_type,-1)}>−</button><b>{new Intl.NumberFormat("fa-IR").format(x.quantity)}</b><button disabled={Boolean(activeOrder)||x.quantity>=x.stock} onClick={()=>changeQty(x.id,x.size_ml,x.pricing_type,1)}>+</button><button className="cart-remove" disabled={Boolean(activeOrder)} onClick={()=>setCart(c=>c.filter(i=>!(i.id===x.id&&i.size_ml===x.size_ml&&i.pricing_type===x.pricing_type)))}>حذف</button></div></div>):<div className="empty">سبد خالی است.</div>}<h3 className="total">جمع: {money(total)}</h3>{cart.length>0&& !activeOrder && <button className="gold full" onClick={()=>{setBag(false);setCheckout(true)}}><span>♧</span> ادامه به پرداخت</button>}{activeOrder&&<p className="active-order-note">سبد تا تعیین تکلیف همین سفارش قفل است؛ اقلام سفارش تکرار یا جایگزین نمی‌شوند.</p>}</aside></div>}
     {checkout&&<Checkout s={s} cart={cart} total={total} close={()=>setCheckout(false)} onSubmitted={(order:any)=>{localStorage.setItem("galaxy_active_order",JSON.stringify(order));localStorage.setItem("galaxy_cart","[]");localStorage.removeItem("galaxy_checkout_session_id");setCart([]);setActiveOrder(order)}} onOrderCleared={()=>{localStorage.removeItem("galaxy_active_order");localStorage.removeItem("galaxy_checkout_session_id");setActiveOrder(null);setCart([]);setCheckout(false);setBag(false)}}/>}
