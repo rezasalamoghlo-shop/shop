@@ -877,7 +877,7 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
   header{backdrop-filter:none!important;box-shadow:0 3px 12px #0005}
   .drawer,.checkout{box-shadow:0 10px 30px #0008}
   .intro,.catalog,.support,.galaxy-feature-section,.galaxy-contact-section,.special-perfume{content-visibility:auto;contain-intrinsic-size:1px 560px}
-  .galaxy-content>.catalog .card,.galaxy-feature-card,.galaxy-support-card{content-visibility:auto;contain-intrinsic-size:1px 320px}
+  .galaxy-feature-card,.galaxy-support-card{contain:layout paint}
 }
 @media(max-width:380px){
   .hero .galaxy-cinematic-scene{opacity:.78}
@@ -891,3 +891,17 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 /* Defer below-the-fold interactive modules until close to the viewport. */
 .deferred-section{position:relative;contain:layout style;}
 @media(max-width:700px){.deferred-section{content-visibility:auto;contain-intrinsic-size:1px 560px}}
+
+@media(max-width:700px){
+  .scroll-reveal,.scroll-reveal.is-scroll-visible{
+    opacity:1!important;transform:none!important;filter:none!important;
+    transition:none!important;will-change:auto!important;
+  }
+  .galaxy-feature-card.scroll-reveal:nth-child(n){transition-delay:0!important}
+  .galaxy-support-card.scroll-reveal:nth-child(n){transition-delay:0!important}
+}
+.hero.galaxy-static-scene .galaxy-cinematic-scene,
+.hero.galaxy-static-scene .galaxy-cinematic-scene *{
+  animation:none!important;transition:none!important;filter:none!important;
+}
+.hero.galaxy-static-scene .galaxy-cinematic-scene{transform:none!important;will-change:auto!important}
