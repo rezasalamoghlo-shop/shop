@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   // Distinguish a server configuration problem from genuinely incorrect
   // credentials. Never return or log environment values.
-  if (!hasAdminSessionConfiguration()) {
+  if (!hasAdminAuthConfiguration()) {
     return NextResponse.json(
       { error: "ورود مدیریت در سرور به‌درستی پیکربندی نشده است." },
       { status: 503, headers: { "Cache-Control": "no-store" } }
