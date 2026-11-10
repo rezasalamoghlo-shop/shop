@@ -12,7 +12,7 @@ export const metadata:Metadata={
   icons:{icon:"/icon.svg",shortcut:"/icon.svg",apple:"/icon.svg"},
   openGraph:{
     title:"عطر کهکشان | فروشگاه تخصصی عطر و ادکلن",
-    description:"فروشگاه اینترنتی عطر و ادکلن عطر کهکشان، انتخاب رایحه‌های لوکس و ماندگار.",
+    description:"فروشگاه اینترنتی عطر کهکشان؛ خرید عطر و ادکلن، بررسی مشخصات و نت‌های بویایی، انتخاب رایحه و آشنایی با دنیای عطرها.",
     url:"https://shop-gamma-wheat.vercel.app",
     siteName:"عطر کهکشان",
     locale:"fa_IR",
