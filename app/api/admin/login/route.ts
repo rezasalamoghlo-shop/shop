@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   adminToken,
-  hasAdminSessionConfiguration,
+  hasAdminAuthConfiguration,
   validCredentials,
 } from "@/lib/admin-auth";
 
