@@ -887,3 +887,7 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 @media(prefers-reduced-motion:reduce){
   .hero .galaxy-cinematic-scene,.hero .galaxy-cinematic-scene *{animation:none!important;transition:none!important}
 }
+
+/* Defer below-the-fold interactive modules until close to the viewport. */
+.deferred-section{position:relative;contain:layout style;}
+@media(max-width:700px){.deferred-section{content-visibility:auto;contain-intrinsic-size:1px 560px}}
