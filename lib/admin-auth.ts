@@ -43,6 +43,8 @@ export function adminToken(): string {
   return sessionToken();
 }
 
-export function hasAdminSessionConfiguration(): boolean {
-  return env("ADMIN_SESSION_SECRET").length >= 32;
+export function hasAdminAuthConfiguration(): boolean {
+  return !!env("ADMIN_USERNAME").trim() &&
+    !!env("ADMIN_PASSWORD") &&
+    env("ADMIN_SESSION_SECRET").length >= 32;
 }
