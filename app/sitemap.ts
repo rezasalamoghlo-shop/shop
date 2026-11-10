@@ -19,8 +19,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const db = createClient(url, anonKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
-    const [productsResult, articlesResult] = await Promise.all([
+    const [productsResult, categoriesResult, articlesResult] = await Promise.all([
       db.from("products").select("id,created_at").order("created_at", { ascending: false }),
+      db.from("categories").select("slug,updated_at").eq("is_active", true),
       db.from("magazine_articles").select("slug,updated_at,created_at").eq("is_published", true),
     ]);
 
@@ -29,6 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: product.created_at ? new Date(product.created_at) : undefined,
       changeFrequency: "weekly",
       priority: 0.75,
+    }));
+
+    const categories: MetadataRoute.Sitemap = (categoriesResult.data || []).map((category: any) => ({
+      url: BASE_URL + "/category/" + encodeURIComponent(category.slug),
+      lastModified: category.updated_at ? new Date(category.updated_at) : undefined,
+      changeFrequency: "weekly",
+      priority: 0.7,
     }));
 
     const articles: MetadataRoute.Sitemap = (articlesResult.data || []).map((article: any) => ({
@@ -40,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.65,
     }));
 
-    return fixed.concat(products, articles);
+    return fixed.concat(categories, products, articles);
   } catch {
     return fixed;
   }
