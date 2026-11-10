@@ -52,7 +52,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description,
-    keywords: [`خرید عطر ${category.name}`, `قیمت عطر ${category.name}`, category.name, "عطر کهکشان"],
     alternates: { canonical: `/category/${encodeURIComponent(category.slug)}` },
     openGraph: { title, description, siteName: "عطر کهکشان", locale: "fa_IR", type: "website" },
     robots: { index: true, follow: true },
