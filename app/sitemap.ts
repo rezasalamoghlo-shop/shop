@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
     const [productsResult, categoriesResult, articlesResult] = await Promise.all([
       db.from("products").select("id,created_at").order("created_at", { ascending: false }),
-      db.from("categories").select("slug,updated_at").eq("is_active", true),
+      db.from("categories").select("slug").eq("is_active", true),
       db.from("magazine_articles").select("slug,updated_at,created_at").eq("is_published", true),
     ]);
 
@@ -34,7 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const categories: MetadataRoute.Sitemap = (categoriesResult.data || []).map((category: any) => ({
       url: BASE_URL + "/category/" + encodeURIComponent(category.slug),
-      lastModified: category.updated_at ? new Date(category.updated_at) : undefined,
       changeFrequency: "weekly",
       priority: 0.7,
     }));
