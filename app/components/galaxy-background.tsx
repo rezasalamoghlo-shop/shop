@@ -190,5 +190,42 @@ export default function GalaxyBackground(){
     };
   },[]);
 
-  return <><div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true"><div className="galaxy-nebula galaxy-nebula-one"/><div className="galaxy-nebula galaxy-nebula-two"/><div className="galaxy-lens-glow"/><div className="galaxy-orbit galaxy-orbit-one"/><div className="galaxy-orbit galaxy-orbit-two"/><div className="galaxy-star-layer">{Array.from({length:34},(_,i)=><i key={i} style={{left:`${(i*97+13)%100}%`,top:`${(i*53+7)%100}%`,animationDelay:`${i*-.31}s`,animationDuration:`${2.8+(i%5)*.7}s`}/>)}</div><div className="galaxy-gold-drift">{Array.from({length:16},(_,i)=><i key={i} style={{left:`${(i*137+9)%100}%`,top:`${(i*71+14)%100}%`,animationDelay:`${i*-.9}s`,animationDuration:`${11+(i%4)*3}s`}/>)}</div></div><canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true"/></>;
+  return (
+    <>
+      <div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true">
+        <div className="galaxy-nebula galaxy-nebula-one" />
+        <div className="galaxy-nebula galaxy-nebula-two" />
+        <div className="galaxy-lens-glow" />
+        <div className="galaxy-orbit galaxy-orbit-one" />
+        <div className="galaxy-orbit galaxy-orbit-two" />
+        <div className="galaxy-star-layer">
+          {Array.from({ length: 34 }, (_, i) => (
+            <i
+              key={i}
+              style={{
+                left: `${(i * 97 + 13) % 100}%`,
+                top: `${(i * 53 + 7) % 100}%`,
+                animationDelay: `${i * -0.31}s`,
+                animationDuration: `${2.8 + (i % 5) * 0.7}s`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="galaxy-gold-drift">
+          {Array.from({ length: 16 }, (_, i) => (
+            <i
+              key={i}
+              style={{
+                left: `${(i * 137 + 9) % 100}%`,
+                top: `${(i * 71 + 14) % 100}%`,
+                animationDelay: `${i * -0.9}s`,
+                animationDuration: `${11 + (i % 4) * 3}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" />
+    </>
+  );
 }
