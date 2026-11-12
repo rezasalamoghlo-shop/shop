@@ -23,10 +23,10 @@ void main(){
   float diskY=p.y*0.64+p.z*0.10;
   float depth=82.0-p.z*0.42+radius*0.12;
   float perspective=82.0/max(18.0,depth);
-  float x=p.x*perspective;
-  float y=diskY*perspective;
+  float x=p.x;
+  float y=diskY;
 
-  gl_Position=vec4(x*1.52/uAspect,y*1.52,0.0,1.0);
+  gl_Position=vec4(x*1.52/uAspect,y*1.52,0.0,depth);
   float radialFade=1.0-smoothstep(25.0,38.0,radius);
   float pointBase=mix(1.15,3.7,seed);
   gl_PointSize=clamp(uPixelRatio*pointBase*perspective,1.0,7.0);
