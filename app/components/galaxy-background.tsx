@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useRef} from "react";
+import {useEffect,useRef} from "react";
 
 const vertexShader = `
 attribute vec4 a;
@@ -10,20 +10,37 @@ uniform float uAspect;
 uniform float uPixelRatio;
 varying float vAlpha;
 varying vec3 vColor;
+varying float vCore;
 void main(){
   vec3 p=a.xyz;
   float seed=a.w;
-  float angle=uTime*0.018*(0.35+seed)+p.z*0.025+uScroll*2.4;
-  p.xy=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*p.xy;
-  p.z=mod(p.z+uScroll*42.0,110.0)-110.0;
-  float depth=-p.z;
-  gl_Position=depth<0.5?vec4(3.0,3.0,3.0,1.0):vec4(p.x*1.45/uAspect,p.y*1.45,0.0,depth);
-  gl_PointSize=clamp(uPixelRatio*(1.0+seed*2.0)*8.0/depth,1.0,12.0);
-  vAlpha=smoothstep(110.0,18.0,depth)*smoothstep(0.5,3.0,depth);
-  vec3 violet=vec3(0.55,0.30,0.92);
-  vec3 gold=vec3(0.92,0.72,0.38);
-  vec3 blue=vec3(0.32,0.48,0.82);
-  vColor=mix(mix(violet,gold,smoothstep(0.0,0.65,uScroll)),blue,smoothstep(0.55,1.0,uScroll));
+  float radius=length(p.xy);
+  float angle=uTime*0.012*(0.3+seed*0.7)+uScroll*0.42;
+  float c=cos(angle),s=sin(angle);
+  p.xy=mat2(c,-s,s,c)*p.xy;
+
+  // A gently inclined, thick galactic disk gives the spiral real spatial depth.
+  float diskY=p.y*0.64+p.z*0.10;
+  float depth=82.0-p.z*0.42+radius*0.12;
+  float perspective=82.0/max(18.0,depth);
+  float x=p.x;
+  float y=diskY;
+
+  gl_Position=vec4(x*1.52/uAspect,y*1.52,0.0,depth);
+  float radialFade=1.0-smoothstep(25.0,38.0,radius);
+  float pointBase=mix(1.15,3.7,seed);
+  gl_PointSize=clamp(uPixelRatio*pointBase*perspective,1.0,7.0);
+
+  float core=smoothstep(13.0,0.0,radius);
+  vCore=core;
+  vAlpha=(0.20+seed*0.58)*radialFade*smoothstep(0.0,5.0,depth);
+  vec3 violet=vec3(0.55,0.29,0.92);
+  vec3 magenta=vec3(0.86,0.35,0.84);
+  vec3 ice=vec3(0.72,0.78,1.0);
+  vec3 gold=vec3(0.96,0.76,0.43);
+  vec3 armColor=mix(violet,magenta,smoothstep(0.25,0.85,seed));
+  armColor=mix(armColor,ice,smoothstep(0.91,0.995,seed)*0.62);
+  vColor=mix(armColor,gold,core*0.42);
 }
 `;
 
@@ -31,11 +48,13 @@ const fragmentShader = `
 precision mediump float;
 varying float vAlpha;
 varying vec3 vColor;
+varying float vCore;
 void main(){
   float radius=length(gl_PointCoord-vec2(0.5));
-  float glow=1.0-smoothstep(0.12,0.5,radius);
-  float alpha=glow*vAlpha*0.72;
-  gl_FragColor=vec4(vColor*alpha,alpha);
+  float soft=1.0-smoothstep(0.08,0.5,radius);
+  float hot=1.0-smoothstep(0.0,0.22,radius);
+  float alpha=soft*vAlpha*(0.62+hot*0.38);
+  gl_FragColor=vec4(vColor*(0.72+hot*0.8+vCore*0.18),alpha);
 }
 `;
 
@@ -48,6 +67,8 @@ function compileShader(gl: WebGLRenderingContext, type: number, source: string) 
   return shader;
 }
 
+function randomBetween(min:number,max:number){return min+Math.random()*(max-min)}
+
 export default function GalaxyBackground(){
   const canvasRef=useRef<HTMLCanvasElement>(null);
   const sceneRef=useRef<HTMLDivElement>(null);
@@ -58,16 +79,16 @@ export default function GalaxyBackground(){
     const mobile=window.matchMedia("(max-width: 700px)").matches;
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)");
     const lowPower=(navigator.hardwareConcurrency||8)<=4 || (navigator as Navigator & {connection?:{saveData?:boolean}}).connection?.saveData===true;
-    // Mobile and low-power devices use the CSS galaxy only. Avoid creating a WebGL context entirely.
+    // CSS provides a layered, lightweight depth treatment on mobile and low-power devices.
     if(mobile||reduced.matches||lowPower){
       canvas.dataset.renderMode="static";
       if(lowPower&&!mobile&&!reduced.matches){canvas.parentElement?.classList.add("galaxy-static-scene");return()=>canvas.parentElement?.classList.remove("galaxy-static-scene");}
       return;
     }
-    const gl=canvas.getContext("webgl",{alpha:true,antialias:false,powerPreference:"low-power"});
+    const gl=canvas.getContext("webgl",{alpha:true,antialias:false,powerPreference:"low-power",premultipliedAlpha:true});
     if(!gl) return;
 
-    const count=2400;
+    const count=6200;
     const vertex=compileShader(gl,gl.VERTEX_SHADER,vertexShader);
     const fragment=compileShader(gl,gl.FRAGMENT_SHADER,fragmentShader);
     if(!vertex||!fragment) return;
@@ -80,10 +101,16 @@ export default function GalaxyBackground(){
 
     const data=new Float32Array(count*4);
     for(let i=0;i<count;i++){
-      const arm=(i%3)*Math.PI*2/3;
-      const radius=2+Math.pow(Math.random(),0.62)*34;
-      const angle=arm+radius*0.16+(Math.random()-0.5)*0.85;
-      data.set([Math.cos(angle)*radius,Math.sin(angle)*radius,-Math.random()*110,Math.random()],i*4);
+      const seed=Math.random();
+      const armCount=4;
+      const arm=(i%armCount)*Math.PI*2/armCount;
+      const radius=Math.pow(Math.random(),0.72)*35;
+      const spiral=arm+radius*0.235+randomBetween(-0.26,0.26)*(0.35+radius/35);
+      const spread=randomBetween(-0.95,0.95)*(0.45+radius*0.045);
+      const x=Math.cos(spiral)*radius+Math.cos(spiral+Math.PI/2)*spread;
+      const y=Math.sin(spiral)*radius+Math.sin(spiral+Math.PI/2)*spread;
+      const thickness=randomBetween(-2.8,2.8)*(0.35+radius/35);
+      data.set([x,y,thickness,seed],i*4);
     }
     const buffer=gl.createBuffer();
     if(!buffer) return;
@@ -122,6 +149,7 @@ export default function GalaxyBackground(){
       sceneRef.current?.style.setProperty("--galaxy-pointer-y","0");
     };
     const draw=(now:number)=>{
+      frame=0;
       if(disposed||!visible||!inViewport||reduced.matches)return;
       if(now-lastFrame<frameInterval){frame=window.requestAnimationFrame(draw);return;}
       lastFrame=now;
@@ -162,5 +190,42 @@ export default function GalaxyBackground(){
     };
   },[]);
 
-  return <><div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true"><div className="galaxy-nebula galaxy-nebula-one"/><div className="galaxy-nebula galaxy-nebula-two"/><div className="galaxy-lens-glow"/><div className="galaxy-orbit galaxy-orbit-one"/><div className="galaxy-orbit galaxy-orbit-two"/><div className="galaxy-star-layer">{Array.from({length:34},(_,i)=><i key={i} style={{left:`${(i*97+13)%100}%`,top:`${(i*53+7)%100}%`,animationDelay:`${i*-.31}s`,animationDuration:`${2.8+(i%5)*.7}s`}}/>)}</div><div className="galaxy-gold-drift">{Array.from({length:16},(_,i)=><i key={i} style={{left:`${(i*137+9)%100}%`,top:`${(i*71+14)%100}%`,animationDelay:`${i*-.9}s`,animationDuration:`${11+(i%4)*3}s`}}/>)}</div></div><canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" /></>;
+  return (
+    <>
+      <div ref={sceneRef} className="galaxy-cinematic-scene" aria-hidden="true">
+        <div className="galaxy-nebula galaxy-nebula-one" />
+        <div className="galaxy-nebula galaxy-nebula-two" />
+        <div className="galaxy-lens-glow" />
+        <div className="galaxy-orbit galaxy-orbit-one" />
+        <div className="galaxy-orbit galaxy-orbit-two" />
+        <div className="galaxy-star-layer">
+          {Array.from({ length: 34 }, (_, i) => (
+            <i
+              key={i}
+              style={{
+                left: `${(i * 97 + 13) % 100}%`,
+                top: `${(i * 53 + 7) % 100}%`,
+                animationDelay: `${i * -0.31}s`,
+                animationDuration: `${2.8 + (i % 5) * 0.7}s`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="galaxy-gold-drift">
+          {Array.from({ length: 16 }, (_, i) => (
+            <i
+              key={i}
+              style={{
+                left: `${(i * 137 + 9) % 100}%`,
+                top: `${(i * 71 + 14) % 100}%`,
+                animationDelay: `${i * -0.9}s`,
+                animationDuration: `${11 + (i % 4) * 3}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <canvas ref={canvasRef} className="galaxy-webgl-background" aria-hidden="true" />
+    </>
+  );
 }
