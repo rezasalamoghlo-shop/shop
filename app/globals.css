@@ -905,3 +905,55 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
   animation:none!important;transition:none!important;filter:none!important;
 }
 .hero.galaxy-static-scene .galaxy-cinematic-scene{transform:none!important;will-change:auto!important}
+
+
+/* Galaxy depth pass: volumetric spiral disk, luminous nucleus and parallax layers. */
+.hero .galaxy-cinematic-scene:after{
+  content:"";
+  position:absolute;
+  left:50%;top:47%;
+  width:min(78vw,1120px);
+  height:min(42vw,560px);
+  border-radius:50%;
+  pointer-events:none;
+  opacity:.34;
+  transform:translate(-50%,-50%) perspective(900px) rotateX(62deg) rotateZ(-19deg);
+  transform-style:preserve-3d;
+  background:
+    radial-gradient(ellipse at 50% 50%,#fff8 0 1%,#f0c8ffb0 2%,#a95ce7a6 5%,#6d36b966 11%,transparent 27%),
+    conic-gradient(from 8deg at 50% 50%,transparent 0 7%,#d7a9ff22 10%,#9b55dc80 13%,transparent 19% 27%,#e8c3ff33 31%,#7c3bc966 35%,transparent 43% 55%,#d946ef44 60%,#8a3fe077 66%,transparent 74% 84%,#e9c77c33 90%,transparent 96%);
+  filter:blur(9px) saturate(1.25);
+  mix-blend-mode:screen;
+  mask-image:radial-gradient(ellipse at center,#000 0 28%,#0009 48%,transparent 73%);
+  animation:galaxyDiskDrift 88s linear infinite;
+}
+.hero .galaxy-lens-glow{
+  background:
+    radial-gradient(circle at 50% 50%,#fff9 0 1%,#f4d9ffb0 2%,#d7b0ff55 6%,#923fe844 17%,#54228b24 34%,transparent 69%),
+    radial-gradient(ellipse at 50% 50%,#b46cfb18,transparent 72%);
+  box-shadow:0 0 35px #c58cff22,0 0 90px #7b3bc322;
+}
+.galaxy-nebula-one{filter:blur(28px);opacity:.42}
+.galaxy-nebula-two{filter:blur(42px);opacity:.28}
+@keyframes galaxyDiskDrift{
+  from{rotate:0deg}
+  to{rotate:360deg}
+}
+@media(max-width:700px){
+  .hero .galaxy-cinematic-scene:after{
+    width:132vw;height:88vw;top:43%;
+    opacity:.26;filter:blur(2px) saturate(1.1);
+    transform:translate(-50%,-50%) perspective(700px) rotateX(64deg) rotateZ(-19deg);
+    animation:none!important;
+    background:
+      radial-gradient(ellipse at 50% 50%,#fff9 0 1%,#edcaff99 2%,#a95ce777 6%,#6d36b944 14%,transparent 31%),
+      conic-gradient(from 8deg at 50% 50%,transparent 0 8%,#d7a9ff22 12%,#9b55dc66 16%,transparent 23% 34%,#e8c3ff22 39%,#7c3bc955 43%,transparent 52% 64%,#d946ef33 70%,#8a3fe055 76%,transparent 85%);
+    mask-image:radial-gradient(ellipse at center,#000 0 30%,#0008 54%,transparent 76%);
+  }
+  .hero .galaxy-lens-glow{opacity:.68;filter:blur(2px);box-shadow:none}
+  .galaxy-nebula-one{filter:blur(12px)!important;opacity:.24}
+  .galaxy-nebula-two{filter:blur(18px)!important;opacity:.16}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero .galaxy-cinematic-scene:after{animation:none!important}
+}
