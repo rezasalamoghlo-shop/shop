@@ -5,7 +5,7 @@ import {useEffect,useMemo,useState} from "react";
 type Category={id:string;name:string;slug:string;description:string|null;sort_order:number};
 type Product={id:string;category_ids?:string[];categories?:Array<{id?:string;slug?:string}>};
 
-export default function StoreCategories(){
+export default function StoreCategories({embedded=false}:{embedded?:boolean}){
   const [categories,setCategories]=useState<Category[]>([]);
   const [products,setProducts]=useState<Product[]>([]);
   const [loading,setLoading]=useState(true);
@@ -27,8 +27,8 @@ export default function StoreCategories(){
     }
     return result;
   },[products]);
-  return <main className="store-categories-page" dir="rtl">
-    <header className="store-categories-header"><a href="/" className="store-categories-brand">♢ عطر کهکشان <small>GALAXY</small></a><a href="/">بازگشت به صفحه اصلی</a></header>
+  return <section id={embedded?"store-categories":undefined} className={embedded?"store-categories-embedded":"store-categories-page"} dir="rtl">
+    {!embedded&&<header className="store-categories-header"><a href="/" className="store-categories-brand">♢ عطر کهکشان <small>GALAXY</small></a><a href="/">بازگشت به صفحه اصلی</a></header>}
     <section className="store-categories-intro"><span>GALAXY PERFUME STORE</span><h1>فروشگاه عطر کهکشان</h1><p>برای کشف رایحهٔ موردنظرتان، یک دسته‌بندی را انتخاب کنید.</p></section>
     {loading?<div className="store-categories-state">در حال بارگذاری دسته‌بندی‌ها…</div>:error?<div className="store-categories-state" role="alert">{error}</div>:categories.length?<nav className="store-category-grid" aria-label="دسته‌بندی محصولات">
       {categories.map((category,index)=><a className="store-category-card" href={"/store/"+encodeURIComponent(category.slug)} key={category.id} style={{["--category-index" as string]:index} as React.CSSProperties}>
@@ -37,5 +37,5 @@ export default function StoreCategories(){
         <div className="store-category-bottom"><small>{counts.get(category.id)||counts.get(category.slug)||0} محصول</small><b>مشاهده محصولات <span aria-hidden="true">←</span></b></div>
       </a>)}
     </nav>:<div className="store-categories-state">هنوز دسته‌بندی فعالی در فروشگاه ثبت نشده است.</div>}
-  </main>;
+  </section>;
 }
