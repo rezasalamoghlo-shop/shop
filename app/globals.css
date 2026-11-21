@@ -1034,3 +1034,14 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
 .galaxy-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:900px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:1/-1;width:calc(50% - 5px);justify-self:center}}
 @media(max-width:650px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:1/-1;width:calc(50% - 5px);justify-self:center}}
+
+/* Homepage: four primary destinations, followed by live store categories. */
+.galaxy-feature-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:auto;width:auto;justify-self:stretch}
+.store-categories-embedded{position:relative;max-width:1240px;margin:34px auto 58px;padding:34px clamp(14px,3vw,34px) 42px;overflow:hidden;border:1px solid #8a3fe055;border-radius:26px;background:radial-gradient(ellipse at 50% 0%,#7138a933,transparent 58%),linear-gradient(145deg,#171020ed,#0d0916f5);box-shadow:inset 0 1px #ffffff12,0 18px 50px #0007;color:#f6efff}
+.store-categories-embedded .store-categories-intro{padding:14px 12px 28px}
+.store-categories-embedded .store-categories-intro h2{margin:12px 0 8px;font-size:clamp(24px,3vw,36px);color:#f0cf7e}
+.store-categories-embedded .store-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.store-categories-embedded .store-category-card{min-height:205px}
+@media(max-width:900px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:auto;width:auto;justify-self:stretch}.store-categories-embedded .store-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-card{min-height:205px}.store-categories-embedded{margin:24px 10px 38px;padding:22px 12px 28px;border-radius:19px}.store-categories-embedded .store-categories-intro{padding:8px 5px 20px}.store-categories-embedded .store-categories-intro h2{font-size:23px}.store-categories-embedded .store-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
