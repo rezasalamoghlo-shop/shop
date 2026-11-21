@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import {useEffect,useMemo,useRef,useState} from "react";
+import {usePathname} from "next/navigation";
 import dynamic from "next/dynamic";
 import {createSupabaseBrowserClient} from "@/lib/supabase-browser";
 const SpecialPerfume=dynamic(()=>import("@/app/components/special-perfume"));
@@ -49,7 +50,10 @@ function DeferredSection({children,minHeight}:{children:React.ReactNode;minHeigh
   return <div ref={host} className="deferred-section" style={ready?undefined:{minHeight}}>{ready?children:null}</div>;
 }
 
-export default function Home({categorySlug,storeOnly=false}:{categorySlug?:string;storeOnly?:boolean}){
+export default function Home(){
+  const pathname=usePathname();
+  const storeOnly=pathname.startsWith("/store/");
+  const categorySlug=storeOnly?decodeURIComponent(pathname.split("/")[2]||""):undefined;
   const[p,setP]=useState<P[]>([]),[cats,setCats]=useState<Cat[]>([]),[search,setSearch]=useState(""),[category,setCategory]=useState(categorySlug||"all");
   const[s,setS]=useState<S>({store_name:"عطر کهکشان",store_name_en:"GALAXY",hero_title:"عطر کهکشان",hero_text:"",address:null,card_number:null,support_phone:null,social_links:[]});
   const[cart,setCart]=useState<C[]>([]),[cartReady,setCartReady]=useState(false),[bag,setBag]=useState(false),[checkout,setCheckout]=useState(false),[loading,setLoading]=useState(true),[selectedSizes,setSelectedSizes]=useState<Record<string,number>>({}),[activeOrder,setActiveOrder]=useState<any>(null),[authUser,setAuthUser]=useState<any>(null),[cartNotice,setCartNotice]=useState(""),[cartFeedback,setCartFeedback]=useState(""),[cartFlight,setCartFlight]=useState<{key:number;x:number;y:number;dx:number;dy:number}|null>(null),[descriptionProduct,setDescriptionProduct]=useState<P|null>(null);
