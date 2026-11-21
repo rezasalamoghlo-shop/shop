@@ -14,14 +14,14 @@ export const metadata:Metadata={
     title:"خرید عطر و ادکلن | فروشگاه عطر کهکشان",
     description:"فروشگاه عطر کهکشان؛ انتخاب و خرید عطر و ادکلن با امکان خرید میلی یا بطری کامل، بررسی رایحه‌ها و دریافت مشاوره هوشمند برای انتخاب عطر مناسب.",
     url:"https://shop-gamma-wheat.vercel.app",
-    siteName:"عطر کهکشان | GALAXY",
+    siteName:"فروشگاه عطر کهکشان",
     locale:"fa_IR",
     type:"website"
   },
   twitter:{
     card:"summary",
-    title:"عطر کهکشان | GALAXY",
-    description:"فروشگاه اینترنتی عطر و ادکلن عطر کهکشان"
+    title:"خرید عطر و ادکلن | عطر کهکشان",
+    description:"خرید عطر و ادکلن به‌صورت میلی یا بطری کامل از فروشگاه عطر کهکشان."
   }
 };
 
