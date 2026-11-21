@@ -1029,3 +1029,8 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
  .store-category-title p{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.store-category-card{transition:none}.store-category-card:hover{transform:none}}
+
+/* Three primary homepage paths: signature, store, and smart advisor. */
+.galaxy-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:1/-1;width:calc(50% - 5px);justify-self:center}}
+@media(max-width:650px){.galaxy-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.galaxy-feature-grid>.galaxy-feature-card:nth-child(3){grid-column:1/-1;width:calc(50% - 5px);justify-self:center}}
