@@ -1,6 +1,6 @@
 "use client";
 
-type Category={id:string;name:string;slug:string;description:string|null;sort_order:number};
+type Category={id:string;name:string;slug:string;description:string|null};
 type Product={id:string;category_ids?:string[];categories?:Array<{id?:string;slug?:string}>};
 
 export default function StoreCategories({embedded=false,categories=[],products=[],loading=false}:{embedded?:boolean;categories?:Category[];products?:Product[];loading?:boolean}){
