@@ -17,7 +17,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   try{
     const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
     const [{data:categories,error:categoriesError},{data:articles,error:articlesError}]=await Promise.all([
-      db.from("categories").select("slug,updated_at,created_at").eq("is_active",true),
+      db.from("categories").select("slug,created_at").eq("is_active",true),
       db.from("magazine_articles").select("slug,updated_at,created_at").eq("is_published",true)
     ]);
     if(categoriesError||articlesError)throw new Error("sitemap data unavailable");
