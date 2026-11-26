@@ -317,6 +317,8 @@ export default function Admin() {
       if (cropSource) URL.revokeObjectURL(cropSource);
       setCropSource(null);
       await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "بهینه‌سازی یا ذخیره تصویر ناموفق بود. دوباره تلاش کنید.");
     } finally {
       setAction("");
     }
