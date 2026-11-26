@@ -3,7 +3,7 @@
 type Category={id:string;name:string;slug:string;description:string|null;sort_order:number};
 type Product={id:string;category_ids?:string[];categories?:Array<{id?:string;slug?:string}>};
 
-export default function StoreCategories({embedded=false,categories=[],products=[]}:{embedded?:boolean;categories?:Category[];products?:Product[]}){
+export default function StoreCategories({embedded=false,categories=[],products=[],loading=false}:{embedded?:boolean;categories?:Category[];products?:Product[];loading?:boolean}){
   const counts=new Map<string,number>();
   for(const product of products){
     const ids=new Set([...(product.category_ids||[]),...(product.categories||[]).flatMap(category=>[category.id,category.slug].filter(Boolean) as string[])]);
@@ -17,7 +17,7 @@ export default function StoreCategories({embedded=false,categories=[],products=[
       <label htmlFor={embedded?"homepage-perfume-search":"store-perfume-search"}>جست‌وجوی مستقیم عطر</label>
       <div className="store-search-control"><span aria-hidden="true">⌕</span><input id={embedded?"homepage-perfume-search":"store-perfume-search"} type="search" name="q" placeholder="نام عطر موردنظرتان را بنویسید..." autoComplete="off"/><button type="submit">جست‌وجو</button></div>
     </form>
-    {!categories.length?<div className="store-categories-state" role="status">در حال حاضر دسته‌بندی فعالی برای نمایش وجود ندارد.</div>:<nav className="store-category-grid" aria-label="دسته‌بندی محصولات">
+    {loading?<div className="store-categories-state" role="status">در حال بارگذاری دسته‌بندی‌ها…</div>:!categories.length?<div className="store-categories-state" role="status">در حال حاضر دسته‌بندی فعالی برای نمایش وجود ندارد.</div>:<nav className="store-category-grid" aria-label="دسته‌بندی محصولات">
       <a className="store-category-card store-category-all" href="/store/all">
         <span className="store-category-number">00</span><span className="store-category-star" aria-hidden="true">✦</span>
         <h3>همه محصولات</h3><p>تمام عطرها و ادکلن‌های فعال فروشگاه را یک‌جا مشاهده کنید.</p>
