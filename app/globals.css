@@ -1065,3 +1065,19 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
  .store-search-control input{font-size:12px}
  .store-search-control button{min-height:38px;padding:0 12px;font-size:11px}
 }
+
+
+/* Mobile GPU budget: preserve the galaxy look while reducing continuous paint work. */
+@media(max-width:650px){
+  .galaxy-cinematic-scene{transform:none!important;will-change:auto}
+  .galaxy-cinematic-scene:before{filter:blur(14px);animation:none}
+  .galaxy-nebula,.galaxy-nebula-two{filter:blur(18px);animation:none;opacity:.2}
+  .galaxy-lens-glow{filter:none;animation:none}
+  .galaxy-orbit,.galaxy-orbit-two{animation:none;box-shadow:none}
+  .galaxy-star-layer i{animation:none;opacity:.3}
+  .galaxy-gold-drift i{animation:none;display:none}
+  .galaxy-content>header{backdrop-filter:none!important}
+  .hero-perfume{filter:none}
+  .galaxy-feature-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+  .galaxy-contact-section,footer{content-visibility:auto;contain-intrinsic-size:auto 520px}
+}
