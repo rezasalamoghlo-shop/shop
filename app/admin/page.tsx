@@ -325,10 +325,11 @@ export default function Admin() {
   async function chooseImage(file: File | null) {
     if (!file) return;
     if (!file.type.startsWith("image/")) { setMessage("لطفاً یک فایل تصویری انتخاب کنید."); return; }
+    if (file.size > 15 * 1024 * 1024) { setMessage("حجم تصویر اولیه نباید بیشتر از ۱۵ مگابایت باشد."); return; }
     if (cropSource) URL.revokeObjectURL(cropSource);
     setImage(file); setCropSource(URL.createObjectURL(file));
     setCropZoom(1.35); setCropX(50); setCropY(50); setCropDimensions({width: 0, height: 0});
-    setMessage("کادر برش را تنظیم کنید؛ فقط نسخه برش‌خورده ذخیره خواهد شد.");
+    setMessage("تصویر انتخاب شد. پس از برش، به WebP کم‌حجم تبدیل می‌شود.");
   }
 
   async function cropImageFile(file: File, zoom: number, x: number, y: number): Promise<File> {
@@ -336,14 +337,45 @@ export default function Admin() {
     try {
       const img = new window.Image(); img.src = url;
       await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(new Error("بارگذاری تصویر ناموفق بود")); });
+      if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth > 12000 || img.naturalHeight > 12000) {
+        throw new Error("ابعاد تصویر معتبر نیست یا بیش از حد بزرگ است.");
+      }
       const side = Math.min(img.naturalWidth, img.naturalHeight) / zoom;
       const left = Math.max(0, Math.min(img.naturalWidth - side, (img.naturalWidth - side) * x / 100));
       const top = Math.max(0, Math.min(img.naturalHeight - side, (img.naturalHeight - side) * y / 100));
-      const canvas = document.createElement("canvas"); canvas.width = 720; canvas.height = 720;
-      const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("امکان برش تصویر وجود ندارد");
-      ctx.drawImage(img, left, top, side, side, 0, 0, 720, 720);
-      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("ساخت تصویر برش‌خورده ناموفق بود")), "image/webp", 0.88));
-      return new File([blob], file.name.replace(/\.[^.]+$/, "") + "-crop.webp", { type: "image/webp" });
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("امکان بهینه‌سازی تصویر وجود ندارد");
+
+      const encode = (quality: number) => new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("فشرده‌سازی تصویر ناموفق بود")), "image/webp", quality);
+      });
+      let optimized: Blob | null = null;
+      const attempts = [
+        {size:720,qualities:[0.82,0.76,0.70,0.64]},
+        {size:640,qualities:[0.76,0.70,0.64]},
+        {size:560,qualities:[0.74,0.68,0.62]},
+        {size:480,qualities:[0.72,0.66,0.60]}
+      ];
+      for (const attempt of attempts) {
+        canvas.width = attempt.size; canvas.height = attempt.size;
+        ctx.clearRect(0,0,attempt.size,attempt.size);
+        ctx.drawImage(img,left,top,side,side,0,0,attempt.size,attempt.size);
+        for (const quality of attempt.qualities) {
+          const blob = await encode(quality);
+          if (!optimized || blob.size < optimized.size) optimized = blob;
+          if (blob.size <= 450 * 1024) { optimized = blob; break; }
+        }
+        if (optimized && optimized.size <= 450 * 1024) break;
+      }
+      if (!optimized || optimized.size > 450 * 1024) {
+        throw new Error("حجم تصویر پس از فشرده‌سازی هنوز زیاد است؛ لطفاً تصویر دیگری انتخاب کنید.");
+      }
+      const saved = new File([optimized], file.name.replace(/\.[^.]+$/, "") + "-optimized.webp", { type: "image/webp", lastModified: Date.now() });
+      const before = (file.size / 1024).toFixed(0);
+      const after = (saved.size / 1024).toFixed(0);
+      setMessage("تصویر بهینه شد: " + before + " کیلوبایت ← " + after + " کیلوبایت؛ آماده ذخیره است.");
+      return saved;
     } finally { URL.revokeObjectURL(url); }
   }
 
