@@ -19,7 +19,7 @@ async function getStorefront(){
     if(linksError) throw linksError;
     if(sizesError) throw sizesError;
 
-    const categoryById=new Map((categories??[]).map((category:any)=>[category.id,category]));
+    const categoryById=new Map<string,any>((categories??[]).map((category:any)=>[String(category.id),category] as [string,any]));
     const linksByProduct=new Map<string,string[]>();
     for(const link of links??[]){
       const list=linksByProduct.get(link.product_id)||[];
