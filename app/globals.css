@@ -1081,3 +1081,96 @@ a.support-option:hover{transform:translateY(-2px);background:#ffffff0c;border-co
   .galaxy-feature-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
   .galaxy-contact-section,footer{content-visibility:auto;contain-intrinsic-size:auto 520px}
 }
+
+
+/* Product description: flip the existing product card instead of opening a modal. */
+.galaxy-content>.catalog .product-flip-card{
+  perspective:1100px;
+  overflow:visible;
+  transform-style:preserve-3d;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  transition:transform .28s ease;
+}
+.galaxy-content>.catalog .product-flip-card:hover{
+  transform:translateY(-4px);
+  border-color:transparent;
+}
+.galaxy-content>.catalog .product-flip-inner{
+  position:relative;
+  display:grid;
+  height:100%;
+  min-height:100%;
+  transform-style:preserve-3d;
+  transition:transform .72s cubic-bezier(.2,.72,.18,1);
+}
+.galaxy-content>.catalog .product-flip-card.is-flipped .product-flip-inner{
+  transform:rotateY(180deg);
+}
+.galaxy-content>.catalog .product-flip-face{
+  grid-area:1/1;
+  min-width:0;
+  min-height:100%;
+  overflow:hidden;
+  border:1px solid #2d2738;
+  border-radius:18px;
+  background:linear-gradient(155deg,#171020,#0d0a14 75%);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.galaxy-content>.catalog .product-flip-front{
+  display:flex;
+  flex-direction:column;
+  transform:rotateY(0deg);
+}
+.galaxy-content>.catalog .product-flip-back{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  padding:clamp(18px,2.2vw,25px);
+  transform:rotateY(180deg);
+  background:radial-gradient(ellipse at 90% 0,#6d3c8d55,transparent 50%),linear-gradient(145deg,#171020,#0b0812);
+  border-color:#c6a0ef88;
+}
+.galaxy-content>.catalog .product-flip-back h3{
+  min-height:0;
+  margin:18px 0 12px;
+  color:#f0cf7e;
+  font-size:clamp(18px,2vw,23px);
+}
+.galaxy-content>.catalog .product-flip-description{
+  flex:1;
+  min-height:120px;
+  max-height:310px;
+  overflow:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  color:#eee5f7;
+  font-size:14px;
+  line-height:2.15;
+  scrollbar-color:#8a3fe0 #171020;
+}
+.galaxy-content>.catalog .product-flip-return{
+  align-self:flex-start;
+  margin-top:18px;
+  padding:9px 13px;
+  border:1px solid #d5b67a88;
+  border-radius:11px;
+  background:#21172d;
+  color:#f7e5bb;
+  font:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+.galaxy-content>.catalog .product-flip-return:hover{
+  background:#39214e;
+  border-color:#f0cf7e;
+}
+@media(max-width:650px){
+  .galaxy-content>.catalog .product-flip-inner{transition-duration:.58s}
+  .galaxy-content>.catalog .product-flip-description{font-size:13px;max-height:260px}
+}
+@media(prefers-reduced-motion:reduce){
+  .galaxy-content>.catalog .product-flip-inner{transition-duration:.01ms}
+}
