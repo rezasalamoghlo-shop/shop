@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 type Article = { id:string; title:string; slug:string; excerpt:string; content:string; image_url:string; created_at:string };
 export default function MagazineSection() {
@@ -22,7 +23,7 @@ export default function MagazineSection() {
     {loading?<div style={{...panel,padding:24,textAlign:"center",color:"#d2c3df"}}>در حال بارگذاری صفحه‌های مجله…</div>:!articles.length?<div style={{...panel,padding:24,textAlign:"center"}}><div style={{fontSize:30,color:"#c9a5f1"}}>✧</div><h3>دنیای رایحه‌ها در راه است</h3><p style={{color:"#c9bdd2",lineHeight:2}}>مدیریت می‌تواند برای هر صفحه یک تصویر و متن ثبت کند؛ صفحه‌های منتشرشده اینجا نمایش داده می‌شوند.</p></div>:current&&<>
       <div style={{...panel,display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,300px),1fr))",position:"relative"}}>
         <button type="button" onClick={()=>openArticle(current)} aria-label={"مطالعه "+current.title} style={{display:"block",position:"relative",minHeight:320,padding:0,border:0,background:"#0c0811",cursor:"pointer",overflow:"hidden",textAlign:"inherit"}}>
-          <img key={current.id} src={current.image_url} alt={current.title} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",animation:"galaxyMagazineFade 700ms ease"}}/>
+          <Image key={current.id} src={current.image_url} alt={current.title} fill sizes="(max-width:700px) 100vw, 50vw" style={{objectFit:"cover",animation:"galaxyMagazineFade 700ms ease"}}/>
           <span style={{position:"absolute",bottom:16,right:16,background:"#171120dd",color:"#fff",padding:"8px 12px",borderRadius:10}}>برای مطالعه انتخاب کن ↗</span>
         </button>
         <div style={{padding:"clamp(20px,4vw,38px)",display:"flex",flexDirection:"column",justifyContent:"center"}}>
@@ -46,7 +47,7 @@ export default function MagazineSection() {
     {selected&&<div role="dialog" aria-modal="true" aria-label={selected.title} onClick={closeArticle} style={{position:"fixed",zIndex:1000,inset:0,background:"#08050bd9",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
       <article onClick={e=>e.stopPropagation()} style={{width:"min(900px,100%)",maxHeight:"90vh",overflowY:"auto",background:"#171120",color:"#fff",border:"1px solid #6d527e",borderRadius:20,position:"relative"}}>
         <button onClick={closeArticle} aria-label="بستن و ادامه ورق‌زدن" style={{position:"sticky",top:12,float:"left",margin:12,zIndex:2,border:0,borderRadius:99,width:38,height:38,background:"#2b1d37",color:"#fff",fontSize:24,cursor:"pointer"}}>×</button>
-        <img src={selected.image_url} alt={selected.title} style={{width:"100%",maxHeight:360,objectFit:"cover",display:"block"}}/>
+        <Image src={selected.image_url} alt={selected.title} width={1200} height={600} sizes="100vw" style={{width:"100%",height:"auto",maxHeight:360,objectFit:"cover",display:"block"}}/>
         <div style={{padding:"clamp(18px,4vw,36px)"}}><small style={{color:"#c6a0ef"}}>مجلهٔ عطر کهکشان</small><h2 style={{fontSize:"clamp(24px,4vw,36px)",lineHeight:1.7}}>{selected.title}</h2>{selected.excerpt&&<p style={{color:"#d1c4dc",fontSize:17,lineHeight:2,whiteSpace:"pre-wrap"}}>{selected.excerpt}</p>}<div style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere",lineHeight:2.2,fontSize:16}}>{selected.content}</div><button onClick={closeArticle} style={{...button,marginTop:24}}>پایان مطالعه و ادامهٔ مجله</button></div>
       </article>
     </div>}

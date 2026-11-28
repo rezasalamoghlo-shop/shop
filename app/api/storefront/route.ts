@@ -14,7 +14,38 @@ async function getStorefront(){
       db.from("product_sizes").select("id,product_id,size_ml,price,discount_percent,stock,is_active").order("size_ml")
     ]);
     if(productsError) throw productsError;
-    if(settingsError) throw settingsError;if(categoriesError) throw categoriesError;if(linksError) throw linksError;if(sizesError) throw sizesError;const cats=categories??[];const productList=(products??[]).map((p:any)=>({...p,category_ids:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>z.category_id),categories:(links??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>cats.find((k:any)=>k.id===z.category_id)).filter(Boolean),sizes:(sizes??[]).filter((z:any)=>z.product_id===p.id).map((z:any)=>({...z,stock:Math.floor(Number(p.stock||0)/Math.max(1,Number(z.size_ml)||1))}))}));return {products:productList,settings:settings??null,categories:cats};
+    if(settingsError) throw settingsError;
+    if(categoriesError) throw categoriesError;
+    if(linksError) throw linksError;
+    if(sizesError) throw sizesError;
+
+    const categoryById=new Map<string,any>((categories??[]).map((category:any)=>[String(category.id),category] as [string,any]));
+    const linksByProduct=new Map<string,string[]>();
+    for(const link of links??[]){
+      const list=linksByProduct.get(link.product_id)||[];
+      list.push(link.category_id);
+      linksByProduct.set(link.product_id,list);
+    }
+    const sizesByProduct=new Map<string,any[]>();
+    for(const size of sizes??[]){
+      const list=sizesByProduct.get(size.product_id)||[];
+      list.push(size);
+      sizesByProduct.set(size.product_id,list);
+    }
+    const productList=(products??[]).map((product:any)=>{
+      const categoryIds=linksByProduct.get(product.id)||[];
+      const productSizes=sizesByProduct.get(product.id)||[];
+      return {
+        ...product,
+        category_ids:categoryIds,
+        categories:categoryIds.map(id=>categoryById.get(id)).filter(Boolean),
+        sizes:productSizes.map((size:any)=>({
+          ...size,
+          stock:Math.floor(Number(product.stock||0)/Math.max(1,Number(size.size_ml)||1))
+        }))
+      };
+    });
+    return {products:productList,settings:settings??null,categories:categories??[]};
 }
 
 export async function GET(){
